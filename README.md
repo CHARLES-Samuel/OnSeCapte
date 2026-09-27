@@ -1,8 +1,10 @@
-# OnSeCapte 🚀
+# OnSeCapte 🚀 (v1.0.0)
 
 > **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
 
 **OnSeCapte** est une application web moderne qui permet d'organiser facilement des événements, sorties et activités entre amis ou au sein de groupes privés.
+
+🌐 **Application déployée :** [https://onsecapte-25bae.web.app](https://onsecapte-25bae.web.app)
 
 ## 🛠️ Stack Technique
 
