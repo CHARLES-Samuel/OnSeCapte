@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { Plus, Users, Loader2, ArrowRight, LogOut, Copy, CheckCircle2 } from "lucide-react";
+import { Plus, Users, Loader2, ArrowRight, LogOut, Copy, CheckCircle2, Edit2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useGroups } from "../hooks/useGroups";
 import { CreateGroupModal } from "../components/features/groups/CreateGroupModal";
 import { JoinGroupModal } from "../components/features/groups/JoinGroupModal";
+import { EditPseudoModal } from "../components/features/auth/EditPseudoModal";
 
 export const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -13,6 +14,7 @@ export const Dashboard = () => {
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isEditPseudoModalOpen, setIsEditPseudoModalOpen] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   if (authLoading) {
@@ -51,15 +53,26 @@ export const Dashboard = () => {
                 className="w-8 h-8 rounded-full border border-slate-700" 
               />
             )}
-            <span className="text-sm font-medium text-slate-300 hidden sm:block">
-              {user.displayName?.split(" ")[0] || "User"}
-            </span>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm font-medium text-slate-300">
+                {user.displayName || "User"}
+              </span>
+              <button 
+                onClick={() => setIsEditPseudoModalOpen(true)}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                title="Modifier le pseudo"
+                aria-label="Modifier le pseudo"
+              >
+                <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            </div>
             <button 
               onClick={signOut}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               title="Déconnexion"
+              aria-label="Se déconnecter"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -171,6 +184,10 @@ export const Dashboard = () => {
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
         onSubmit={joinGroup}
+      />
+      <EditPseudoModal
+        isOpen={isEditPseudoModalOpen}
+        onClose={() => setIsEditPseudoModalOpen(false)}
       />
     </div>
   );

@@ -17,7 +17,7 @@ export const EventDetails = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { group, loading: groupLoading } = useGroupDetails(groupId);
+  const { group, memberProfiles, loading: groupLoading } = useGroupDetails(groupId);
   const isGroupOwner = group?.createdBy === user?.uid;
 
   const { 
@@ -338,6 +338,7 @@ export const EventDetails = () => {
             totalMembers={totalMembers}
             bestDates={bestDates}
             availabilities={availabilities}
+            memberProfiles={memberProfiles}
             currentUserId={user?.uid}
             canLock={canLock}
             eventState={event.state}

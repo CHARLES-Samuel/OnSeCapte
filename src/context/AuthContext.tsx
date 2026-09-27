@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  updatePseudo: (pseudo: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,8 +50,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const updatePseudo = async (pseudo: string) => {
+    try {
+      await authService.updatePseudo(pseudo);
+      // Force refresh the user state by fetching the current user again
+      const updatedUser = await authService.getCurrentUser();
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du pseudo", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, updatePseudo }}>
       {children}
     </AuthContext.Provider>
   );

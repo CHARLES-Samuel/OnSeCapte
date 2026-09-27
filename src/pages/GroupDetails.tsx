@@ -29,6 +29,7 @@ export const GroupDetails = () => {
   
   const { 
     group, 
+    memberProfiles,
     loading: groupLoading, 
     error: groupError, 
     deleteGroup, 
@@ -73,24 +74,27 @@ export const GroupDetails = () => {
   ];
 
   const memberNamesMap = useMemo(() => {
-    const map: Record<string, string> = {};
+    const map: Record<string, string> = { ...memberProfiles };
+    
     if (user) {
       map[user.uid] = user.displayName || user.email?.split('@')[0] || 'Vous';
     }
+    
     events.forEach(e => {
-      if (e.createdBy && e.createdByName) {
+      // Les données de memberProfiles sont prioritaires si elles existent
+      if (e.createdBy && e.createdByName && !map[e.createdBy]) {
         map[e.createdBy] = e.createdByName;
       }
       if (e.availabilities) {
         Object.values(e.availabilities).forEach(avail => {
-          if (avail.userId && avail.userName) {
+          if (avail.userId && avail.userName && !map[avail.userId]) {
             map[avail.userId] = avail.userName;
           }
         });
       }
     });
     return map;
-  }, [events, user]);
+  }, [events, user, memberProfiles]);
 
   const getCreatorName = (e: Event): string => {
     if (e.createdBy === user?.uid) return "Vous";

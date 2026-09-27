@@ -7,6 +7,7 @@ interface EventSynthesisProps {
   totalMembers: number;
   bestDates: { date: string; timeSlot: TimeSlot; count: number }[];
   availabilities: Record<string, EventAvailability>;
+  memberProfiles?: Record<string, string>;
   currentUserId?: string;
   canLock: boolean;
   eventState?: EventState;
@@ -31,6 +32,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   totalMembers,
   bestDates,
   availabilities,
+  memberProfiles = {},
   currentUserId,
   canLock,
   eventState = 'sondage',
@@ -160,7 +162,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                   className="flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-800 text-sm"
                 >
                   <span className="font-medium text-slate-300">
-                    {avail.userName || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
+                    {memberProfiles[avail.userId] || avail.userName || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
                   </span>
                   {avail.isAvailable ? (
                     <span className="text-emerald-400 flex items-center gap-1 text-xs font-medium">

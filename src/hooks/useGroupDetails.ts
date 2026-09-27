@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import type { Group } from '../models/Group';
 import { groupService } from '../services/implementations/FirestoreGroupService';
 import { useAuth } from './useAuth';
+import { collection, getDocs, query, where, documentId } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 export function useGroupDetails(groupId: string | undefined) {
   const { user } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
+  const [memberProfiles, setMemberProfiles] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +23,25 @@ export function useGroupDetails(groupId: string | undefined) {
         setLoading(true);
         const data = await groupService.getGroupById(groupId);
         setGroup(data);
+        
+        if (data && data.members.length > 0) {
+          const chunks = [];
+          for (let i = 0; i < data.members.length; i += 30) {
+            chunks.push(data.members.slice(i, i + 30));
+          }
+          
+          const profiles: Record<string, string> = {};
+          for (const chunk of chunks) {
+            const q = query(collection(db, 'users'), where(documentId(), 'in', chunk));
+            const snap = await getDocs(q);
+            snap.forEach(doc => {
+              if (doc.data().displayName) {
+                profiles[doc.id] = doc.data().displayName;
+              }
+            });
+          }
+          setMemberProfiles(profiles);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erreur lors du chargement du groupe";
         setError(message);
@@ -58,5 +80,5 @@ export function useGroupDetails(groupId: string | undefined) {
     }
   };
 
-  return { group, loading, error, deleteGroup, transferOwnership };
+  return { group, memberProfiles, loading, error, deleteGroup, transferOwnership };
 }

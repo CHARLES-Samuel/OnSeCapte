@@ -17,6 +17,8 @@
 ### 1. Authentification & Profil (`Auth`)
 - Connexion / Inscription sécurisée avec Firebase Auth (Google & Email/Mot de passe).
 - Protection des routes privées.
+- **Gestion du Pseudo :** Les utilisateurs peuvent modifier leur pseudo (nom d'affichage) à tout moment via une modale dédiée.
+- **Synchronisation Globale :** Les pseudos sont synchronisés en temps réel dans une collection globale `users` sur Firestore, garantissant que tout l'historique d'événements et de votes reflète toujours le nom actuel de l'utilisateur.
 
 ### 2. Gestion des Groupes (`Dashboard`)
 - **Création de Groupe :** Limite stricte de 3 groupes créés par utilisateur.
