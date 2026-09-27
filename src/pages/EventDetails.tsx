@@ -144,11 +144,15 @@ export const EventDetails = () => {
     }
   };
 
-  if ((groupLoading || eventsLoading) && !event) {
+  if (groupLoading || eventsLoading) {
     if (!showLoading) return null;
     return <div className="min-h-screen bg-slate-900 text-slate-400 flex items-center justify-center">Chargement...</div>;
   }
-  if (!event || !group) return <div className="min-h-screen bg-slate-900 text-red-400 flex items-center justify-center">Événement ou groupe introuvable.</div>;
+
+  if (!event || !group) {
+    if (!showLoading) return null;
+    return <div className="min-h-screen bg-slate-900 text-red-400 flex items-center justify-center">Événement ou groupe introuvable.</div>;
+  }
 
   const isLocked = event.state === 'planifie';
 

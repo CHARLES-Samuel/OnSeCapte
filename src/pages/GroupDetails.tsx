@@ -93,12 +93,15 @@ export const GroupDetails = () => {
     return () => clearTimeout(t);
   }, []);
 
-  if (groupLoading && !group) {
+  if (groupLoading) {
     if (!showLoading) return null;
     return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400">Chargement du groupe...</div>;
   }
   
-  if (groupError || !group) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-red-400">{groupError || "Groupe introuvable"}</div>;
+  if (groupError || !group) {
+    if (!showLoading) return null;
+    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-red-400">{groupError || "Groupe introuvable"}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 font-sans">
