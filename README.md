@@ -25,14 +25,14 @@
 
 ### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
 - **Administration du Groupe & Transfert :**
-  - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe.
+  - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe avec confirmation visuelle.
   - **Transfert de propriété (`TransferOwnershipModal`) :** Le gérant peut transférer la propriété avec affichage explicite des **noms réels des membres** au lieu des identifiants bruts.
 - **Gestion des Événements :**
   - **Création d'événement :** Titre, description riche en Markdown (avec limite de 1500 caractères), prix (gratuit si 0 €) et choix parmi 6 catégories.
   - **Créateur visible :** Affichage clair du nom du membre ayant créé l'événement sur les cartes.
   - **Édition d'événement (`EditEventModal`) :** Modification à tout moment du titre, de la description, de la catégorie et du prix par le gérant ou le créateur.
   - **Support du Markdown (`MarkdownView`) :** Rendu riche des descriptions.
-  - **Droits et confirmation de suppression :** Confirmation obligatoire avant suppression.
+  - **Popups de confirmation modernes (`ConfirmModal`) :** Remplacement des alertes navigateur natives par de magnifiques fenêtres modales personnalisées pour les suppressions et annulations.
 - **Filtrage, Tri & Listes Déroulantes UX/UI :**
   - Design moderne et sur-mesure pour toutes les listes déroulantes (flèche SVG custom, fond sombre adapté, transitions douces).
   - Onglets/filtres par catégorie et état avec icônes Lucide dédiées.
@@ -47,11 +47,11 @@
   - Choix fin par jour (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
 - **Synthèse & Réponses des Membres :**
   - Progression en temps réel du nombre de membres ayant répondu.
-  - Classement dynamique des meileures dates (Top 3 des créneaux les plus plébiscités).
+  - Classement dynamique des meilleures dates (Top 3 des créneaux les plus plébiscités).
   - Affichage détaillé des réponses et disponibilités individuelles des autres membres du groupe.
 - **Verrouillage & Annulation en cas d'imprévu (`unlockEventDate`) :**
   - Le créateur de l'événement ou le gérant du groupe peut fixer la date finale **exclusivement parmi les 3 meilleures options du sondage**.
-  - **Annulation et réouverture du sondage :** En cas d'imprévu, le gérant ou le créateur peut annuler la date fixée et rouvrir le sondage pour permettre aux membres de revoter.
+  - **Annulation et réouverture du sondage :** En cas d'imprévu, le gérant ou le créateur peut annuler la date fixée avec confirmation modale moderne et rouvrir le sondage pour permettre aux membres de revoter.
   - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet reste accessible à tous les membres.
 
 ---

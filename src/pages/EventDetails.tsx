@@ -1,15 +1,16 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '../hooks/useEvents';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
 import type { TimeSlot, EventAvailability, CreateEventDTO } from '../models/Event';
-import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Unlock, Edit } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Unlock, Edit, Loader2 } from 'lucide-react';
 import { MonthCalendarPicker } from '../components/features/events/MonthCalendarPicker';
 import { TimeSlotSelector } from '../components/features/events/TimeSlotSelector';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
+import { ConfirmModal, ConfirmVariant } from '../components/ui/ConfirmModal';
 
 export const EventDetails = () => {
   const { groupId, eventId } = useParams<{ groupId: string; eventId: string }>();
@@ -34,12 +35,21 @@ export const EventDetails = () => {
   const canLock = isGroupOwner || isEventOwner;
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [showLoading, setShowLoading] = useState(false);
 
-  useEffect(() => {
-    const t = setTimeout(() => setShowLoading(true), 150);
-    return () => clearTimeout(t);
-  }, []);
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    variant?: ConfirmVariant;
+    icon?: React.ReactNode;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const availabilities = event?.availabilities || {};
   const totalMembers = group?.members.length || 0;
@@ -140,11 +150,19 @@ export const EventDetails = () => {
     await lockEventDate(event.id, dateStr, timeSlot);
   };
 
-  const handleUnlock = async () => {
+  const handleUnlockClick = () => {
     if (!event) return;
-    if (window.confirm("En cas d'imprévu, souhaitez-vous annuler la date fixée et rouvrir le sondage auprès des membres ?")) {
-      await unlockEventDate(event.id);
-    }
+    setConfirmModalConfig({
+      isOpen: true,
+      title: 'Rouvrir le sondage',
+      message: 'En cas d\'imprévu, souhaitez-vous annuler la date fixée et rouvrir le sondage auprès des membres ?',
+      confirmText: 'Annuler la date & Rouvrir',
+      variant: 'warning',
+      icon: <Unlock className="w-6 h-6" />,
+      onConfirm: async () => {
+        await unlockEventDate(event.id);
+      },
+    });
   };
 
   const handleUpdateEvent = async (data: Partial<CreateEventDTO>) => {
@@ -152,22 +170,35 @@ export const EventDetails = () => {
     return await updateEvent(event.id, data);
   };
 
-  const handleDeleteEvent = async () => {
+  const handleDeleteEventClick = () => {
     if (!event) return;
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement l'événement "${event.title}" ?`)) {
-      await deleteEvent(event.id);
-      navigate(`/groups/${groupId}`);
-    }
+    setConfirmModalConfig({
+      isOpen: true,
+      title: 'Supprimer l\'événement',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement l'événement "${event.title}" ? Cette action est irréversible.`,
+      confirmText: 'Supprimer définitivement',
+      variant: 'danger',
+      onConfirm: async () => {
+        await deleteEvent(event.id);
+        navigate(`/groups/${groupId}`);
+      },
+    });
   };
 
-  if (groupLoading || eventsLoading) {
-    if (!showLoading) return null;
-    return <div className="min-h-screen bg-slate-900 text-slate-400 flex items-center justify-center">Chargement...</div>;
+  if ((groupLoading || eventsLoading) && (!event || !group)) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+      </div>
+    );
   }
 
   if (!event || !group) {
-    if (!showLoading) return null;
-    return <div className="min-h-screen bg-slate-900 text-red-400 flex items-center justify-center">Événement ou groupe introuvable.</div>;
+    return (
+      <div className="min-h-screen bg-slate-900 text-red-400 flex items-center justify-center font-medium">
+        Événement ou groupe introuvable.
+      </div>
+    );
   }
 
   const isLocked = event.state === 'planifie';
@@ -203,7 +234,7 @@ export const EventDetails = () => {
                 <span className="hidden sm:inline">Modifier</span>
               </button>
               <button
-                onClick={handleDeleteEvent}
+                onClick={handleDeleteEventClick}
                 className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-sm font-medium"
                 title="Supprimer cet événement"
               >
@@ -226,7 +257,7 @@ export const EventDetails = () => {
             </p>
             {canLock && (
               <button
-                onClick={handleUnlock}
+                onClick={handleUnlockClick}
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition text-xs font-semibold"
               >
                 <Unlock className="w-4 h-4 text-amber-400" />
@@ -311,7 +342,7 @@ export const EventDetails = () => {
             canLock={canLock}
             eventState={event.state}
             onLock={handleLock}
-            onUnlock={handleUnlock}
+            onUnlock={handleUnlockClick}
           />
 
         </div>
@@ -322,6 +353,17 @@ export const EventDetails = () => {
         onClose={() => setIsEditModalOpen(false)}
         event={event}
         onSubmit={handleUpdateEvent}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModalConfig.isOpen}
+        onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModalConfig.onConfirm}
+        title={confirmModalConfig.title}
+        message={confirmModalConfig.message}
+        confirmText={confirmModalConfig.confirmText}
+        variant={confirmModalConfig.variant}
+        icon={confirmModalConfig.icon}
       />
     </div>
   );

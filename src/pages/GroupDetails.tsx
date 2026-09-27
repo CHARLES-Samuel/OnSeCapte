@@ -5,12 +5,13 @@ import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import type { Event, EventCategory } from '../models/Event';
 import { 
-  ArrowLeft, Plus, Trash2, Edit, UserCheck, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, Sparkles
+  ArrowLeft, Plus, Trash2, Edit, UserCheck, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, Sparkles, Loader2
 } from 'lucide-react';
 import { CreateEventModal } from '../components/features/events/CreateEventModal';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { TransferOwnershipModal } from '../components/features/groups/TransferOwnershipModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
+import { ConfirmModal, ConfirmVariant } from '../components/ui/ConfirmModal';
 
 const categoryIcons: Record<EventCategory, any> = {
   'Restaurant': Utensils,
@@ -46,6 +47,20 @@ export const GroupDetails = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   
   const [activeState, setActiveState] = useState<'Tous' | 'En recherche' | 'À venir' | 'Passés'>('Tous');
+
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    variant?: ConfirmVariant;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
   
   const categories: (EventCategory | 'Toutes')[] = [
     'Toutes', 
@@ -105,29 +120,49 @@ export const GroupDetails = () => {
     return filtered.sort((a, b) => sortOrder === 'asc' ? a.price - b.price : b.price - a.price);
   }, [events, activeCategory, activeState, sortOrder]);
 
-  const handleDeleteGroup = async () => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer définitivement ce groupe ?")) {
-      const success = await deleteGroup();
-      if (success) {
-        navigate('/dashboard');
-      }
-    }
+  const handleDeleteGroupClick = () => {
+    setConfirmModalConfig({
+      isOpen: true,
+      title: 'Supprimer le groupe',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement le groupe "${group?.name}" ? Cette action entraînera la perte de tous ses événements.`,
+      confirmText: 'Supprimer le groupe',
+      variant: 'danger',
+      onConfirm: async () => {
+        const success = await deleteGroup();
+        if (success) {
+          navigate('/dashboard');
+        }
+      },
+    });
   };
 
-  const [showLoading, setShowLoading] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setShowLoading(true), 150);
-    return () => clearTimeout(t);
-  }, []);
+  const handleDeleteEventClick = (targetEvent: Event) => {
+    setConfirmModalConfig({
+      isOpen: true,
+      title: 'Supprimer l\'événement',
+      message: `Êtes-vous sûr de vouloir supprimer définitivement l'événement "${targetEvent.title}" ?`,
+      confirmText: 'Supprimer l\'événement',
+      variant: 'danger',
+      onConfirm: async () => {
+        await deleteEvent(targetEvent.id);
+      },
+    });
+  };
 
-  if (groupLoading) {
-    if (!showLoading) return null;
-    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400">Chargement du groupe...</div>;
+  if (groupLoading && !group) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+      </div>
+    );
   }
   
   if (groupError || !group) {
-    if (!showLoading) return null;
-    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-red-400">{groupError || "Groupe introuvable"}</div>;
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-red-400">
+        {groupError || "Groupe introuvable"}
+      </div>
+    );
   }
 
   return (
@@ -156,7 +191,7 @@ export const GroupDetails = () => {
                 <span>Transférer propriété</span>
               </button>
               <button 
-                onClick={handleDeleteGroup} 
+                onClick={handleDeleteGroupClick} 
                 className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-sm font-medium"
               >
                 <Trash2 className="w-4 h-4" />
@@ -286,9 +321,7 @@ export const GroupDetails = () => {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${event.title}" ?`)) {
-                              deleteEvent(event.id);
-                            }
+                            handleDeleteEventClick(event);
                           }} 
                           className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 transition"
                           title="Supprimer l'événement"
@@ -328,6 +361,16 @@ export const GroupDetails = () => {
         memberNamesMap={memberNamesMap}
         currentOwnerId={group.createdBy}
         onTransfer={transferOwnership}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModalConfig.isOpen}
+        onClose={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModalConfig.onConfirm}
+        title={confirmModalConfig.title}
+        message={confirmModalConfig.message}
+        confirmText={confirmModalConfig.confirmText}
+        variant={confirmModalConfig.variant}
       />
     </div>
   );
