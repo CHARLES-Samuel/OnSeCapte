@@ -57,6 +57,33 @@ export const GroupDetails = () => {
     'Gaming'
   ];
 
+  const memberNamesMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (user) {
+      map[user.uid] = user.displayName || user.email?.split('@')[0] || 'Vous';
+    }
+    events.forEach(e => {
+      if (e.createdBy && e.createdByName) {
+        map[e.createdBy] = e.createdByName;
+      }
+      if (e.availabilities) {
+        Object.values(e.availabilities).forEach(avail => {
+          if (avail.userId && avail.userName) {
+            map[avail.userId] = avail.userName;
+          }
+        });
+      }
+    });
+    return map;
+  }, [events, user]);
+
+  const getCreatorName = (e: Event): string => {
+    if (e.createdBy === user?.uid) return "Vous";
+    if (e.createdByName) return e.createdByName;
+    if (memberNamesMap[e.createdBy]) return memberNamesMap[e.createdBy];
+    return "Un membre";
+  };
+
   const filteredEvents = useMemo(() => {
     let filtered = events;
     
@@ -242,7 +269,7 @@ export const GroupDetails = () => {
                   </div>
                   
                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-700/50">
-                    <span className="text-xs text-slate-500">Par {event.createdBy === user?.uid ? 'Vous' : 'Un membre'}</span>
+                    <span className="text-xs text-slate-500">Par {getCreatorName(event)}</span>
                     {canEditOrDelete && (
                       <div className="flex items-center gap-1">
                         <button 
@@ -298,6 +325,7 @@ export const GroupDetails = () => {
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
         members={group.members}
+        memberNamesMap={memberNamesMap}
         currentOwnerId={group.createdBy}
         onTransfer={transferOwnership}
       />

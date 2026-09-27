@@ -21,6 +21,7 @@ export interface Event {
   category: EventCategory;
   price: number; // 0 means Free
   createdBy: string;
+  createdByName?: string; // Nom du créateur de l'événement
   createdAt: number;
   state: EventState;
   availabilities?: Record<string, EventAvailability>;

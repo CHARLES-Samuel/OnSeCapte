@@ -28,7 +28,8 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     if (!user || !groupId) return;
     try {
       setError(null);
-      await eventService.createEvent(user.uid, { ...data, groupId });
+      const userName = user.displayName || user.email?.split('@')[0] || 'Un membre';
+      await eventService.createEvent(user.uid, userName, { ...data, groupId });
       return true;
     } catch (err: any) {
       setError(err.message);

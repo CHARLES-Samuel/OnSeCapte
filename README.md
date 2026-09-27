@@ -24,16 +24,18 @@
 - **Vue Dashboard :** Visualisation élégante de tous les groupes dont l'utilisateur est membre.
 
 ### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
-- **Administration du Groupe :**
+- **Administration du Groupe & Transfert :**
   - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe.
-  - **Transfert de propriété :** Le gérant peut transférer la propriété du groupe à un autre membre, sous réserve que le destinataire n'ait pas atteint sa limite de 3 groupes créés.
+  - **Transfert de propriété (`TransferOwnershipModal`) :** Le gérant peut transférer la propriété avec affichage explicite des **noms réels des membres** au lieu des identifiants bruts.
 - **Gestion des Événements :**
-  - **Création d'événement :** Titre, description riche en Markdown (avec limite généreuse de 1500 caractères), prix (gratuit si 0 €) et choix parmi 6 catégories (*Restaurant*, *Jeux de rôle*, *Soirée*, *Repas*, *Sport*, *Gaming*).
-  - **Édition d'événement (`EditEventModal`) :** Possibilité pour le gérant du groupe ou le créateur de modifier le titre, la description, la catégorie et le prix à tout moment.
-  - **Support du Markdown (`MarkdownView`) :** Rendu riche des descriptions (titres, gras, listes, liens sécurisés, citations, code).
-  - **Droits et confirmation de suppression :** Un événement ne peut être supprimé que par son créateur ou le gérant du groupe, avec **boîte de dialogue de confirmation préalable** pour éviter toute suppression accidentelle.
-- **Filtrage et Tri UX/UI :**
-  - Onglets/filtres par catégorie avec icônes Lucide dédiées.
+  - **Création d'événement :** Titre, description riche en Markdown (avec limite de 1500 caractères), prix (gratuit si 0 €) et choix parmi 6 catégories.
+  - **Créateur visible :** Affichage clair du nom du membre ayant créé l'événement sur les cartes.
+  - **Édition d'événement (`EditEventModal`) :** Modification à tout moment du titre, de la description, de la catégorie et du prix par le gérant ou le créateur.
+  - **Support du Markdown (`MarkdownView`) :** Rendu riche des descriptions.
+  - **Droits et confirmation de suppression :** Confirmation obligatoire avant suppression.
+- **Filtrage, Tri & Listes Déroulantes UX/UI :**
+  - Design moderne et sur-mesure pour toutes les listes déroulantes (flèche SVG custom, fond sombre adapté, transitions douces).
+  - Onglets/filtres par catégorie et état avec icônes Lucide dédiées.
   - Tri dynamique par prix (croissant / décroissant).
 
 ### 4. Saisie des Disponibilités & Sondage (`EventDetails`)
@@ -49,7 +51,7 @@
   - Affichage détaillé des réponses et disponibilités individuelles des autres membres du groupe.
 - **Verrouillage Sélectionnel (Top 3 des Dates) & Maintien de la visibilité :**
   - Le créateur de l'événement ou le gérant du groupe peut fixer la date finale **exclusivement parmi les 3 meilleures options du sondage**.
-  - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet (synthèse des votes, réponses individuelles, détails) reste accessible à tous les membres.
+  - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet reste accessible à tous les membres.
 
 ---
 

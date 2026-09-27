@@ -19,6 +19,7 @@ export class FirestoreEventService implements IEventService {
       category: data.category,
       price: data.price,
       createdBy: data.createdBy,
+      createdByName: data.createdByName,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
       state: data.state || 'sondage',
       availabilities: data.availabilities || {},
@@ -47,10 +48,11 @@ export class FirestoreEventService implements IEventService {
     });
   }
 
-  async createEvent(userId: string, data: CreateEventDTO): Promise<Event> {
+  async createEvent(userId: string, userName: string, data: CreateEventDTO): Promise<Event> {
     const eventData = {
       ...data,
       createdBy: userId,
+      createdByName: userName,
       createdAt: serverTimestamp(),
       state: 'sondage',
       availabilities: {}
@@ -61,6 +63,7 @@ export class FirestoreEventService implements IEventService {
       id: docRef.id,
       ...data,
       createdBy: userId,
+      createdByName: userName,
       createdAt: Date.now(),
       state: 'sondage',
       availabilities: {}
@@ -95,7 +98,6 @@ export class FirestoreEventService implements IEventService {
 
   async updateAvailability(eventId: string, userId: string, availability: EventAvailability): Promise<void> {
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
-    // On met à jour un champ imbriqué dans l'objet availabilities
     await updateDoc(eventRef, {
       [`availabilities.${userId}`]: availability
     });
