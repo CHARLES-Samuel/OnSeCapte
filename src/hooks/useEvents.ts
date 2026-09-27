@@ -36,6 +36,18 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     }
   };
 
+  const updateEvent = async (eventId: string, data: Partial<CreateEventDTO>) => {
+    if (!user) return false;
+    try {
+      setError(null);
+      await eventService.updateEvent(eventId, user.uid, data, isGroupOwner);
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
+
   const deleteEvent = async (eventId: string) => {
     if (!user) return;
     try {
@@ -48,5 +60,34 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     }
   };
 
-  return { events, loading, error, createEvent, deleteEvent };
+  const updateAvailability = async (eventId: string, availability: Omit<import('../models/Event').EventAvailability, 'userId' | 'updatedAt' | 'userName'>) => {
+    if (!user) return;
+    try {
+      setError(null);
+      await eventService.updateAvailability(eventId, user.uid, {
+        ...availability,
+        userId: user.uid,
+        userName: user.displayName || 'Un membre',
+        updatedAt: Date.now()
+      });
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  const lockEventDate = async (eventId: string, date: string, timeSlot: import('../models/Event').TimeSlot) => {
+    if (!user) return;
+    try {
+      setError(null);
+      await eventService.lockEventDate(eventId, user.uid, isGroupOwner, date, timeSlot);
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  return { events, loading, error, createEvent, updateEvent, deleteEvent, updateAvailability, lockEventDate };
 }

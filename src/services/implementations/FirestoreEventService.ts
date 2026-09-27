@@ -4,7 +4,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IEventService } from "../interfaces/IEventService";
-import type { Event, CreateEventDTO } from "../../models/Event";
+import type { Event, CreateEventDTO, EventAvailability, TimeSlot } from "../../models/Event";
 
 const EVENTS_COLLECTION = "events";
 
@@ -20,6 +20,10 @@ export class FirestoreEventService implements IEventService {
       price: data.price,
       createdBy: data.createdBy,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
+      state: data.state || 'sondage',
+      availabilities: data.availabilities || {},
+      finalDate: data.finalDate,
+      finalTimeSlot: data.finalTimeSlot,
     };
   }
 
@@ -47,7 +51,9 @@ export class FirestoreEventService implements IEventService {
     const eventData = {
       ...data,
       createdBy: userId,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      state: 'sondage',
+      availabilities: {}
     };
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventData);
     
@@ -55,7 +61,9 @@ export class FirestoreEventService implements IEventService {
       id: docRef.id,
       ...data,
       createdBy: userId,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      state: 'sondage',
+      availabilities: {}
     };
   }
 
@@ -83,6 +91,31 @@ export class FirestoreEventService implements IEventService {
     }
     
     await deleteDoc(eventRef);
+  }
+
+  async updateAvailability(eventId: string, userId: string, availability: EventAvailability): Promise<void> {
+    const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    // On met à jour un champ imbriqué dans l'objet availabilities
+    await updateDoc(eventRef, {
+      [`availabilities.${userId}`]: availability
+    });
+  }
+
+  async lockEventDate(eventId: string, userId: string, isGroupOwner: boolean, date: string, timeSlot: TimeSlot): Promise<void> {
+    const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    const eventSnap = await getDoc(eventRef);
+    if (!eventSnap.exists()) throw new Error("Événement introuvable.");
+    
+    const eventData = eventSnap.data();
+    if (eventData.createdBy !== userId && !isGroupOwner) {
+      throw new Error("Seul le créateur de l'événement ou le gérant du groupe peut valider la date.");
+    }
+    
+    await updateDoc(eventRef, {
+      state: 'planifie',
+      finalDate: date,
+      finalTimeSlot: timeSlot
+    });
   }
 }
 

@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 
 import { GroupDetails } from './pages/GroupDetails';
+import { EventDetails } from './pages/EventDetails';
 
 // Composant pour protéger les routes privées
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +36,14 @@ function App() {
             element={
               <PrivateRoute>
                 <GroupDetails />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/groups/:groupId/events/:eventId" 
+            element={
+              <PrivateRoute>
+                <EventDetails />
               </PrivateRoute>
             } 
           />

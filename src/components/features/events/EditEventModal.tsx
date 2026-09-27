@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import type { EventCategory, CreateEventDTO } from "../../../models/Event";
+import type { Event, EventCategory, CreateEventDTO } from "../../../models/Event";
 
-interface CreateEventModalProps {
+interface EditEventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<CreateEventDTO, "groupId">) => Promise<boolean | undefined>;
+  event: Event | null;
+  onSubmit: (data: Partial<CreateEventDTO>) => Promise<boolean | undefined>;
 }
 
 const CATEGORIES: EventCategory[] = [
@@ -19,7 +20,12 @@ const CATEGORIES: EventCategory[] = [
 
 const MAX_DESCRIPTION_LENGTH = 1500;
 
-export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModalProps) => {
+export const EditEventModal = ({
+  isOpen,
+  onClose,
+  event,
+  onSubmit,
+}: EditEventModalProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<EventCategory>("Soirée");
@@ -27,7 +33,16 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (event) {
+      setTitle(event.title);
+      setDescription(event.description || "");
+      setCategory(event.category);
+      setPrice(event.price);
+    }
+  }, [event]);
+
+  if (!isOpen || !event) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +67,6 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
       });
 
       if (success) {
-        setTitle("");
-        setDescription("");
-        setCategory("Soirée");
-        setPrice(0);
         onClose();
       }
     } catch (err: any) {
@@ -75,7 +86,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
           <X className="w-5 h-5" />
         </button>
 
-        <h3 className="text-xl font-bold mb-4">Créer un nouvel événement</h3>
+        <h3 className="text-xl font-bold mb-4">Modifier l'événement</h3>
 
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg">
@@ -166,7 +177,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
               disabled={loading}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-500 rounded-lg text-sm font-medium transition disabled:opacity-50"
             >
-              {loading ? "Création..." : "Créer l'événement"}
+              {loading ? "Enregistrement..." : "Enregistrer"}
             </button>
           </div>
         </form>

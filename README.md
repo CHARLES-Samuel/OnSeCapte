@@ -7,7 +7,7 @@
 ## 🛠️ Stack Technique
 
 - **Frontend :** React (Vite) + TypeScript (mode strict)
-- **Style :** Tailwind CSS + Lucide Icons
+- **Style :** Tailwind CSS + Lucide Icons + React-Markdown
 - **Backend / BaaS :** Firebase (Authentication & Cloud Firestore)
 
 ---
@@ -28,11 +28,28 @@
   - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe.
   - **Transfert de propriété :** Le gérant peut transférer la propriété du groupe à un autre membre, sous réserve que le destinataire n'ait pas atteint sa limite de 3 groupes créés.
 - **Gestion des Événements :**
-  - **Création d'événement :** Titre, description, prix (gratuit si 0 €) et choix parmi 6 catégories (*Restaurant*, *Jeux de rôle*, *Soirée*, *Repas*, *Sport*, *Gaming*).
-  - **Droits de modification/suppression :** Un événement ne peut être supprimé que par son créateur ou le gérant du groupe.
+  - **Création d'événement :** Titre, description riche en Markdown (avec limite généreuse de 1500 caractères), prix (gratuit si 0 €) et choix parmi 6 catégories (*Restaurant*, *Jeux de rôle*, *Soirée*, *Repas*, *Sport*, *Gaming*).
+  - **Édition d'événement (`EditEventModal`) :** Possibilité pour le gérant du groupe ou le créateur de modifier le titre, la description, la catégorie et le prix à tout moment.
+  - **Support du Markdown (`MarkdownView`) :** Rendu riche des descriptions (titres, gras, listes, liens sécurisés, citations, code).
+  - **Droits et confirmation de suppression :** Un événement ne peut être supprimé que par son créateur ou le gérant du groupe, avec **boîte de dialogue de confirmation préalable** pour éviter toute suppression accidentelle.
 - **Filtrage et Tri UX/UI :**
   - Onglets/filtres par catégorie avec icônes Lucide dédiées.
   - Tri dynamique par prix (croissant / décroissant).
+
+### 4. Saisie des Disponibilités & Sondage (`EventDetails`)
+- **Sélection des jours (Format Calendrier Grille Airbnb) :**
+  - Grille mensuelle sur 7 colonnes (Lundi à Dimanche) avec navigation entre les mois.
+  - Visualisation claire des jours passés (désactivés), du jour actuel et des jours sélectionnés.
+- **Personnalisation des Créneaux Horaires via Liste Déroulante :**
+  - Liste déroulante ergonomique pour basculer facilement d'un jour sélectionné à l'autre.
+  - Choix fin par jour (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
+- **Synthèse & Réponses des Membres :**
+  - Progression en temps réel du nombre de membres ayant répondu.
+  - Classement dynamique des meilleures dates (Top 3 des créneaux les plus plébiscités).
+  - Affichage détaillé des réponses et disponibilités individuelles des autres membres du groupe.
+- **Verrouillage Sélectionnel (Top 3 des Dates) & Maintien de la visibilité :**
+  - Le créateur de l'événement ou le gérant du groupe peut fixer la date finale **exclusivement parmi les 3 meilleures options du sondage**.
+  - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet (synthèse des votes, réponses individuelles, détails) reste accessible à tous les membres.
 
 ---
 
