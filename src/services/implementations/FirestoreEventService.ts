@@ -1,6 +1,6 @@
 import { 
   collection, doc, addDoc, getDoc, getDocs, query, where, 
-  onSnapshot, updateDoc, deleteDoc, serverTimestamp, Timestamp
+  onSnapshot, updateDoc, deleteDoc, serverTimestamp, Timestamp, deleteField
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IEventService } from "../interfaces/IEventService";
@@ -117,6 +117,23 @@ export class FirestoreEventService implements IEventService {
       state: 'planifie',
       finalDate: date,
       finalTimeSlot: timeSlot
+    });
+  }
+
+  async unlockEventDate(eventId: string, userId: string, isGroupOwner: boolean): Promise<void> {
+    const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    const eventSnap = await getDoc(eventRef);
+    if (!eventSnap.exists()) throw new Error("Événement introuvable.");
+    
+    const eventData = eventSnap.data();
+    if (eventData.createdBy !== userId && !isGroupOwner) {
+      throw new Error("Seul le créateur de l'événement ou le gérant du groupe peut annuler la date.");
+    }
+    
+    await updateDoc(eventRef, {
+      state: 'sondage',
+      finalDate: deleteField(),
+      finalTimeSlot: deleteField()
     });
   }
 }

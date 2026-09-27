@@ -8,4 +8,5 @@ export interface IEventService {
   deleteEvent(eventId: string, userId: string, isGroupOwner: boolean): Promise<void>;
   updateAvailability(eventId: string, userId: string, availability: EventAvailability): Promise<void>;
   lockEventDate(eventId: string, userId: string, isGroupOwner: boolean, date: string, timeSlot: TimeSlot): Promise<void>;
+  unlockEventDate(eventId: string, userId: string, isGroupOwner: boolean): Promise<void>;
 }

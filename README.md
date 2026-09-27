@@ -47,10 +47,11 @@
   - Choix fin par jour (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
 - **Synthèse & Réponses des Membres :**
   - Progression en temps réel du nombre de membres ayant répondu.
-  - Classement dynamique des meilleures dates (Top 3 des créneaux les plus plébiscités).
+  - Classement dynamique des meileures dates (Top 3 des créneaux les plus plébiscités).
   - Affichage détaillé des réponses et disponibilités individuelles des autres membres du groupe.
-- **Verrouillage Sélectionnel (Top 3 des Dates) & Maintien de la visibilité :**
+- **Verrouillage & Annulation en cas d'imprévu (`unlockEventDate`) :**
   - Le créateur de l'événement ou le gérant du groupe peut fixer la date finale **exclusivement parmi les 3 meilleures options du sondage**.
+  - **Annulation et réouverture du sondage :** En cas d'imprévu, le gérant ou le créateur peut annuler la date fixée et rouvrir le sondage pour permettre aux membres de revoter.
   - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet reste accessible à tous les membres.
 
 ---

@@ -90,5 +90,17 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     }
   };
 
-  return { events, loading, error, createEvent, updateEvent, deleteEvent, updateAvailability, lockEventDate };
+  const unlockEventDate = async (eventId: string) => {
+    if (!user) return;
+    try {
+      setError(null);
+      await eventService.unlockEventDate(eventId, user.uid, isGroupOwner);
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  return { events, loading, error, createEvent, updateEvent, deleteEvent, updateAvailability, lockEventDate, unlockEventDate };
 }

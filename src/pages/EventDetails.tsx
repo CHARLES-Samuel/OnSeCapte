@@ -4,7 +4,7 @@ import { useEvents } from '../hooks/useEvents';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
 import type { TimeSlot, EventAvailability, CreateEventDTO } from '../models/Event';
-import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Edit } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Unlock, Edit } from 'lucide-react';
 import { MonthCalendarPicker } from '../components/features/events/MonthCalendarPicker';
 import { TimeSlotSelector } from '../components/features/events/TimeSlotSelector';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
@@ -19,7 +19,16 @@ export const EventDetails = () => {
   const { group, loading: groupLoading } = useGroupDetails(groupId);
   const isGroupOwner = group?.createdBy === user?.uid;
 
-  const { events, loading: eventsLoading, updateAvailability, lockEventDate, updateEvent, deleteEvent } = useEvents(groupId, isGroupOwner);
+  const { 
+    events, 
+    loading: eventsLoading, 
+    updateAvailability, 
+    lockEventDate, 
+    unlockEventDate, 
+    updateEvent, 
+    deleteEvent 
+  } = useEvents(groupId, isGroupOwner);
+  
   const event = events.find(e => e.id === eventId);
   const isEventOwner = event?.createdBy === user?.uid;
   const canLock = isGroupOwner || isEventOwner;
@@ -131,6 +140,13 @@ export const EventDetails = () => {
     await lockEventDate(event.id, dateStr, timeSlot);
   };
 
+  const handleUnlock = async () => {
+    if (!event) return;
+    if (window.confirm("En cas d'imprévu, souhaitez-vous annuler la date fixée et rouvrir le sondage auprès des membres ?")) {
+      await unlockEventDate(event.id);
+    }
+  };
+
   const handleUpdateEvent = async (data: Partial<CreateEventDTO>) => {
     if (!event) return;
     return await updateEvent(event.id, data);
@@ -208,6 +224,15 @@ export const EventDetails = () => {
               📅 {new Date(event.finalDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} <br/>
               ⏰ {event.finalTimeSlot}
             </p>
+            {canLock && (
+              <button
+                onClick={handleUnlock}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition text-xs font-semibold"
+              >
+                <Unlock className="w-4 h-4 text-amber-400" />
+                <span>Rouvrir le sondage (Imprévu)</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -286,6 +311,7 @@ export const EventDetails = () => {
             canLock={canLock}
             eventState={event.state}
             onLock={handleLock}
+            onUnlock={handleUnlock}
           />
 
         </div>

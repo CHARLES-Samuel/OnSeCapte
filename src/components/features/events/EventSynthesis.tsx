@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { TimeSlot, EventAvailability, EventState } from '../../../models/Event';
-import { CheckCircle, XCircle, Users, Lock, Award } from 'lucide-react';
+import { CheckCircle, XCircle, Users, Lock, Unlock, Award } from 'lucide-react';
 
 interface EventSynthesisProps {
   respondedMembers: number;
@@ -11,6 +11,7 @@ interface EventSynthesisProps {
   canLock: boolean;
   eventState?: EventState;
   onLock: (date: string, timeSlot: TimeSlot) => Promise<void>;
+  onUnlock?: () => Promise<void>;
 }
 
 const formatDateShort = (dateStr: string): string => {
@@ -34,6 +35,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   canLock,
   eventState = 'sondage',
   onLock,
+  onUnlock,
 }) => {
   const memberList = Object.values(availabilities);
   const top3Dates = bestDates.slice(0, 3);
@@ -182,10 +184,20 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
 
       {/* Lock Status or Action */}
       {isLocked ? (
-        <div className="mt-8 pt-6 border-t border-slate-700/50">
+        <div className="mt-8 pt-6 border-t border-slate-700/50 space-y-3">
           <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl text-center text-xs text-emerald-300 font-medium flex items-center justify-center gap-2">
             <CheckCircle className="w-4 h-4 text-emerald-400" /> Événement verrouillé
           </div>
+          {canLock && onUnlock && (
+            <button
+              type="button"
+              onClick={onUnlock}
+              className="w-full py-2.5 px-4 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition text-xs font-semibold flex items-center justify-center gap-2"
+            >
+              <Unlock className="w-4 h-4 text-amber-400" />
+              <span>Rouvrir le sondage (Imprévu)</span>
+            </button>
+          )}
         </div>
       ) : (
         canLock && (
