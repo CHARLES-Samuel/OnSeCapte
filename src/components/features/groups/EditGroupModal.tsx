@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import type { Group, UpdateGroupDTO } from '../../../models/Group';
+import { ImageCropperModal } from '../../ui/ImageCropperModal';
 
 interface EditGroupModalProps {
   isOpen: boolean;
@@ -25,6 +26,13 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(group.bannerUrl || null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const [cropperState, setCropperState] = useState<{
+    isOpen: boolean;
+    imageUrl: string;
+    type: 'photo' | 'banner';
+    aspectRatio: number;
+  }>({ isOpen: false, imageUrl: '', type: 'photo', aspectRatio: 1 });
 
   useEffect(() => {
     if (isOpen) {
@@ -57,12 +65,25 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
     setError(null);
     const previewUrl = URL.createObjectURL(file);
 
-    if (isBanner) {
-      setBannerFile(file);
-      setBannerPreview(previewUrl);
+    setCropperState({
+      isOpen: true,
+      imageUrl: previewUrl,
+      type: isBanner ? 'banner' : 'photo',
+      aspectRatio: isBanner ? 3 : 1 // 3:1 for banner, 1:1 for profile
+    });
+    
+    // Clear inputs to allow selecting the same file again
+    if (isBanner && bannerInputRef.current) bannerInputRef.current.value = '';
+    if (!isBanner && photoInputRef.current) photoInputRef.current.value = '';
+  };
+
+  const handleCropComplete = (croppedImageUrl: string) => {
+    if (cropperState.type === 'banner') {
+      setBannerPreview(croppedImageUrl);
+      setBannerFile(null);
     } else {
-      setPhotoFile(file);
-      setPhotoPreview(previewUrl);
+      setPhotoPreview(croppedImageUrl);
+      setPhotoFile(null);
     }
   };
 
@@ -115,11 +136,15 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
       let base64Photo: string | undefined;
       if (photoFile) {
         base64Photo = await compressImage(photoFile, 800);
+      } else if (photoPreview && photoPreview !== group.photoUrl && photoPreview.startsWith('data:')) {
+        base64Photo = photoPreview;
       }
       
       let base64Banner: string | undefined;
       if (bannerFile) {
         base64Banner = await compressImage(bannerFile, 1200);
+      } else if (bannerPreview && bannerPreview !== group.bannerUrl && bannerPreview.startsWith('data:')) {
+        base64Banner = bannerPreview;
       }
       
       const success = await onSubmit({
@@ -284,6 +309,15 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
           </div>
         </form>
       </div>
+
+      <ImageCropperModal
+        isOpen={cropperState.isOpen}
+        onClose={() => setCropperState(prev => ({ ...prev, isOpen: false }))}
+        imageUrl={cropperState.imageUrl}
+        aspectRatio={cropperState.aspectRatio}
+        onCropCompleteAction={handleCropComplete}
+        title={cropperState.type === 'banner' ? "Recadrer la bannière" : "Recadrer la photo"}
+      />
     </div>
   );
 };
