@@ -1,9 +1,11 @@
-import { Calendar, Users, MapPin, ArrowRight } from "lucide-react";
+import { Calendar, Users, MapPin, ArrowRight, LogOut, Loader2 } from "lucide-react";
 import { app } from "../config/firebase";
+import { useAuth } from "../hooks/useAuth";
 
 export const Home = () => {
   // Simple verification that Firebase is initialized
   const isFirebaseInitialized = !!app;
+  const { user, loading, signInWithGoogle, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
@@ -16,10 +18,37 @@ export const Home = () => {
             On<span className="text-primary-500">SeCapte</span>
           </h1>
         </div>
-        <nav>
-          <button className="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all duration-300">
-            Connexion
-          </button>
+        <nav className="flex items-center gap-4">
+          {loading ? (
+            <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              {user.photoURL && (
+                <img 
+                  src={user.photoURL} 
+                  alt="Profile" 
+                  className="w-8 h-8 rounded-full border border-slate-700" 
+                />
+              )}
+              <span className="text-sm font-medium text-slate-300 hidden sm:block">
+                {user.displayName || user.email}
+              </span>
+              <button 
+                onClick={signOut}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Déconnexion"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={signInWithGoogle}
+              className="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all duration-300"
+            >
+              Connexion avec Google
+            </button>
+          )}
         </nav>
       </header>
 
@@ -40,13 +69,25 @@ export const Home = () => {
 
           {/* Call to action */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-primary-600/30 flex items-center gap-2 w-full sm:w-auto justify-center">
-              Créer un groupe
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-semibold transition-all duration-300 border border-slate-700 w-full sm:w-auto justify-center">
-              Rejoindre un groupe
-            </button>
+            {user ? (
+              <>
+                <button className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-primary-600/30 flex items-center gap-2 w-full sm:w-auto justify-center">
+                  Créer un groupe
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-semibold transition-all duration-300 border border-slate-700 w-full sm:w-auto justify-center">
+                  Rejoindre un groupe
+                </button>
+              </>
+            ) : (
+              <button 
+                onClick={signInWithGoogle}
+                className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-primary-600/30 flex items-center gap-2 w-full sm:w-auto justify-center"
+              >
+                Commencer (Google)
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            )}
           </div>
 
           {/* Features Preview */}

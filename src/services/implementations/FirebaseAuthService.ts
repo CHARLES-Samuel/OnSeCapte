@@ -1,7 +1,8 @@
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
-  signOut as firebaseSignOut 
+  signOut as firebaseSignOut,
+  onAuthStateChanged as firebaseOnAuthStateChanged
 } from "firebase/auth";
 import { auth } from "../../config/firebase";
 import type { IAuthService } from "../interfaces/IAuthService";
@@ -35,6 +36,21 @@ export class FirebaseAuthService implements IAuthService {
 
   async signOut(): Promise<void> {
     await firebaseSignOut(auth);
+  }
+
+  onAuthStateChanged(callback: (user: User | null) => void): () => void {
+    return firebaseOnAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        callback({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL
+        });
+      } else {
+        callback(null);
+      }
+    });
   }
 }
 
