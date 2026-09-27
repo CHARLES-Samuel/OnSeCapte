@@ -2,7 +2,7 @@ import React from 'react';
 import {
   BarChart3, Users, CalendarCheck, CalendarClock, CalendarX2,
   Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2,
-  Trophy, Star
+  Trophy, Star, MoreHorizontal
 } from 'lucide-react';
 import type { GroupEventStats } from '../../../utils/eventStatsUtils';
 import type { EventCategory } from '../../../models/Event';
@@ -18,6 +18,7 @@ const CATEGORY_CONFIG: Record<EventCategory, { icon: React.ElementType; color: s
   'Repas': { icon: Pizza, color: 'text-yellow-400' },
   'Sport': { icon: Dumbbell, color: 'text-green-400' },
   'Gaming': { icon: Gamepad2, color: 'text-blue-400' },
+  'Autres': { icon: MoreHorizontal, color: 'text-slate-400' },
 };
 
 export const GroupStatsPanel: React.FC<GroupStatsPanelProps> = ({ stats }) => {

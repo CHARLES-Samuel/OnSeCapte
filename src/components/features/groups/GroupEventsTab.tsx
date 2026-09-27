@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Plus, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2
+  Plus, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, MoreHorizontal
 } from 'lucide-react';
 import type { Event, EventCategory } from '../../../models/Event';
 import { EventCard } from '../events/EventCard';
@@ -12,6 +12,7 @@ const categoryIcons: Record<EventCategory, React.ElementType> = {
   'Repas': Pizza,
   'Sport': Dumbbell,
   'Gaming': Gamepad2,
+  'Autres': MoreHorizontal,
 };
 
 export type EventFilterState = 'Tous' | 'En recherche' | 'À venir' | 'Passés';

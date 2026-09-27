@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2 } from 'lucide-react';
+import { Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, MoreHorizontal } from 'lucide-react';
 import type { Event, EventCategory } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
 import { formatPrice, formatDateShort } from '../../../utils/format';
@@ -11,6 +11,7 @@ const categoryIcons: Record<EventCategory, any> = {
   'Repas': Pizza,
   'Sport': Dumbbell,
   'Gaming': Gamepad2,
+  'Autres': MoreHorizontal,
 };
 
 interface EventCardProps {

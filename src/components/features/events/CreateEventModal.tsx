@@ -15,6 +15,7 @@ const CATEGORIES: EventCategory[] = [
   "Repas",
   "Sport",
   "Gaming",
+  "Autres",
 ];
 
 const MAX_DESCRIPTION_LENGTH = 1500;

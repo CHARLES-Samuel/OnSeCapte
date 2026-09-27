@@ -33,6 +33,7 @@ const ALL_CATEGORIES: EventCategory[] = [
   'Repas',
   'Sport',
   'Gaming',
+  'Autres',
 ];
 
 /** Calcule les statistiques des événements d'un groupe.

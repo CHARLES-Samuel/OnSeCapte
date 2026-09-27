@@ -1,4 +1,4 @@
-export type EventCategory = 'Restaurant' | 'Jeux de rôle' | 'Soirée' | 'Repas' | 'Sport' | 'Gaming';
+export type EventCategory = 'Restaurant' | 'Jeux de rôle' | 'Soirée' | 'Repas' | 'Sport' | 'Gaming' | 'Autres';
 export type EventState = 'sondage' | 'planifie' | 'passe';
 export type TimeSlot = 'Matin' | 'Après-midi' | 'Soirée' | 'Toute la journée';
 

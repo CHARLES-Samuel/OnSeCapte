@@ -20,7 +20,7 @@ import { computeGroupEventStats } from '../utils/eventStatsUtils';
 type ActiveTab = 'events' | 'members' | 'stats';
 
 const CATEGORIES: (EventCategory | 'Toutes')[] = [
-  'Toutes', 'Restaurant', 'Jeux de rôle', 'Soirée', 'Repas', 'Sport', 'Gaming',
+  'Toutes', 'Restaurant', 'Jeux de rôle', 'Soirée', 'Repas', 'Sport', 'Gaming', 'Autres'
 ];
 
 export const GroupDetails = () => {
