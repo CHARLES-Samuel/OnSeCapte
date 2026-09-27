@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useEvents } from '../hooks/useEvents';
@@ -11,7 +11,7 @@ import { CreateEventModal } from '../components/features/events/CreateEventModal
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { TransferOwnershipModal } from '../components/features/groups/TransferOwnershipModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
-import { ConfirmModal, ConfirmVariant } from '../components/ui/ConfirmModal';
+import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 
 const categoryIcons: Record<EventCategory, any> = {
   'Restaurant': Utensils,

@@ -11,7 +11,7 @@ interface EventSynthesisProps {
   canLock: boolean;
   eventState?: EventState;
   onLock: (date: string, timeSlot: TimeSlot) => Promise<void>;
-  onUnlock?: () => Promise<void>;
+  onUnlock?: () => Promise<void> | void;
 }
 
 const formatDateShort = (dateStr: string): string => {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '../hooks/useEvents';
 import { useGroupDetails } from '../hooks/useGroupDetails';
@@ -10,7 +10,7 @@ import { TimeSlotSelector } from '../components/features/events/TimeSlotSelector
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
-import { ConfirmModal, ConfirmVariant } from '../components/ui/ConfirmModal';
+import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 
 export const EventDetails = () => {
   const { groupId, eventId } = useParams<{ groupId: string; eventId: string }>();
