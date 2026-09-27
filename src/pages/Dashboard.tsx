@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Plus, Users, Loader2, ArrowRight, LogOut, Copy, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useGroups } from "../hooks/useGroups";
@@ -9,6 +9,7 @@ import { JoinGroupModal } from "../components/features/groups/JoinGroupModal";
 export const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { groups, loading: groupsLoading, createGroup, joinGroup } = useGroups(user?.uid);
+  const navigate = useNavigate();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -111,7 +112,11 @@ export const Dashboard = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map(group => (
-              <div key={group.id} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-primary-500/50 hover:bg-slate-800 transition-all group flex flex-col cursor-pointer">
+              <div 
+                key={group.id} 
+                onClick={() => navigate(`/groups/${group.id}`)}
+                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-primary-500/50 hover:bg-slate-800 transition-all group flex flex-col cursor-pointer"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary-500/20 to-indigo-500/20 rounded-xl flex items-center justify-center">
                     <Users className="w-6 h-6 text-primary-400" />

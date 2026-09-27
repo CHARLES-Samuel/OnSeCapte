@@ -10,7 +10,8 @@ import {
   updateDoc, 
   arrayUnion,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  deleteDoc
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IGroupService } from "../interfaces/IGroupService";
@@ -196,6 +197,54 @@ export class FirestoreGroupService implements IGroupService {
     }
     
     return this.mapDocToGroup(groupSnap.id, groupSnap.data());
+  }
+
+  async deleteGroup(groupId: string, userId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+    
+    if (!groupSnap.exists()) {
+      throw new Error("Groupe introuvable.");
+    }
+    
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== userId) {
+      throw new Error("Seul le propriétaire peut supprimer ce groupe.");
+    }
+    
+    await deleteDoc(groupRef);
+  }
+
+  async transferOwnership(groupId: string, currentOwnerId: string, newOwnerId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+    
+    if (!groupSnap.exists()) {
+      throw new Error("Groupe introuvable.");
+    }
+    
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== currentOwnerId) {
+      throw new Error("Seul le propriétaire actuel peut transférer le groupe.");
+    }
+
+    if (!groupData.members.includes(newOwnerId)) {
+      throw new Error("Le nouveau propriétaire doit être membre du groupe.");
+    }
+
+    // Vérifier combien de groupes le nouveau propriétaire a déjà créés
+    const createdQuery = query(
+      collection(db, GROUPS_COLLECTION),
+      where("createdBy", "==", newOwnerId)
+    );
+    const createdSnap = await getDocs(createdQuery);
+    if (createdSnap.size >= 3) {
+      throw new Error("Le membre sélectionné a déjà atteint la limite de 3 groupes créés.");
+    }
+    
+    await updateDoc(groupRef, {
+      createdBy: newOwnerId
+    });
   }
 }
 

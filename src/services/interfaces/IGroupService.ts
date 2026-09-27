@@ -15,4 +15,10 @@ export interface IGroupService {
   
   /** Récupère les détails d'un groupe spécifique */
   getGroupById(groupId: string): Promise<Group | null>;
+
+  /** Supprime un groupe (seulement pour le gérant) */
+  deleteGroup(groupId: string, userId: string): Promise<void>;
+
+  /** Transfère la propriété du groupe (seulement pour le gérant) */
+  transferOwnership(groupId: string, currentOwnerId: string, newOwnerId: string): Promise<void>;
 }

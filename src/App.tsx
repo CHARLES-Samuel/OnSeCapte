@@ -4,6 +4,8 @@ import { Dashboard } from './pages/Dashboard';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 
+import { GroupDetails } from './pages/GroupDetails';
+
 // Composant pour protéger les routes privées
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -25,6 +27,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            } 
+          />
+          <Route 
+            path="/groups/:groupId" 
+            element={
+              <PrivateRoute>
+                <GroupDetails />
               </PrivateRoute>
             } 
           />
