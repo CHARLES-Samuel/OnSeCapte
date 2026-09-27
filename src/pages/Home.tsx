@@ -14,29 +14,6 @@ export const Home = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-      <header className="px-6 py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-primary-500/20">
-            <Calendar className="text-white w-5 h-5 -rotate-3" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-white">
-            On<span className="text-primary-500">SeCapte</span>
-          </h1>
-        </div>
-        <nav className="flex items-center gap-4">
-          {loading ? (
-            <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-          ) : (
-            <button 
-              onClick={signInWithGoogle}
-              className="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all duration-300"
-            >
-              Connexion avec Google
-            </button>
-          )}
-        </nav>
-      </header>
-
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
         <div className="max-w-3xl mx-auto space-y-12">
           {/* Hero Section */}

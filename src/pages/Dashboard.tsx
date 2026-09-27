@@ -5,7 +5,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useGroups } from "../hooks/useGroups";
 import { CreateGroupModal } from "../components/features/groups/CreateGroupModal";
 import { JoinGroupModal } from "../components/features/groups/JoinGroupModal";
-import { EditPseudoModal } from "../components/features/auth/EditPseudoModal";
 
 export const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -14,7 +13,6 @@ export const Dashboard = () => {
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [isEditPseudoModalOpen, setIsEditPseudoModalOpen] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   if (authLoading) {
@@ -36,47 +34,7 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
-      <header className="px-6 py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center rotate-3 shadow-lg">
-            <Users className="text-white w-4 h-4 -rotate-3" />
-          </div>
-          <h1 className="text-lg font-bold text-white">Mes Groupes</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            {user.photoURL && (
-              <img 
-                src={user.photoURL} 
-                alt="Profile" 
-                className="w-8 h-8 rounded-full border border-slate-700" 
-              />
-            )}
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-sm font-medium text-slate-300">
-                {user.displayName || "User"}
-              </span>
-              <button 
-                onClick={() => setIsEditPseudoModalOpen(true)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                title="Modifier le pseudo"
-                aria-label="Modifier le pseudo"
-              >
-                <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
-              </button>
-            </div>
-            <button 
-              onClick={signOut}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-              title="Déconnexion"
-              aria-label="Se déconnecter"
-            >
-              <LogOut className="w-5 h-5" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="bg-slate-900 text-slate-100 font-sans min-h-full">
 
       <main className="max-w-5xl mx-auto p-6 pt-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
@@ -184,10 +142,6 @@ export const Dashboard = () => {
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
         onSubmit={joinGroup}
-      />
-      <EditPseudoModal
-        isOpen={isEditPseudoModalOpen}
-        onClose={() => setIsEditPseudoModalOpen(false)}
       />
     </div>
   );
