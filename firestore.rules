@@ -1,26 +1,104 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Les utilisateurs doivent être authentifiés pour tout
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    // ─── Profils utilisateurs ────────────────────────────────────────────────
+    match /users/{userId} {
+      // Lecture : tout utilisateur authentifié (pour récupérer les profils des membres)
+      allow read: if request.auth != null;
+      // Écriture : l'utilisateur ne peut modifier que son propre profil
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // ─── Groupes ─────────────────────────────────────────────────────────────
     match /groups/{groupId} {
-      // Lecture : tout membre
-      allow read: if request.auth != null && request.auth.uid in resource.data.members;
-      // Création : autorisé
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
-      // Mise à jour : le gérant pour les infos, n'importe quel membre pour ajouter d'autres membres ?
-      // Pour être strict sur la modif d'infos (nom, desc, photoUrl, transfer):
+
+      // --- Fonctions helpers ---
+      function isOwner()     { return request.auth.uid == resource.data.createdBy; }
+      function isMember()    { return request.auth.uid in resource.data.members; }
+      function isBanned()    {
+        return ('bannedMemberIds' in resource.data) && (request.auth.uid in resource.data.bannedMemberIds);
+      }
+
+      // Champs autorisés à être modifiés dans chaque cas
+      function onlyMembersChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']);
+      }
+      function onlyBanFieldsChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['members', 'bannedMemberIds']);
+      }
+      function onlyOwnerInfoChanged() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['name', 'description', 'photoUrl', 'bannerUrl', 'createdBy']);
+      }
+
+      // Lecture : tout utilisateur authentifié (requis pour valider l'unicité à la création et rejoindre par code/lien d'invitation)
+      allow read: if request.auth != null;
+
+      // Création : l'utilisateur doit être le créateur déclaré
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.createdBy
+                    && (!('bannedMemberIds' in request.resource.data) || !(request.auth.uid in request.resource.data.bannedMemberIds));
+
       allow update: if request.auth != null && (
-        // Seul le propriétaire peut modifier les champs sensibles
-        request.auth.uid == resource.data.createdBy ||
-        // Ou un utilisateur peut s'ajouter s'il a le code (difficile à valider en pur rules sans cloud functions, on laisse ouvert si l'update concerne uniquement members)
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']))
+        // Cas 1 — Le gérant peut tout modifier (infos, transfert, kick, ban/unban)
+        isOwner()
+        ||
+        // Cas 2 — N'importe qui peut s'ajouter à members via code d'invitation
+        //         À condition de ne pas être banni et de ne modifier QUE members
+        (
+          !isBanned()
+          && onlyMembersChanged()
+          // L'utilisateur peut uniquement s'ajouter lui-même
+          && request.resource.data.members.hasAll(resource.data.members)
+          && request.resource.data.members.size() == resource.data.members.size() + 1
+          && request.auth.uid in request.resource.data.members
+        )
+        ||
+        // Cas 3 — Un membre peut se retirer lui-même (leave group)
+        (
+          isMember()
+          && onlyMembersChanged()
+          // L'utilisateur ne peut que se retirer lui-même
+          && resource.data.members.hasAll(request.resource.data.members)
+          && request.resource.data.members.size() == resource.data.members.size() - 1
+          && !(request.auth.uid in request.resource.data.members)
+        )
       );
+
       // Suppression : seul le gérant
-      allow delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow delete: if request.auth != null && isOwner();
+    }
+
+    // ─── Événements ───────────────────────────────────────────────────────────
+    match /events/{eventId} {
+      // Lecture : tout utilisateur authentifié
+      allow read: if request.auth != null;
+
+      // Helper pour vérifier l'appartenance au groupe parent
+      function isMemberOfGroup(groupId) {
+        return request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      }
+      function isOwnerOfGroup(groupId) {
+        return request.auth.uid == get(/databases/$(database)/documents/groups/$(groupId)).data.createdBy;
+      }
+
+      // Création : l'utilisateur doit être authentifié, auteur déclaré et membre actif du groupe
+      allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid
+                    && isMemberOfGroup(request.resource.data.groupId);
+
+      // Mise à jour : membre actif du groupe uniquement
+      allow update: if request.auth != null
+                    && isMemberOfGroup(resource.data.groupId);
+
+      // Suppression : créateur de l'événement ou gérant du groupe
+      allow delete: if request.auth != null
+                    && (
+                      request.auth.uid == resource.data.createdBy
+                      || isOwnerOfGroup(resource.data.groupId)
+                    );
     }
   }
 }

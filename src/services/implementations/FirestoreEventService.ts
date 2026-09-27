@@ -49,6 +49,17 @@ export class FirestoreEventService implements IEventService {
   }
 
   async createEvent(userId: string, userName: string, data: CreateEventDTO): Promise<Event> {
+    // Vérification systématique d'appartenance au groupe
+    const groupRef = doc(db, "groups", data.groupId);
+    const groupSnap = await getDoc(groupRef);
+    if (!groupSnap.exists()) {
+      throw new Error("Groupe introuvable.");
+    }
+    const groupData = groupSnap.data();
+    if (!groupData.members || !groupData.members.includes(userId)) {
+      throw new Error("Action impossible : vous ne faites plus partie de ce groupe.");
+    }
+
     const eventData = {
       ...data,
       createdBy: userId,
@@ -98,6 +109,16 @@ export class FirestoreEventService implements IEventService {
 
   async updateAvailability(eventId: string, userId: string, availability: EventAvailability): Promise<void> {
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
+    const eventSnap = await getDoc(eventRef);
+    if (!eventSnap.exists()) throw new Error("Événement introuvable.");
+
+    const eventData = eventSnap.data();
+    const groupRef = doc(db, "groups", eventData.groupId);
+    const groupSnap = await getDoc(groupRef);
+    if (!groupSnap.exists() || !groupSnap.data()?.members?.includes(userId)) {
+      throw new Error("Action impossible : vous ne faites plus partie de ce groupe.");
+    }
+
     await updateDoc(eventRef, {
       [`availabilities.${userId}`]: availability
     });

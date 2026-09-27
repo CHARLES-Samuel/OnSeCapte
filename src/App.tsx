@@ -10,8 +10,8 @@ import { CookieBanner } from './components/ui/CookieBanner';
 
 import { GroupDetails } from './pages/GroupDetails';
 import { EventDetails } from './pages/EventDetails';
+import { JoinGroup } from './pages/JoinGroup';
 
-// Import legal pages (to be created)
 import { LegalMentions } from './pages/LegalMentions';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { CookiePolicy } from './pages/CookiePolicy';
@@ -19,7 +19,7 @@ import { CookiePolicy } from './pages/CookiePolicy';
 // Composant pour protéger les routes privées
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -29,7 +29,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   if (!user) return <Navigate to="/" replace />;
-  
+
   return <>{children}</>;
 };
 
@@ -45,29 +45,33 @@ function App() {
               <Route path="/mentions-legales" element={<LegalMentions />} />
               <Route path="/confidentialite" element={<PrivacyPolicy />} />
               <Route path="/cookies" element={<CookiePolicy />} />
-              <Route 
-                path="/dashboard" 
+
+              {/* Route d'invitation partageable — accessible avec ou sans connexion */}
+              <Route path="/join/:inviteCode" element={<JoinGroup />} />
+
+              <Route
+                path="/dashboard"
                 element={
                   <PrivateRoute>
                     <Dashboard />
                   </PrivateRoute>
-                } 
+                }
               />
-              <Route 
-                path="/groups/:groupId" 
+              <Route
+                path="/groups/:groupId"
                 element={
                   <PrivateRoute>
                     <GroupDetails />
                   </PrivateRoute>
-                } 
+                }
               />
-              <Route 
-                path="/groups/:groupId/events/:eventId" 
+              <Route
+                path="/groups/:groupId/events/:eventId"
                 element={
                   <PrivateRoute>
                     <EventDetails />
                   </PrivateRoute>
-                } 
+                }
               />
             </Routes>
           </main>

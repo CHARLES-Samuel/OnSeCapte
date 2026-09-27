@@ -4,7 +4,7 @@ import { useEvents } from '../hooks/useEvents';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
 import type { TimeSlot, EventAvailability, CreateEventDTO } from '../models/Event';
-import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Unlock, Edit, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Trash2, Lock, Unlock, Edit, Loader2, UserX } from 'lucide-react';
 import { MonthCalendarPicker } from '../components/features/events/MonthCalendarPicker';
 import { TimeSlotSelector } from '../components/features/events/TimeSlotSelector';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
@@ -197,6 +197,32 @@ export const EventDetails = () => {
     return (
       <div className="min-h-screen bg-slate-900 text-red-400 flex items-center justify-center font-medium">
         Événement ou groupe introuvable.
+      </div>
+    );
+  }
+
+  // Vérification systématique d'exclusion / révocation en temps réel
+  const isMember = !!(user && group.members?.includes(user.uid));
+  if (!isMember) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+        <div className="max-w-md w-full bg-slate-800/80 border border-red-500/30 rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-2xl backdrop-blur-md">
+          <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 mx-auto flex items-center justify-center">
+            <UserX className="w-7 h-7" aria-hidden="true" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-white">Accès révoqué</h2>
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Vous ne faites plus partie de ce groupe. Vos autorisations ont été immédiatement révoquées par le gérant.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-full px-4 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold transition shadow-lg shadow-primary-600/20"
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
       </div>
     );
   }

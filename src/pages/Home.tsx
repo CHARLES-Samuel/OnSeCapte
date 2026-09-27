@@ -7,8 +7,13 @@ export const Home = () => {
   const isFirebaseInitialized = !!app;
   const { user, loading, signInWithGoogle } = useAuth();
 
-  // Si l'utilisateur est connecté, on l'envoie sur son dashboard
+  // Si l'utilisateur est connecté, on l'envoie vers l'invitation en attente ou le dashboard
   if (user && !loading) {
+    const pendingPath = sessionStorage.getItem('pendingInvitePath');
+    if (pendingPath) {
+      sessionStorage.removeItem('pendingInvitePath');
+      return <Navigate to={pendingPath} replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 

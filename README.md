@@ -26,55 +26,64 @@
 - **Vue Dashboard :** Visualisation élégante de tous les groupes dont l'utilisateur est membre.
 
 ### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
+
+L'interface est organisée en trois **onglets** : **Événements**, **Membres** et **Statistiques**.
+
+#### Onglet Événements
 - **Administration du Groupe & Transfert :**
-  - **Édition des informations (`EditGroupModal`) :** Le gérant peut modifier le nom, la description (avec support du Markdown) et importer une **photo de groupe ainsi qu'une bannière personnalisée** avec un **système de recadrage intégré** (recadrage à la volée 1:1 et 3:1 pour un rendu parfait des images de groupe et bannières, limite de 2 Mo, formats JPG/PNG/WebP, redimensionnées et compressées client-side via `<canvas>`).
-  - **Interface Profil de Groupe :** Affichage riche type "Twitter/X" avec une bannière pleine largeur, la photo de profil, et la description Markdown s'affichant en pleine page sous l'en-tête.
-  - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe avec confirmation visuelle.
-  - **Transfert de propriété (`TransferOwnershipModal`) :** Le gérant peut transférer la propriété avec affichage explicite des **noms réels des membres** au lieu des identifiants bruts.
-- **Gestion des Événements :**
-  - **Création d'événement :** Titre, description riche en Markdown (avec limite de 1500 caractères), prix (gratuit si 0 €) et choix parmi 6 catégories.
-  - **Créateur visible :** Affichage clair du nom du membre ayant créé l'événement sur les cartes.
-  - **Édition d'événement (`EditEventModal`) :** Modification à tout moment du titre, de la description, de la catégorie et du prix par le gérant ou le créateur.
-  - **Support du Markdown (`MarkdownView`) :** Rendu riche des descriptions.
-  - **Popups de confirmation modernes (`ConfirmModal`) :** Remplacement des alertes navigateur natives par de magnifiques fenêtres modales personnalisées pour les suppressions et annulations.
-- **Filtrage, Tri & Listes Déroulantes UX/UI :**
-  - Design moderne et sur-mesure pour toutes les listes déroulantes (flèche SVG custom, fond sombre adapté, transitions douces).
-  - Onglets/filtres par catégorie et état avec icônes Lucide dédiées.
-  - Tri dynamique par prix (croissant / décroissant).
+  - **Édition des informations (`EditGroupModal`) :** Le gérant peut modifier le nom, la description (avec support du Markdown) et importer une **photo de groupe ainsi qu'une bannière personnalisée** avec un **système de recadrage intégré**.
+  - **Interface Profil de Groupe :** Affichage riche type "Twitter/X" avec une bannière pleine largeur, la photo de profil, et la description Markdown.
+  - **Suppression :** Le gérant peut supprimer définitivement son groupe avec confirmation visuelle.
+  - **Transfert de propriété (`TransferOwnershipModal`) :** Le gérant peut transférer la propriété avec affichage explicite des **noms réels des membres**.
+- **Lien d'invitation partageable (`InviteLinkButton`) :**
+  - En plus du code court, le gérant peut copier un **lien d'invitation direct** (ex: `https://app.example.com/join/ABCD1234`) d'un simple clic avec retour visuel immédiat ("Lien copié !").
+  - La route `/join/:inviteCode` gère l'adhésion directe et idempotente pour les utilisateurs connectés (redirection automatique ou bouton d'accès direct).
+  - Pour les visiteurs non connectés, l'invitation est conservée en `sessionStorage` et l'utilisateur est automatiquement redirigé vers l'invitation dès sa connexion via Google.
+- **Gestion des Événements :** Création, édition, suppression avec modales de confirmation, filtres par catégorie et état, tri par prix.
+
+#### Onglet Membres (`MemberManagementPanel` & `MemberRow`)
+- **Exclusion systématique et temps réel (Kick) :** Le gérant peut exclure un membre du groupe avec confirmation. Grâce à la synchronisation temps réel `onSnapshot` du groupe, **l'accès du membre est immédiatement révoqué sur son écran sans qu'il ait besoin de rafraîchir la page**. Toute modale ouverte est fermée, et la création ou modification d'événements est bloquée instantanément à 3 niveaux (UI, Service et Règles Firestore). Le membre exclu peut rejoindre à nouveau via le code ou le lien d'invitation.
+- **Bannissement définitif (Ban) :** Le gérant peut bannir un membre. Son UID est ajouté à la liste `bannedMemberIds` et retiré de `members`. Toute tentative de réadhésion est bloquée côté service **et** dans les règles Firestore avec un message explicite : *"Vous ne pouvez pas rejoindre ce groupe car vous en avez été banni"*.
+- **Levée de bannissement (Unban) :** Le gérant peut consulter la liste des membres bannis (avec récupération complète de leurs pseudos) et lever leur bannissement.
+- **Quitter le groupe :** Chaque membre peut quitter volontairement le groupe avec confirmation modale. Le gérant est informé qu'il doit d'abord transférer la propriété avant de pouvoir quitter.
+
+#### Onglet Statistiques (`GroupStatsPanel`)
+- **Résumé global :** Nombre total d'événements avec répartition par statut (*En recherche*, *À venir*, *Passés*).
+- **Activités favorites :** Répartition par catégorie avec barres de progression visuelles.
+- **Membres les plus actifs :** Classement (Top 5) avec compteurs d'événements créés et de réponses de disponibilité.
 
 ### 4. Saisie des Disponibilités & Sondage (`EventDetails`)
-- **Sélection des jours (Format Calendrier Grille Airbnb) :**
-  - Grille mensuelle sur 7 colonnes (Lundi à Dimanche) avec navigation entre les mois.
-  - Visualisation claire des jours passés (désactivés), du jour actuel et des jours sélectionnés.
-- **Personnalisation des Créneaux Horaires via Liste Déroulante :**
-  - Liste déroulante ergonomique pour basculer facilement d'un jour sélectionné à l'autre.
-  - Choix fin par jour (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
-- **Synthèse & Réponses des Membres :**
-  - Progression en temps réel du nombre de membres ayant répondu.
-  - Classement dynamique des meilleures dates (Top 3 des créneaux les plus plébiscités).
-  - Affichage détaillé des réponses et disponibilités individuelles des autres membres du groupe.
-- **Verrouillage & Annulation en cas d'imprévu (`unlockEventDate`) :**
-  - Le créateur de l'événement ou le gérant du groupe peut fixer la date finale **exclusivement parmi les 3 meilleures options du sondage**.
-  - **Annulation et réouverture du sondage :** En cas d'imprévu, le gérant ou le créateur peut annuler la date fixée avec confirmation modale moderne et rouvrir le sondage pour permettre aux membres de revoter.
-  - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet reste accessible à tous les membres.
+- **Sélection des jours (Format Calendrier Grille Airbnb) :** Grille mensuelle 7 colonnes avec navigation entre les mois.
+- **Personnalisation des Créneaux Horaires :** Liste déroulante ergonomique (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
+- **Synthèse & Réponses des Membres :** Progression en temps réel, classement dynamique des meilleures dates (Top 3).
+- **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
 
 ### 5. Conformité Légale & Accessibilité (RGPD / WCAG)
-- **Pages Légales dédiées :** Mentions Légales, Politique de Confidentialité, Politique des Cookies, accessibles via un Footer persistant.
-- **Bannière de Consentement (Cookies) :** Gestion des cookies via le `localStorage`, ne bloquant pas l'UX tout en garantissant le droit d'information et de refus de l'utilisateur.
-- **Accessibilité Universelle (A11y) :** 
+- **Pages Légales dédiées :** Mentions Légales, Politique de Confidentialité, Politique des Cookies.
+- **Bannière de Consentement (Cookies) :** Gestion via le `localStorage`.
+- **Accessibilité Universelle (A11y) :**
   - Structure HTML5 sémantique (`<main>`, `<header>`, `<footer>`).
-  - Accessibilité clavier 100% avec des styles de focus globaux explicites.
-  - Textes alternatifs (`alt`, `aria-label`) et balisage pour les lecteurs d'écran (`aria-hidden` sur les icônes).
+  - Accessibilité clavier 100% avec styles de focus globaux explicites.
+  - `aria-label` explicites sur tous les boutons d'action (exclure, bannir, débannir, quitter, copier le lien).
+  - Balisage `role="tablist"`, `role="tab"`, `role="tabpanel"` pour le système d'onglets.
+  - `role="progressbar"` pour les barres de statistiques.
+  - `role="alert"` pour les messages d'erreur inline.
   - Contraste de couleurs respectant la norme WCAG AA.
 
 ---
 
 ## 🛡️ Qualité & Sécurité (Clean Code & SOLID)
-- **Sécurité et variables d'environnement** : Toutes les clés API et configurations sensibles (Firebase) sont sécurisées via variables d'environnement (`.env`) exclues de Git.
-- **Principes SOLID & DRY** : Code fortement factorisé (Hooks réutilisables, Utilitaires globaux de formatage, Composants modulaires).
-- **Typage Strict** : Utilisation rigoureuse de TypeScript, gestion sécurisée des erreurs avec `err instanceof Error`, et typage Firebase officiel (`DocumentData`) pour bannir l'usage du type `any`.
-- **Inversion des Dépendances (DIP)** : L'interface utilisateur ne communique jamais directement avec Firestore, tout transite via des interfaces `Service`.
-- **Gestion de la Mémoire** : Nettoyage systématique des écouteurs temps réel Firestore (`onSnapshot`) au démontage des composants React.
+- **Sécurité et variables d'environnement** : Toutes les clés API sont sécurisées via `.env` exclues de Git.
+- **Principes SOLID & DRY** :
+  - Découpage strict des composants respectant la limite de 150-200 lignes (`GroupHeader`, `GroupEventsTab`, `MemberRow`, `MemberManagementPanel`, `GroupStatsPanel`).
+  - **Inversion des Dépendances (DIP)** : Ni les composants React ni les Custom Hooks ne dépendent directement de Firebase Firestore. Tout transite par `IGroupService` (notamment `getMemberProfiles` pour la récupération des profils).
+- **Typage Strict** : TypeScript strict, zéro `any`, gestion sécurisée des erreurs.
+- **Logique métier isolée** : `eventStatsUtils.ts` est une fonction **pure** (zéro effet de bord, zéro dépendance Firebase) pour le calcul des statistiques, facilement testable.
+- **Firestore Security Rules** :
+  - `allow read: if request.auth != null;` autorise les requêtes de recherche par code d'invitation sans bloquer les nouveaux membres ni la vérification d'unicité lors de la création d'un groupe.
+  - Règles d'écriture strictes avec helpers sécurisés (`isOwner`, `isMember`, `isBanned` avec vérification de présence du champ `bannedMemberIds`) — les membres bannis sont bloqués à l'écriture côté base de données indépendamment de l'UI.
+  - Révocation systématique sur les événements : `create`, `update` et votes d'événements exigent formellement que l'utilisateur soit membre actif dans le document du groupe parent (`isMemberOfGroup(groupId)`). Tout utilisateur exclu est instantanément rejeté par la base de données.
+- **Gestion de la Mémoire** : Nettoyage systématique des écouteurs temps réel Firestore (`onSnapshot`) et des timers de redirection (`useRef` / `clearTimeout`).
 
 ---
 
@@ -92,4 +101,26 @@ npx tsc --noEmit
 
 # Build de production
 npm run build
+```
+
+---
+
+## 🌐 Déploiement en Production
+
+### Option A — Firebase Hosting
+```bash
+# 1. Connexion au CLI Firebase (si pas déjà fait)
+npx firebase login
+
+# 2. Build de production
+npm run build
+
+# 3. Déploiement du site et des règles de sécurité
+npx firebase deploy --only hosting,firestore:rules,storage
+```
+
+### Option B — Vercel
+```bash
+# 1. Déploiement direct (avec le fichier vercel.json inclus)
+npx vercel --prod
 ```

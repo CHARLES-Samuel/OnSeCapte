@@ -1,17 +1,19 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  onSnapshot, 
-  updateDoc, 
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  onSnapshot,
+  updateDoc,
   arrayUnion,
+  arrayRemove,
   serverTimestamp,
   Timestamp,
-  deleteDoc
+  deleteDoc,
+  documentId
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IGroupService } from "../interfaces/IGroupService";
@@ -20,7 +22,7 @@ import type { Group, CreateGroupDTO } from "../../models/Group";
 const GROUPS_COLLECTION = "groups";
 
 export class FirestoreGroupService implements IGroupService {
-  
+
   // Structure mémoire pour le rate-limiting (tentatives d'adhésion par utilisateur)
   private joinAttempts: Map<string, { count: number; lastAttempt: number }> = new Map();
 
@@ -42,17 +44,16 @@ export class FirestoreGroupService implements IGroupService {
 
     const userRecord = this.joinAttempts.get(userId);
 
-    if (userRecord) {
-      // Réinitialiser la fenêtre si elle est dépassée
-      if (now - userRecord.lastAttempt > windowMs) {
-        this.joinAttempts.set(userId, { count: 0, lastAttempt: now });
-        return;
-      }
+    if (!userRecord) return;
 
-      if (userRecord.count >= maxAttempts) {
-        const remainingMinutes = Math.ceil((windowMs - (now - userRecord.lastAttempt)) / 60000);
-        throw new Error(`Trop de tentatives échouées. Veuillez réespayer dans ${remainingMinutes} minute(s).`);
-      }
+    if (now - userRecord.lastAttempt > windowMs) {
+      this.joinAttempts.set(userId, { count: 0, lastAttempt: now });
+      return;
+    }
+
+    if (userRecord.count >= maxAttempts) {
+      const remainingMinutes = Math.ceil((windowMs - (now - userRecord.lastAttempt)) / 60000);
+      throw new Error(`Trop de tentatives échouées. Veuillez réessayer dans ${remainingMinutes} minute(s).`);
     }
   }
 
@@ -78,7 +79,8 @@ export class FirestoreGroupService implements IGroupService {
       createdBy: data.createdBy,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
       members: data.members || [],
-      inviteCode: data.inviteCode
+      inviteCode: data.inviteCode,
+      bannedMemberIds: data.bannedMemberIds || [],
     };
   }
 
@@ -87,7 +89,7 @@ export class FirestoreGroupService implements IGroupService {
       collection(db, GROUPS_COLLECTION),
       where("members", "array-contains", userId)
     );
-    
+
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => this.mapDocToGroup(doc.id, doc.data()));
   }
@@ -109,7 +111,6 @@ export class FirestoreGroupService implements IGroupService {
   }
 
   async createGroup(userId: string, data: CreateGroupDTO): Promise<Group> {
-    // Vérifier combien de groupes l'utilisateur a déjà créés
     const createdQuery = query(
       collection(db, GROUPS_COLLECTION),
       where("createdBy", "==", userId)
@@ -120,12 +121,10 @@ export class FirestoreGroupService implements IGroupService {
     }
 
     const inviteCode = this.generateInviteCode();
-    
-    // Vérifier que le code n'existe pas déjà (très peu probable mais bonne pratique)
+
     const q = query(collection(db, GROUPS_COLLECTION), where("inviteCode", "==", inviteCode));
     const existSnap = await getDocs(q);
     if (!existSnap.empty) {
-      // S'il existe, on relance la fonction (récursion)
       return this.createGroup(userId, data);
     }
 
@@ -135,12 +134,12 @@ export class FirestoreGroupService implements IGroupService {
       createdBy: userId,
       createdAt: serverTimestamp(),
       members: [userId],
-      inviteCode: inviteCode
+      inviteCode: inviteCode,
+      bannedMemberIds: [],
     };
 
     const docRef = await addDoc(collection(db, GROUPS_COLLECTION), groupData);
-    
-    // On retourne l'objet formaté (createdAt est estimé localement)
+
     return {
       id: docRef.id,
       name: groupData.name,
@@ -148,7 +147,8 @@ export class FirestoreGroupService implements IGroupService {
       createdBy: groupData.createdBy,
       createdAt: Date.now(),
       members: groupData.members,
-      inviteCode: groupData.inviteCode
+      inviteCode: groupData.inviteCode,
+      bannedMemberIds: [],
     };
   }
 
@@ -160,9 +160,9 @@ export class FirestoreGroupService implements IGroupService {
       collection(db, GROUPS_COLLECTION),
       where("inviteCode", "==", inviteCode.toUpperCase())
     );
-    
+
     const querySnapshot = await getDocs(q);
-    
+
     if (querySnapshot.empty) {
       this.recordFailedAttempt(userId);
       throw new Error("Code d'invitation invalide ou expiré.");
@@ -170,61 +170,81 @@ export class FirestoreGroupService implements IGroupService {
 
     const groupDoc = querySnapshot.docs[0];
     const groupRef = doc(db, GROUPS_COLLECTION, groupDoc.id);
-    
+
     const groupData = groupDoc.data();
-    if (groupData.members.includes(userId)) {
-      throw new Error("Vous êtes déjà membre de ce groupe.");
+
+    // 2. Vérifier le bannissement
+    const bannedIds: string[] = groupData.bannedMemberIds || [];
+    if (bannedIds.includes(userId)) {
+      throw new Error("Vous ne pouvez pas rejoindre ce groupe car vous en avez été banni.");
     }
 
-    // Ajout de l'utilisateur au tableau members
+    // 3. Vérifier la présence déjà (idempotent : si déjà membre, réinitialise le rate-limit et renvoie le groupe)
+    if (groupData.members.includes(userId)) {
+      this.resetFailedAttempts(userId);
+      return this.mapDocToGroup(groupDoc.id, groupData);
+    }
+
     await updateDoc(groupRef, {
-      members: arrayUnion(userId)
+      members: arrayUnion(userId),
     });
 
-    // Réinitialiser les tentatives échouées sur succès
     this.resetFailedAttempts(userId);
 
     return this.mapDocToGroup(groupDoc.id, {
       ...groupData,
-      members: [...groupData.members, userId]
+      members: [...groupData.members, userId],
     });
   }
 
   async getGroupById(groupId: string): Promise<Group | null> {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     const groupSnap = await getDoc(groupRef);
-    
+
     if (!groupSnap.exists()) {
       return null;
     }
-    
+
     return this.mapDocToGroup(groupSnap.id, groupSnap.data());
+  }
+
+  subscribeToGroupById(groupId: string, callback: (group: Group | null) => void): () => void {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    return onSnapshot(groupRef, (docSnap) => {
+      if (!docSnap.exists()) {
+        callback(null);
+        return;
+      }
+      callback(this.mapDocToGroup(docSnap.id, docSnap.data()));
+    }, (error) => {
+      console.error("Erreur lors de l'écoute du groupe :", error);
+    });
   }
 
   async deleteGroup(groupId: string, userId: string): Promise<void> {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     const groupSnap = await getDoc(groupRef);
-    
+
     if (!groupSnap.exists()) {
       throw new Error("Groupe introuvable.");
     }
-    
+
     const groupData = groupSnap.data();
     if (groupData.createdBy !== userId) {
       throw new Error("Seul le propriétaire peut supprimer ce groupe.");
     }
-    
+
     await deleteDoc(groupRef);
   }
 
   async transferOwnership(groupId: string, currentOwnerId: string, newOwnerId: string): Promise<void> {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     const groupSnap = await getDoc(groupRef);
-    
+
     if (!groupSnap.exists()) {
       throw new Error("Groupe introuvable.");
     }
-    
+
     const groupData = groupSnap.data();
     if (groupData.createdBy !== currentOwnerId) {
       throw new Error("Seul le propriétaire actuel peut transférer le groupe.");
@@ -234,7 +254,6 @@ export class FirestoreGroupService implements IGroupService {
       throw new Error("Le nouveau propriétaire doit être membre du groupe.");
     }
 
-    // Vérifier combien de groupes le nouveau propriétaire a déjà créés
     const createdQuery = query(
       collection(db, GROUPS_COLLECTION),
       where("createdBy", "==", newOwnerId)
@@ -243,27 +262,26 @@ export class FirestoreGroupService implements IGroupService {
     if (createdSnap.size >= 3) {
       throw new Error("Le membre sélectionné a déjà atteint la limite de 3 groupes créés.");
     }
-    
+
     await updateDoc(groupRef, {
-      createdBy: newOwnerId
+      createdBy: newOwnerId,
     });
   }
 
   async updateGroup(groupId: string, data: import("../../models/Group").UpdateGroupDTO, userId: string): Promise<void> {
     const groupRef = doc(db, GROUPS_COLLECTION, groupId);
     const groupSnap = await getDoc(groupRef);
-    
+
     if (!groupSnap.exists()) {
       throw new Error("Groupe introuvable.");
     }
-    
+
     const groupData = groupSnap.data();
     if (groupData.createdBy !== userId) {
       throw new Error("Seul le gérant peut modifier les informations de ce groupe.");
     }
-    
-    // On ne garde que les champs définis pour la mise à jour
-    const updateData: Record<string, any> = {};
+
+    const updateData: Record<string, string | undefined> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
@@ -272,6 +290,108 @@ export class FirestoreGroupService implements IGroupService {
     if (Object.keys(updateData).length > 0) {
       await updateDoc(groupRef, updateData);
     }
+  }
+
+  async kickMember(groupId: string, ownerId: string, targetUserId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+
+    if (!groupSnap.exists()) throw new Error("Groupe introuvable.");
+
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== ownerId) {
+      throw new Error("Seul le gérant peut exclure un membre.");
+    }
+    if (targetUserId === ownerId) {
+      throw new Error("Le gérant ne peut pas s'exclure lui-même.");
+    }
+
+    await updateDoc(groupRef, {
+      members: arrayRemove(targetUserId),
+    });
+  }
+
+  async banMember(groupId: string, ownerId: string, targetUserId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+
+    if (!groupSnap.exists()) throw new Error("Groupe introuvable.");
+
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== ownerId) {
+      throw new Error("Seul le gérant peut bannir un membre.");
+    }
+    if (targetUserId === ownerId) {
+      throw new Error("Le gérant ne peut pas se bannir lui-même.");
+    }
+
+    await updateDoc(groupRef, {
+      members: arrayRemove(targetUserId),
+      bannedMemberIds: arrayUnion(targetUserId),
+    });
+  }
+
+  async unbanMember(groupId: string, ownerId: string, targetUserId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+
+    if (!groupSnap.exists()) throw new Error("Groupe introuvable.");
+
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== ownerId) {
+      throw new Error("Seul le gérant peut lever un bannissement.");
+    }
+
+    await updateDoc(groupRef, {
+      bannedMemberIds: arrayRemove(targetUserId),
+    });
+  }
+
+  async leaveGroup(groupId: string, userId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+
+    if (!groupSnap.exists()) throw new Error("Groupe introuvable.");
+
+    const groupData = groupSnap.data();
+    if (groupData.createdBy === userId) {
+      throw new Error(
+        "En tant que gérant, vous ne pouvez pas quitter le groupe directement. Veuillez d'abord transférer la propriété à un autre membre."
+      );
+    }
+
+    if (!groupData.members.includes(userId)) {
+      throw new Error("Vous n'êtes pas membre de ce groupe.");
+    }
+
+    await updateDoc(groupRef, {
+      members: arrayRemove(userId),
+    });
+  }
+
+  async getMemberProfiles(memberIds: string[]): Promise<Record<string, string>> {
+    if (!memberIds || memberIds.length === 0) return {};
+    const uniqueIds = Array.from(new Set(memberIds.filter(Boolean)));
+    if (uniqueIds.length === 0) return {};
+
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueIds.length; i += 30) {
+      chunks.push(uniqueIds.slice(i, i + 30));
+    }
+
+    const profiles: Record<string, string> = {};
+    for (const chunk of chunks) {
+      const q = query(collection(db, "users"), where(documentId(), "in", chunk));
+      const snap = await getDocs(q);
+      snap.forEach((doc) => {
+        const data = doc.data();
+        if (data?.displayName) {
+          profiles[doc.id] = data.displayName;
+        }
+      });
+    }
+
+    return profiles;
   }
 }
 
