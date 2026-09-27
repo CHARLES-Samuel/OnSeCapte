@@ -72,7 +72,10 @@ export const CreateGroupModal = ({ isOpen, onClose, onSubmit }: Props) => {
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Description (optionnelle)</label>
+            <div className="flex justify-between items-end">
+              <label className="text-sm font-medium text-slate-300">Description (optionnelle)</label>
+              <span className="text-xs text-slate-500">Supporte le Markdown</span>
+            </div>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}

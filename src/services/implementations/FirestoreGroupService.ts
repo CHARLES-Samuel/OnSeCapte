@@ -73,6 +73,8 @@ export class FirestoreGroupService implements IGroupService {
       id: docId,
       name: data.name,
       description: data.description,
+      photoUrl: data.photoUrl,
+      bannerUrl: data.bannerUrl,
       createdBy: data.createdBy,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
       members: data.members || [],
@@ -245,6 +247,31 @@ export class FirestoreGroupService implements IGroupService {
     await updateDoc(groupRef, {
       createdBy: newOwnerId
     });
+  }
+
+  async updateGroup(groupId: string, data: import("../../models/Group").UpdateGroupDTO, userId: string): Promise<void> {
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
+    const groupSnap = await getDoc(groupRef);
+    
+    if (!groupSnap.exists()) {
+      throw new Error("Groupe introuvable.");
+    }
+    
+    const groupData = groupSnap.data();
+    if (groupData.createdBy !== userId) {
+      throw new Error("Seul le gérant peut modifier les informations de ce groupe.");
+    }
+    
+    // On ne garde que les champs définis pour la mise à jour
+    const updateData: Record<string, any> = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
+    if (data.bannerUrl !== undefined) updateData.bannerUrl = data.bannerUrl;
+
+    if (Object.keys(updateData).length > 0) {
+      await updateDoc(groupRef, updateData);
+    }
   }
 }
 

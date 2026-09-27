@@ -27,6 +27,8 @@
 
 ### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
 - **Administration du Groupe & Transfert :**
+  - **Édition des informations (`EditGroupModal`) :** Le gérant peut modifier le nom, la description (avec support du Markdown) et importer une **photo de groupe ainsi qu'une bannière personnalisée** (limite de 2 Mo, formats JPG/PNG/WebP, redimensionnées et compressées client-side à la volée via `<canvas>`).
+  - **Interface Profil de Groupe :** Affichage riche type "Twitter/X" avec une bannière pleine largeur, la photo de profil, et la description Markdown s'affichant en pleine page sous l'en-tête.
   - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe avec confirmation visuelle.
   - **Transfert de propriété (`TransferOwnershipModal`) :** Le gérant peut transférer la propriété avec affichage explicite des **noms réels des membres** au lieu des identifiants bruts.
 - **Gestion des Événements :**

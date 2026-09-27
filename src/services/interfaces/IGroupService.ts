@@ -1,4 +1,4 @@
-import type { Group, CreateGroupDTO } from "../../models/Group";
+import type { Group, CreateGroupDTO, UpdateGroupDTO } from "../../models/Group";
 
 export interface IGroupService {
   /** Récupère la liste des groupes dont l'utilisateur fait partie */
@@ -21,4 +21,7 @@ export interface IGroupService {
 
   /** Transfère la propriété du groupe (seulement pour le gérant) */
   transferOwnership(groupId: string, currentOwnerId: string, newOwnerId: string): Promise<void>;
+
+  /** Met à jour les informations du groupe (seulement pour le gérant) */
+  updateGroup(groupId: string, data: UpdateGroupDTO, userId: string): Promise<void>;
 }

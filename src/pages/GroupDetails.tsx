@@ -5,13 +5,15 @@ import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
 import type { Event, EventCategory } from '../models/Event';
 import { 
-  ArrowLeft, Plus, Trash2, UserCheck, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, Sparkles, Loader2
+  ArrowLeft, Plus, Trash2, UserCheck, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, Sparkles, Loader2, Edit2, Users
 } from 'lucide-react';
 import { CreateEventModal } from '../components/features/events/CreateEventModal';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { TransferOwnershipModal } from '../components/features/groups/TransferOwnershipModal';
+import { EditGroupModal } from '../components/features/groups/EditGroupModal';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 import { EventCard } from '../components/features/events/EventCard';
+import { MarkdownView } from '../components/ui/MarkdownView';
 
 const categoryIcons: Record<EventCategory, any> = {
   'Restaurant': Utensils,
@@ -33,7 +35,8 @@ export const GroupDetails = () => {
     loading: groupLoading, 
     error: groupError, 
     deleteGroup, 
-    transferOwnership 
+    transferOwnership,
+    updateGroupDetails
   } = useGroupDetails(groupId);
   const isOwner = group?.createdBy === user?.uid;
   
@@ -46,6 +49,7 @@ export const GroupDetails = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
   
   const [activeState, setActiveState] = useState<'Tous' | 'En recherche' | 'À venir' | 'Passés'>('Tous');
 
@@ -174,35 +178,74 @@ export const GroupDetails = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header du groupe */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/40 p-6 rounded-2xl border border-slate-800 backdrop-blur-sm">
-          <div className="flex items-center space-x-4">
-            <button onClick={() => navigate('/dashboard')} className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700 transition">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">{group.name}</h1>
-              <p className="text-slate-400 text-sm mt-1">{group.description || "Aucune description"}</p>
+        <div className="rounded-2xl border border-slate-800 bg-slate-800/40 overflow-hidden relative">
+          {/* Bouton retour absolu sur la bannière */}
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 flex items-center justify-center p-2.5 bg-slate-900/50 hover:bg-slate-900/80 backdrop-blur-md text-white border border-white/10 rounded-full transition shadow-lg"
+            title="Retour au tableau de bord"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          {/* Bannière */}
+          {group.bannerUrl ? (
+            <div className="w-full h-32 md:h-56 bg-slate-700 relative">
+              <img src={group.bannerUrl} alt={`Bannière du groupe ${group.name}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+            </div>
+          ) : (
+            <div className="w-full h-24 md:h-32 bg-gradient-to-r from-slate-800 to-slate-800/50"></div>
+          )}
+          
+          <div className="p-6 sm:p-8 relative">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 md:gap-6 -mt-16 sm:-mt-20 md:-mt-24 relative z-10">
+                {group.photoUrl ? (
+                  <img src={group.photoUrl} alt={`Photo du groupe ${group.name}`} className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-2xl shrink-0 border-4 border-slate-900 bg-slate-900" />
+                ) : (
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-slate-800 shadow-2xl shrink-0 border-4 border-slate-900 flex items-center justify-center">
+                    <Users className="w-10 h-10 text-slate-600" />
+                  </div>
+                )}
+                <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-2 text-center sm:text-left">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight">{group.name}</h1>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 md:gap-3 relative z-10 w-full sm:w-auto">
+                {isOwner && (
+                  <>
+                    <button 
+                      onClick={() => setIsEditGroupModalOpen(true)}
+                      className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition text-sm font-medium"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Modifier</span>
+                    </button>
+                    <button 
+                      onClick={() => setIsTransferModalOpen(true)}
+                      className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl transition text-sm font-medium"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      <span className="hidden lg:inline">Transférer</span>
+                    </button>
+                    <button 
+                      onClick={handleDeleteGroupClick} 
+                      className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-sm font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden lg:inline">Supprimer</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {/* Description (Pleine largeur) */}
+            <div className="mt-8 w-full text-left pt-6 border-t border-slate-800/60">
+              <MarkdownView content={group.description || "Aucune description"} className="text-slate-300/90 leading-relaxed max-w-none text-base" />
             </div>
           </div>
-          
-          {isOwner && (
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsTransferModalOpen(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl transition text-sm font-medium"
-              >
-                <UserCheck className="w-4 h-4" />
-                <span>Transférer propriété</span>
-              </button>
-              <button 
-                onClick={handleDeleteGroupClick} 
-                className="flex items-center space-x-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-sm font-medium"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Supprimer</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Filtres d'événements et action */}
@@ -315,6 +358,15 @@ export const GroupDetails = () => {
         currentOwnerId={group.createdBy}
         onTransfer={transferOwnership}
       />
+
+      {isOwner && (
+        <EditGroupModal
+          isOpen={isEditGroupModalOpen}
+          onClose={() => setIsEditGroupModalOpen(false)}
+          group={group}
+          onSubmit={updateGroupDetails}
+        />
+      )}
 
       <ConfirmModal
         isOpen={confirmModalConfig.isOpen}

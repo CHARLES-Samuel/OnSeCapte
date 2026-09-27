@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Les utilisateurs doivent être authentifiés pour tout
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /groups/{groupId} {
+      // Lecture : tout membre
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      // Création : autorisé
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
+      // Mise à jour : le gérant pour les infos, n'importe quel membre pour ajouter d'autres membres ?
+      // Pour être strict sur la modif d'infos (nom, desc, photoUrl, transfer):
+      allow update: if request.auth != null && (
+        // Seul le propriétaire peut modifier les champs sensibles
+        request.auth.uid == resource.data.createdBy ||
+        // Ou un utilisateur peut s'ajouter s'il a le code (difficile à valider en pur rules sans cloud functions, on laisse ouvert si l'update concerne uniquement members)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']))
+      );
+      // Suppression : seul le gérant
+      allow delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+    }
+  }
+}

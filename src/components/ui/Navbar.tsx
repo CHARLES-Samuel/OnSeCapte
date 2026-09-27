@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Calendar, Users, LogOut, Edit2, Loader2 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { EditPseudoModal } from "../features/auth/EditPseudoModal";

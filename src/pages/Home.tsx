@@ -1,4 +1,4 @@
-import { Calendar, Users, MapPin, ArrowRight, Loader2 } from "lucide-react";
+import { Calendar, Users, MapPin, ArrowRight } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { app } from "../config/firebase";
 import { useAuth } from "../hooks/useAuth";
