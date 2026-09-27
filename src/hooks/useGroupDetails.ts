@@ -20,8 +20,9 @@ export function useGroupDetails(groupId: string | undefined) {
         setLoading(true);
         const data = await groupService.getGroupById(groupId);
         setGroup(data);
-      } catch (err: any) {
-        setError(err.message || "Erreur lors du chargement du groupe");
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Erreur lors du chargement du groupe";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -35,8 +36,9 @@ export function useGroupDetails(groupId: string | undefined) {
     try {
       await groupService.deleteGroup(groupId, user.uid);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -49,8 +51,9 @@ export function useGroupDetails(groupId: string | undefined) {
       const data = await groupService.getGroupById(groupId);
       setGroup(data);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };

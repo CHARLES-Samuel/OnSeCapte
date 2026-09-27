@@ -27,8 +27,9 @@ export const JoinGroupModal = ({ isOpen, onClose, onSubmit }: Props) => {
       await onSubmit(code.trim().toUpperCase());
       setCode("");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Code invalide.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Code invalide.";
+      setError(message);
     } finally {
       setLoading(false);
     }

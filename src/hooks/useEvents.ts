@@ -31,8 +31,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
       const userName = user.displayName || user.email?.split('@')[0] || 'Un membre';
       await eventService.createEvent(user.uid, userName, { ...data, groupId });
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -43,8 +44,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
       setError(null);
       await eventService.updateEvent(eventId, user.uid, data, isGroupOwner);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -55,8 +57,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
       setError(null);
       await eventService.deleteEvent(eventId, user.uid, isGroupOwner);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -72,8 +75,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
         updatedAt: Date.now()
       });
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -84,8 +88,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
       setError(null);
       await eventService.lockEventDate(eventId, user.uid, isGroupOwner, date, timeSlot);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };
@@ -96,8 +101,9 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
       setError(null);
       await eventService.unlockEventDate(eventId, user.uid, isGroupOwner);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
       return false;
     }
   };

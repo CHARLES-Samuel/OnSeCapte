@@ -30,8 +30,9 @@ export const CreateGroupModal = ({ isOpen, onClose, onSubmit }: Props) => {
       setName("");
       setDescription("");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Une erreur est survenue.";
+      setError(message);
     } finally {
       setLoading(false);
     }

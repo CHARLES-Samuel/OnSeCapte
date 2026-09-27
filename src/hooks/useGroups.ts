@@ -30,7 +30,7 @@ export const useGroups = (userId: string | undefined) => {
     setError(null);
     try {
       return await groupService.createGroup(userId, data);
-    } catch (err: any) {
+    } catch (err) {
       const msg = "Erreur lors de la création du groupe.";
       setError(msg);
       throw err;
@@ -43,8 +43,8 @@ export const useGroups = (userId: string | undefined) => {
     setError(null);
     try {
       return await groupService.joinGroup(userId, inviteCode);
-    } catch (err: any) {
-      const msg = err.message || "Erreur lors de l'ajout au groupe.";
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'ajout au groupe.";
       setError(msg);
       throw err;
     }

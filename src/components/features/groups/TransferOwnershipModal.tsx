@@ -45,8 +45,9 @@ export const TransferOwnershipModal = ({
       if (success) {
         onClose();
       }
-    } catch (err: any) {
-      setError(err.message || "Impossible de transférer la propriété.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Impossible de transférer la propriété.";
+      setError(message);
     } finally {
       setLoading(false);
     }

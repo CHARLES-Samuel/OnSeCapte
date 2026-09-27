@@ -56,6 +56,15 @@
 
 ---
 
+## 🛡️ Qualité & Sécurité (Clean Code & SOLID)
+- **Sécurité et variables d'environnement** : Toutes les clés API et configurations sensibles (Firebase) sont sécurisées via variables d'environnement (`.env`) exclues de Git.
+- **Principes SOLID & DRY** : Code fortement factorisé (Hooks réutilisables, Utilitaires globaux de formatage, Composants modulaires).
+- **Typage Strict** : Utilisation rigoureuse de TypeScript, gestion sécurisée des erreurs avec `err instanceof Error`, et typage Firebase officiel (`DocumentData`) pour bannir l'usage du type `any`.
+- **Inversion des Dépendances (DIP)** : L'interface utilisateur ne communique jamais directement avec Firestore, tout transite via des interfaces `Service`.
+- **Gestion de la Mémoire** : Nettoyage systématique des écouteurs temps réel Firestore (`onSnapshot`) au démontage des composants React.
+
+---
+
 ## 🚀 Lancement en local
 
 ```bash

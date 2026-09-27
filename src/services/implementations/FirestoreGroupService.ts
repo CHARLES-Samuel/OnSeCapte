@@ -68,7 +68,7 @@ export class FirestoreGroupService implements IGroupService {
   }
 
   // Helper pour convertir le document Firestore en objet métier
-  private mapDocToGroup(docId: string, data: any): Group {
+  private mapDocToGroup(docId: string, data: import("firebase/firestore").DocumentData): Group {
     return {
       id: docId,
       name: data.name,

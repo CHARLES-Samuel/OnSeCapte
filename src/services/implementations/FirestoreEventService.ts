@@ -10,7 +10,7 @@ const EVENTS_COLLECTION = "events";
 
 export class FirestoreEventService implements IEventService {
   
-  private mapDocToEvent(docId: string, data: any): Event {
+  private mapDocToEvent(docId: string, data: import("firebase/firestore").DocumentData): Event {
     return {
       id: docId,
       groupId: data.groupId,
