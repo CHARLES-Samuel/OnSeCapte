@@ -54,6 +54,15 @@
   - **Annulation et réouverture du sondage :** En cas d'imprévu, le gérant ou le créateur peut annuler la date fixée avec confirmation modale moderne et rouvrir le sondage pour permettre aux membres de revoter.
   - **Visualisation persistante :** Même lorsque l'événement est verrouillé, le contenu complet reste accessible à tous les membres.
 
+### 5. Conformité Légale & Accessibilité (RGPD / WCAG)
+- **Pages Légales dédiées :** Mentions Légales, Politique de Confidentialité, Politique des Cookies, accessibles via un Footer persistant.
+- **Bannière de Consentement (Cookies) :** Gestion des cookies via le `localStorage`, ne bloquant pas l'UX tout en garantissant le droit d'information et de refus de l'utilisateur.
+- **Accessibilité Universelle (A11y) :** 
+  - Structure HTML5 sémantique (`<main>`, `<header>`, `<footer>`).
+  - Accessibilité clavier 100% avec des styles de focus globaux explicites.
+  - Textes alternatifs (`alt`, `aria-label`) et balisage pour les lecteurs d'écran (`aria-hidden` sur les icônes).
+  - Contraste de couleurs respectant la norme WCAG AA.
+
 ---
 
 ## 🛡️ Qualité & Sécurité (Clean Code & SOLID)

@@ -30,4 +30,14 @@
     background-color: #0f172a;
     color: #f8fafc;
   }
+
+  /* Global a11y focus styles */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #3b82f6 !important; /* Ring offset + ring */
+  }
 }
