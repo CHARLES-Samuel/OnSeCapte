@@ -25,7 +25,7 @@ export const Home = () => {
           <div className="space-y-6 animate-fade-in-up">
             <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
               Organiser des sorties <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">
+              <span className="inline-block pb-1 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-primary-400 to-indigo-400">
                 n'a jamais été aussi simple
               </span>
             </h2>
@@ -38,9 +38,27 @@ export const Home = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button 
               onClick={signInWithGoogle}
-              className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-primary-600/30 flex items-center gap-2 w-full sm:w-auto justify-center"
+              className="group px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-full font-semibold transition-all duration-300 shadow-lg shadow-primary-600/30 flex items-center gap-3 w-full sm:w-auto justify-center cursor-pointer"
             >
-              Commencer (Google)
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#ffffff"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
+                />
+                <path
+                  fill="#ffffff"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
+                />
+                <path
+                  fill="#ffffff"
+                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.94 0 12s.45 3.84 1.24 5.42l4.04-3.15z"
+                />
+                <path
+                  fill="#ffffff"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                />
+              </svg>
+              <span>Connexion avec Google</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
