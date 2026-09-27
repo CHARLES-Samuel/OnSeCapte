@@ -1,32 +1,53 @@
-# React + TypeScript + Vite
+# OnSeCapte 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
 
-Currently, two official plugins are available:
+**OnSeCapte** est une application web moderne qui permet d'organiser facilement des événements, sorties et activités entre amis ou au sein de groupes privés.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Stack Technique
 
-## React Compiler
+- **Frontend :** React (Vite) + TypeScript (mode strict)
+- **Style :** Tailwind CSS + Lucide Icons
+- **Backend / BaaS :** Firebase (Authentication & Cloud Firestore)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## ✨ Fonctionnalités Principales
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+### 1. Authentification & Profil (`Auth`)
+- Connexion / Inscription sécurisée avec Firebase Auth (Google & Email/Mot de passe).
+- Protection des routes privées.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+### 2. Gestion des Groupes (`Dashboard`)
+- **Création de Groupe :** Limite stricte de 3 groupes créés par utilisateur.
+- **Rejoindre un groupe :** Système de code d'invitation unique (ex: `A8X9K2`) avec protection rate-limiting contre les tentatives abusives.
+- **Vue Dashboard :** Visualisation élégante de tous les groupes dont l'utilisateur est membre.
+
+### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
+- **Administration du Groupe :**
+  - **Suppression :** Le gérant/propriétaire du groupe peut supprimer définitivement son groupe.
+  - **Transfert de propriété :** Le gérant peut transférer la propriété du groupe à un autre membre, sous réserve que le destinataire n'ait pas atteint sa limite de 3 groupes créés.
+- **Gestion des Événements :**
+  - **Création d'événement :** Titre, description, prix (gratuit si 0 €) et choix parmi 6 catégories (*Restaurant*, *Jeux de rôle*, *Soirée*, *Repas*, *Sport*, *Gaming*).
+  - **Droits de modification/suppression :** Un événement ne peut être supprimé que par son créateur ou le gérant du groupe.
+- **Filtrage et Tri UX/UI :**
+  - Onglets/filtres par catégorie avec icônes Lucide dédiées.
+  - Tri dynamique par prix (croissant / décroissant).
+
+---
+
+## 🚀 Lancement en local
+
+```bash
+# Installation des dépendances
+npm install
+
+# Lancement du serveur de développement Vite
+npm run dev
+
+# Vérification du typage TypeScript
+npx tsc --noEmit
+
+# Build de production
+npm run build
 ```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
