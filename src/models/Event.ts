@@ -2,16 +2,7 @@ export type EventCategory = 'Restaurant' | 'Jeux de rôle' | 'Soirée' | 'Repas'
 export type EventState = 'sondage' | 'planifie' | 'passe';
 export type TimeSlot = 'Matin' | 'Après-midi' | 'Soirée' | 'Toute la journée';
 
-export interface EventAvailability {
-  userId: string;
-  userName?: string; // Ajout pour afficher le nom sans refetch
-  isAvailable: boolean;
-  availableDates: {
-    date: string; // 'YYYY-MM-DD'
-    timeSlots: TimeSlot[];
-  }[];
-  updatedAt: number;
-}
+export type EventParticipation = 'participating' | 'not_participating' | 'pending';
 
 export interface Event {
   id: string;
@@ -24,7 +15,7 @@ export interface Event {
   createdByName?: string; // Nom du créateur de l'événement
   createdAt: number;
   state: EventState;
-  availabilities?: Record<string, EventAvailability>;
+  participations?: Record<string, EventParticipation>;
   finalDate?: string; // 'YYYY-MM-DD'
   finalTimeSlot?: TimeSlot;
 }

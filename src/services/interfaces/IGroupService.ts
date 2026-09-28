@@ -56,4 +56,13 @@ export interface IGroupService {
    * Récupère les profils publics (displayName) d'une liste de membres par leurs UIDs.
    */
   getMemberProfiles(memberIds: string[]): Promise<Record<string, string>>;
+
+  /** Récupère les plannings du groupe */
+  getGroupPlannings(groupId: string): Promise<import("../../models/Group").GroupPlanning[]>;
+
+  /** S'abonne aux plannings du groupe */
+  subscribeToGroupPlannings(groupId: string, callback: (plannings: import("../../models/Group").GroupPlanning[]) => void): () => void;
+
+  /** Met à jour le planning du groupe pour un membre */
+  updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").AvailabilityStatus>): Promise<void>;
 }

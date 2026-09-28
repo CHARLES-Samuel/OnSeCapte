@@ -15,7 +15,8 @@ import {
   deleteDoc,
   documentId,
   writeBatch,
-  deleteField
+  deleteField,
+  setDoc
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IGroupService } from "../interfaces/IGroupService";
@@ -398,13 +399,18 @@ export class FirestoreGroupService implements IGroupService {
       if (eventData.createdBy === userId) {
         // Supprimer l'événement créé par l'utilisateur
         batch.delete(eventDoc.ref);
-      } else if (eventData.availabilities && eventData.availabilities[userId]) {
-        // Supprimer la disponibilité de l'utilisateur sur les événements des autres
+      } else if (eventData.participations && eventData.participations[userId]) {
+        // Supprimer la participation de l'utilisateur sur les événements des autres
         batch.update(eventDoc.ref, {
-          [`availabilities.${userId}`]: deleteField()
+          [`participations.${userId}`]: deleteField()
         });
       }
     });
+
+    // Clean up planning if necessary
+    const planningRef = doc(db, GROUPS_COLLECTION, groupId, "plannings", userId);
+    batch.delete(planningRef);
+
   }
 
   async getMemberProfiles(memberIds: string[]): Promise<Record<string, string>> {
@@ -430,6 +436,36 @@ export class FirestoreGroupService implements IGroupService {
     }
 
     return profiles;
+  }
+
+  async getGroupPlannings(groupId: string): Promise<import("../../models/Group").GroupPlanning[]> {
+    const planningsRef = collection(db, GROUPS_COLLECTION, groupId, "plannings");
+    const snap = await getDocs(planningsRef);
+    return snap.docs.map(doc => ({
+      userId: doc.id,
+      updatedAt: doc.data().updatedAt instanceof Timestamp ? doc.data().updatedAt.toMillis() : Date.now(),
+      dates: doc.data().dates || {}
+    }));
+  }
+
+  subscribeToGroupPlannings(groupId: string, callback: (plannings: import("../../models/Group").GroupPlanning[]) => void): () => void {
+    const planningsRef = collection(db, GROUPS_COLLECTION, groupId, "plannings");
+    return onSnapshot(planningsRef, (snap) => {
+      const plannings = snap.docs.map(doc => ({
+        userId: doc.id,
+        updatedAt: doc.data().updatedAt instanceof Timestamp ? doc.data().updatedAt.toMillis() : Date.now(),
+        dates: doc.data().dates || {}
+      }));
+      callback(plannings);
+    });
+  }
+
+  async updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").AvailabilityStatus>): Promise<void> {
+    const planningRef = doc(db, GROUPS_COLLECTION, groupId, "plannings", userId);
+    await setDoc(planningRef, {
+      updatedAt: serverTimestamp(),
+      dates
+    }, { merge: true });
   }
 }
 

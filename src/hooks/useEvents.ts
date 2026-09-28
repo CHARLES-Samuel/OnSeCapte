@@ -64,16 +64,11 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     }
   };
 
-  const updateAvailability = async (eventId: string, availability: Omit<import('../models/Event').EventAvailability, 'userId' | 'updatedAt' | 'userName'>) => {
+  const updateParticipation = async (eventId: string, participation: import('../models/Event').EventParticipation) => {
     if (!user) return;
     try {
       setError(null);
-      await eventService.updateAvailability(eventId, user.uid, {
-        ...availability,
-        userId: user.uid,
-        userName: user.displayName || 'Un membre',
-        updatedAt: Date.now()
-      });
+      await eventService.updateParticipation(eventId, user.uid, participation);
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Une erreur est survenue';
@@ -108,5 +103,5 @@ export function useEvents(groupId: string | undefined, isGroupOwner: boolean) {
     }
   };
 
-  return { events, loading, error, createEvent, updateEvent, deleteEvent, updateAvailability, lockEventDate, unlockEventDate };
+  return { events, loading, error, createEvent, updateEvent, deleteEvent, updateParticipation, lockEventDate, unlockEventDate };
 }

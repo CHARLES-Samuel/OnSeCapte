@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
@@ -16,8 +16,10 @@ import { GroupHeader } from '../components/features/groups/GroupHeader';
 import { GroupEventsTab, type EventFilterState } from '../components/features/groups/GroupEventsTab';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 import { computeGroupEventStats } from '../utils/eventStatsUtils';
+import { useGroupPlannings } from '../hooks/useGroupPlannings';
+import { GroupPlanningTab } from '../components/features/groups/GroupPlanningTab';
 
-type ActiveTab = 'events' | 'members' | 'stats';
+type ActiveTab = 'events' | 'planning' | 'members' | 'stats';
 
 const CATEGORIES: (EventCategory | 'Toutes')[] = [
   'Toutes', 'Restaurant', 'Jeux de rôle', 'Soirée', 'Repas', 'Sport', 'Gaming', 'Autres'
@@ -41,6 +43,7 @@ export const GroupDetails = () => {
 
   const isOwner = group?.createdBy === user?.uid;
   const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent } = useEvents(groupId, isOwner);
+  const { plannings, updatePlanning } = useGroupPlannings(groupId);
 
   const {
     loading: memberActionLoading,
@@ -55,7 +58,23 @@ export const GroupDetails = () => {
     onSuccess: () => refreshGroup(),
   });
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('events');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'planning' || tab === 'events' || tab === 'members' || tab === 'stats') {
+      return tab as ActiveTab;
+    }
+    return 'events';
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'planning' || tab === 'events' || tab === 'members' || tab === 'stats') {
+      setActiveTab(tab as ActiveTab);
+    }
+  }, [location.search]);
   const [activeCategory, setActiveCategory] = useState<EventCategory | 'Toutes'>('Toutes');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [activeState, setActiveState] = useState<EventFilterState>('Tous');
@@ -88,13 +107,6 @@ export const GroupDetails = () => {
     events.forEach(e => {
       if (e.createdBy && e.createdByName && !map[e.createdBy]) {
         map[e.createdBy] = e.createdByName;
-      }
-      if (e.availabilities) {
-        Object.values(e.availabilities).forEach(avail => {
-          if (avail.userId && avail.userName && !map[avail.userId]) {
-            map[avail.userId] = avail.userName;
-          }
-        });
       }
     });
     return map;
@@ -202,6 +214,7 @@ export const GroupDetails = () => {
 
   const TABS = [
     { key: 'events' as const, label: 'Événements', icon: CalendarDays },
+    { key: 'planning' as const, label: 'Planning', icon: CalendarDays },
     { key: 'members' as const, label: 'Membres', icon: Users },
     { key: 'stats' as const, label: 'Statistiques', icon: BarChart3 },
   ];
@@ -276,6 +289,22 @@ export const GroupDetails = () => {
           />
         </div>
 
+        {/* Contenu Onglet : Planning */}
+        <div
+          role="tabpanel"
+          id="tabpanel-planning"
+          aria-labelledby="tab-planning"
+          hidden={activeTab !== 'planning'}
+        >
+          {user && (
+            <GroupPlanningTab
+              groupId={group.id}
+              currentUserId={user.uid}
+              plannings={plannings}
+              onUpdatePlanning={updatePlanning}
+            />
+          )}
+        </div>
         {/* Contenu Onglet : Membres */}
         <div
           role="tabpanel"

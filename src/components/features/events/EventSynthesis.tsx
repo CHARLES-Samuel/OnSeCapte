@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import type { TimeSlot, EventAvailability, EventState } from '../../../models/Event';
-import { CheckCircle, XCircle, Users, Lock, Unlock, Award } from 'lucide-react';
+import type { TimeSlot, EventParticipation, EventState } from '../../../models/Event';
+import type { GroupPlanning } from '../../../models/Group';
+import { CheckCircle, XCircle, Users, Lock, Unlock, Award, AlertTriangle, UserCheck, HelpCircle, X } from 'lucide-react';
 
 interface EventSynthesisProps {
   respondedMembers: number;
   totalMembers: number;
-  bestDates: { date: string; timeSlot: TimeSlot; count: number }[];
-  availabilities: Record<string, EventAvailability>;
+  bestDates: { 
+    date: string; 
+    timeSlot: TimeSlot; 
+    available: string[];
+    maybe: string[];
+    unavailable: string[];
+    count: number;
+  }[];
+  availabilities: Record<string, EventParticipation>; // renamed to participations below
+  participations?: Record<string, EventParticipation>;
+  plannings?: GroupPlanning[];
   memberProfiles?: Record<string, string>;
   currentUserId?: string;
   canLock: boolean;
@@ -27,11 +37,19 @@ const formatDateLong = (dateStr: string): string => {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 };
 
+const getInitials = (name: string) => {
+  const parts = name.split(' ');
+  if (parts.length > 1) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
 export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   respondedMembers,
   totalMembers,
   bestDates,
-  availabilities,
+  participations = {},
   memberProfiles = {},
   currentUserId,
   canLock,
@@ -39,11 +57,13 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   onLock,
   onUnlock,
 }) => {
-  const memberList = Object.values(availabilities);
+  const memberList = Object.entries(participations).map(([userId, status]) => ({ userId, status }));
   const top3Dates = bestDates.slice(0, 3);
 
   const [selectedTopIndex, setSelectedTopIndex] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForceLockWarning, setShowForceLockWarning] = useState(false);
+  const [manualDate, setManualDate] = useState('');
 
   useEffect(() => {
     if (selectedTopIndex >= top3Dates.length) {
@@ -51,9 +71,28 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
     }
   }, [top3Dates.length, selectedTopIndex]);
 
-  const handleConfirmLock = async () => {
+  const handleConfirmLockClick = () => {
+    if (respondedMembers < totalMembers) {
+      setShowForceLockWarning(true);
+    } else {
+      executeLock();
+    }
+  };
+
+  const handleManualLock = async () => {
+    if (!manualDate) return;
+    setIsSubmitting(true);
+    try {
+      await onLock(manualDate, 'Toute la journée');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const executeLock = async () => {
     if (top3Dates.length === 0 || !top3Dates[selectedTopIndex]) return;
     setIsSubmitting(true);
+    setShowForceLockWarning(false);
     try {
       const selected = top3Dates[selectedTopIndex];
       await onLock(selected.date, selected.timeSlot);
@@ -63,6 +102,28 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   };
 
   const isLocked = eventState === 'planifie';
+
+  const missingResponses = totalMembers - respondedMembers;
+
+  const renderAvatars = (userIds: string[], colorClass: string, icon: React.ReactNode) => {
+    if (!userIds || userIds.length === 0) return null;
+    return (
+      <div className="flex items-center gap-1">
+        <div className="mr-1">{icon}</div>
+        <div className="flex -space-x-2">
+          {userIds.map(uid => (
+            <div 
+              key={uid} 
+              title={memberProfiles[uid] || 'Inconnu'} 
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-slate-900 ${colorClass}`}
+            >
+              {getInitials(memberProfiles[uid] || 'Un')}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-slate-800/40 border border-slate-800 p-6 rounded-2xl space-y-8 flex flex-col justify-between">
@@ -91,6 +152,11 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
               }}
             />
           </div>
+          {missingResponses > 0 && !isLocked && (
+            <p className="text-xs text-amber-400/80 mt-2">
+              En attente de réponse de {missingResponses} membre(s).
+            </p>
+          )}
         </div>
 
         {/* Top 3 Best Dates */}
@@ -106,7 +172,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                   <div
                     key={`${bd.date}-${bd.timeSlot}`}
                     onClick={() => canLock && !isLocked && setSelectedTopIndex(i)}
-                    className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                    className={`flex flex-col p-3.5 rounded-xl border transition-all ${
                       canLock && !isLocked ? 'cursor-pointer' : ''
                     } ${
                       isSelectedForLock
@@ -114,29 +180,32 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                         : 'bg-slate-900 border-slate-700 hover:border-slate-600'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          i === 0
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : i === 1
-                            ? 'bg-slate-300/10 text-slate-300 border border-slate-400/30'
-                            : 'bg-amber-700/10 text-amber-600 border border-amber-700/30'
-                        }`}
-                      >
-                        #{i + 1}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-slate-200 capitalize">
-                          {formatDateShort(bd.date)}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                            i === 0
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              : i === 1
+                              ? 'bg-slate-300/10 text-slate-300 border border-slate-400/30'
+                              : 'bg-amber-700/10 text-amber-600 border border-amber-700/30'
+                          }`}
+                        >
+                          #{i + 1}
                         </div>
-                        <div className="text-xs text-slate-400">{bd.timeSlot}</div>
+                        <div>
+                          <div className="font-semibold text-slate-200 capitalize">
+                            {formatDateShort(bd.date)}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20 text-xs sm:text-sm">
-                        {bd.count} dispo(s)
-                      </div>
+                    
+                    {/* Avatars */}
+                    <div className="flex flex-wrap gap-3 mt-1 items-center">
+                       {renderAvatars(bd.available, 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', <UserCheck className="w-3.5 h-3.5 text-emerald-500" />)}
+                       {renderAvatars(bd.maybe, 'bg-amber-500/20 text-amber-400 border-amber-500/30', <HelpCircle className="w-3.5 h-3.5 text-amber-500" />)}
+                       {renderAvatars(bd.unavailable, 'bg-slate-700 text-slate-400 border-slate-600', <X className="w-3.5 h-3.5 text-slate-500" />)}
                     </div>
                   </div>
                 );
@@ -162,15 +231,19 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                   className="flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-800 text-sm"
                 >
                   <span className="font-medium text-slate-300">
-                    {memberProfiles[avail.userId] || avail.userName || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
+                    {memberProfiles[avail.userId] || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
                   </span>
-                  {avail.isAvailable ? (
+                  {avail.status === 'participating' ? (
                     <span className="text-emerald-400 flex items-center gap-1 text-xs font-medium">
-                      <CheckCircle className="w-3 h-3" /> Dispo ({avail.availableDates.length} j.)
+                      <CheckCircle className="w-3 h-3" /> Participe
+                    </span>
+                  ) : avail.status === 'not_participating' ? (
+                    <span className="text-red-400 flex items-center gap-1 text-xs font-medium">
+                      <XCircle className="w-3 h-3" /> Absent
                     </span>
                   ) : (
-                    <span className="text-red-400 flex items-center gap-1 text-xs font-medium">
-                      <XCircle className="w-3 h-3" /> Pas dispo
+                     <span className="text-slate-400 flex items-center gap-1 text-xs font-medium">
+                      <Lock className="w-3 h-3" /> En attente
                     </span>
                   )}
                 </div>
@@ -213,10 +286,6 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
 
             {top3Dates.length > 0 ? (
               <div className="space-y-3">
-                <label className="block text-xs text-slate-400">
-                  Sélectionne l'une des 3 meilleures options du sondage :
-                </label>
-
                 <select
                   value={selectedTopIndex}
                   onChange={(e) => setSelectedTopIndex(Number(e.target.value))}
@@ -224,25 +293,60 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                 >
                   {top3Dates.map((item, idx) => (
                     <option key={`${item.date}-${item.timeSlot}`} value={idx} className="bg-slate-900 text-slate-100 py-2">
-                      #{idx + 1} • {formatDateLong(item.date)} ({item.timeSlot}) — {item.count} vote(s)
+                      #{idx + 1} • {formatDateLong(item.date)} — {item.available.length + item.maybe.length} vote(s)
                     </option>
                   ))}
                 </select>
 
-                <button
-                  type="button"
-                  onClick={handleConfirmLock}
-                  disabled={isSubmitting}
-                  className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-amber-600/20"
-                >
-                  {isSubmitting
-                    ? 'Verrouillage en cours...'
-                    : `Valider l'option #${selectedTopIndex + 1}`}
-                </button>
+                {showForceLockWarning && (
+                  <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-400 text-xs flex flex-col gap-2">
+                    <div className="flex items-center gap-1 font-bold">
+                       <AlertTriangle className="w-4 h-4" /> Attention : membres inactifs
+                    </div>
+                    <p>Certains membres n'ont pas encore répondu. Voulez-vous bloquer cette date malgré tout ?</p>
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={executeLock} className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg flex-1">
+                         Forcer la validation
+                      </button>
+                      <button onClick={() => setShowForceLockWarning(false)} className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg flex-1">
+                         Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!showForceLockWarning && (
+                  <button
+                    type="button"
+                    onClick={handleConfirmLockClick}
+                    disabled={isSubmitting}
+                    className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-amber-600/20"
+                  >
+                    {isSubmitting
+                      ? 'Verrouillage en cours...'
+                      : `Valider l'option #${selectedTopIndex + 1}`}
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
-                Attends que les membres votent pour débloquer le choix parmi les meilleures dates.
+              <div className="space-y-3">
+                <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-400 text-center">
+                  Aucune date calculée depuis les plannings. Choisissez manuellement :
+                </div>
+                <input 
+                  type="date" 
+                  value={manualDate} 
+                  onChange={(e) => setManualDate(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleManualLock}
+                  disabled={!manualDate || isSubmitting}
+                  className="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-amber-600/20"
+                >
+                  {isSubmitting ? 'Verrouillage...' : 'Forcer cette date'}
+                </button>
               </div>
             )}
           </div>

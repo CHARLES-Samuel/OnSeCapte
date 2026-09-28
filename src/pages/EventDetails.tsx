@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '../hooks/useEvents';
 import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
-import type { TimeSlot, EventAvailability, CreateEventDTO } from '../models/Event';
-import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX } from 'lucide-react';
+import type { TimeSlot, EventParticipation, CreateEventDTO } from '../models/Event';
+import { useGroupPlannings } from '../hooks/useGroupPlannings';
+import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle } from 'lucide-react';
 import { UserAvailabilityForm } from '../components/features/events/UserAvailabilityForm';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
 import { EditEventModal } from '../components/features/events/EditEventModal';
@@ -22,12 +23,15 @@ export const EventDetails = () => {
   const { 
     events, 
     loading: eventsLoading, 
-    updateAvailability, 
+    error: eventsError,
+    updateParticipation, 
     lockEventDate, 
     unlockEventDate, 
     updateEvent, 
     deleteEvent 
   } = useEvents(groupId, isGroupOwner);
+
+  const { plannings } = useGroupPlannings(groupId);
   
   const event = events.find(e => e.id === eventId);
   const isEventOwner = event?.createdBy === user?.uid;
@@ -50,41 +54,56 @@ export const EventDetails = () => {
     onConfirm: () => {},
   });
 
-  const availabilities = event?.availabilities || {};
+  const participations = event?.participations || {};
   const totalMembers = group?.members.length || 0;
-  const respondedMembers = Object.keys(availabilities).length;
-  const currentUserResponse = user ? availabilities[user.uid] : null;
+  const respondedMembers = Object.keys(participations).length;
+  const currentUserResponse = user ? participations[user.uid] || 'pending' : 'pending';
 
   const bestDates = useMemo(() => {
     if (!event) return [];
-    const dateCounts: Record<string, Record<TimeSlot, number>> = {};
     
-    Object.values(availabilities).forEach(avail => {
-      if (!avail.isAvailable) return;
-      avail.availableDates.forEach(d => {
-        if (!dateCounts[d.date]) dateCounts[d.date] = { 'Matin': 0, 'Après-midi': 0, 'Soirée': 0, 'Toute la journée': 0 };
-        d.timeSlots.forEach(ts => {
-          dateCounts[d.date][ts] = (dateCounts[d.date][ts] || 0) + 1;
-        });
+    // We only care about users who are "participating"
+    const participatingUsers = Object.keys(participations).filter(uid => participations[uid] === 'participating');
+
+    const dateScores: Record<string, { available: string[]; maybe: string[]; unavailable: string[] }> = {};
+    
+    // Collect all unique dates that have at least one explicit status
+    const allUniqueDates = new Set<string>();
+    participatingUsers.forEach(uid => {
+      const userPlanning = plannings?.find(p => p.userId === uid);
+      if (userPlanning && userPlanning.dates) {
+        Object.keys(userPlanning.dates).forEach(dateStr => allUniqueDates.add(dateStr));
+      }
+    });
+
+    // Evaluate each participating user's status for each unique date
+    allUniqueDates.forEach(dateStr => {
+      dateScores[dateStr] = { available: [], maybe: [], unavailable: [] };
+      participatingUsers.forEach(uid => {
+        const userPlanning = plannings?.find(p => p.userId === uid);
+        const status = userPlanning?.dates?.[dateStr] || 'unavailable';
+        if (status === 'available') dateScores[dateStr].available.push(uid);
+        else if (status === 'maybe') dateScores[dateStr].maybe.push(uid);
+        else dateScores[dateStr].unavailable.push(uid);
       });
     });
 
-    const result: { date: string; timeSlot: TimeSlot; count: number }[] = [];
-    Object.keys(dateCounts).forEach(date => {
-      Object.keys(dateCounts[date]).forEach(ts => {
-        const count = dateCounts[date][ts as TimeSlot];
-        if (count > 0) {
-          result.push({ date, timeSlot: ts as TimeSlot, count });
-        }
-      });
-    });
+    const result = Object.entries(dateScores).map(([date, counts]) => ({
+       date,
+       timeSlot: 'Toute la journée' as TimeSlot,
+       available: counts.available,
+       maybe: counts.maybe,
+       unavailable: counts.unavailable,
+       score: counts.available.length * 2 + counts.maybe.length,
+       count: counts.available.length + counts.maybe.length // for compatibility with older code if needed
+    }));
 
-    return result.sort((a, b) => b.count - a.count);
-  }, [event, availabilities]);
+    return result.sort((a, b) => b.score - a.score).slice(0, 3);
+  }, [event, participations, plannings]);
 
-  const handleSaveAvailability = async (availability: Omit<EventAvailability, 'userId' | 'updatedAt' | 'userName'>) => {
+  const handleSaveParticipation = async (participation: EventParticipation) => {
     if (!event || !user || event.state === 'planifie') return;
-    await updateAvailability(event.id, availability);
+    await updateParticipation(event.id, participation);
   };
 
   const handleLock = async (dateStr: string, timeSlot: TimeSlot) => {
@@ -175,6 +194,13 @@ export const EventDetails = () => {
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-6 md:p-8 font-sans overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
+        {eventsError && (
+          <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-400 text-sm font-medium flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <p>{eventsError}</p>
+          </div>
+        )}
+
         {/* Header de l'événement */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 bg-slate-800/40 p-4 sm:p-6 rounded-2xl border border-slate-800">
           <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0 w-full">
@@ -252,7 +278,9 @@ export const EventDetails = () => {
           <UserAvailabilityForm
             isLocked={isLocked}
             currentUserResponse={currentUserResponse}
-            onSave={handleSaveAvailability}
+            onSave={handleSaveParticipation}
+            hasCompletedPlanning={plannings.some(p => p.userId === user?.uid)}
+            groupId={groupId || ''}
           />
 
           {/* Colonne droite : Synthèse des réponses et dates préférées */}
@@ -260,7 +288,9 @@ export const EventDetails = () => {
             respondedMembers={respondedMembers}
             totalMembers={totalMembers}
             bestDates={bestDates}
-            availabilities={availabilities}
+            availabilities={participations} // renamed later in EventSynthesis
+            participations={participations}
+            plannings={plannings}
             memberProfiles={memberProfiles}
             currentUserId={user?.uid}
             canLock={canLock}

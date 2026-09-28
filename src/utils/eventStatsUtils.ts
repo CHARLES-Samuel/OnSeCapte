@@ -78,9 +78,9 @@ export function computeGroupEventStats(
     const creator = getOrCreateMember(event.createdBy, creatorName);
     creator.eventsCreated += 1;
 
-    if (event.availabilities) {
-      for (const [uid, avail] of Object.entries(event.availabilities)) {
-        const name = memberNamesMap[uid] ?? avail.userName ?? "Membre inconnu";
+    if (event.participations) {
+      for (const [uid, _] of Object.entries(event.participations)) {
+        const name = memberNamesMap[uid] ?? "Membre inconnu";
         const member = getOrCreateMember(uid, name);
         member.availabilityResponses += 1;
       }

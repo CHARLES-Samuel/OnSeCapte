@@ -28,3 +28,11 @@ export interface MemberProfile {
   uid: string;
   displayName: string;
 }
+
+export type AvailabilityStatus = 'available' | 'maybe' | 'unavailable';
+
+export interface GroupPlanning {
+  userId: string;
+  updatedAt: number;
+  dates: Record<string, AvailabilityStatus>; // 'YYYY-MM-DD' => status
+}

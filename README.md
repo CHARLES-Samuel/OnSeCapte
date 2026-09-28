@@ -29,7 +29,7 @@
 
 ### 3. Vue Détaillée d'un Groupe & Administration (`GroupDetails`)
 
-L'interface est organisée en trois **onglets** : **Événements**, **Membres** et **Statistiques**.
+L'interface est organisée en quatre **onglets** : **Événements**, **Planning**, **Membres** et **Statistiques**.
 
 #### Onglet Événements
 - **Administration du Groupe & Transfert :**
@@ -43,6 +43,10 @@ L'interface est organisée en trois **onglets** : **Événements**, **Membres** 
   - Pour les visiteurs non connectés, l'invitation est conservée en `sessionStorage` et l'utilisateur est automatiquement redirigé vers l'invitation dès sa connexion via Google.
 - **Gestion des Événements :** Création, édition, suppression avec modales de confirmation, filtres par catégorie et état, tri par prix.
 
+#### Onglet Planning (`GroupPlanningTab`)
+- **Calendrier Partagé du Groupe :** Vue consolidée des dates et disponibilités de tous les membres pour l'ensemble des événements du groupe.
+- **Synchronisation en Temps Réel :** Suivi instantané des plannings et des créneaux sélectionnés via `useGroupPlannings`.
+
 #### Onglet Membres (`MemberManagementPanel` & `MemberRow`)
 - **Exclusion systématique et temps réel (Kick) :** Le gérant peut exclure un membre du groupe avec confirmation. Grâce à la synchronisation temps réel `onSnapshot` du groupe, **l'accès du membre est immédiatement révoqué sur son écran sans qu'il ait besoin de rafraîchir la page**. Toute modale ouverte est fermée, et la création ou modification d'événements est bloquée instantanément à 3 niveaux (UI, Service et Règles Firestore). Le membre exclu peut rejoindre à nouveau via le code ou le lien d'invitation.
 - **Bannissement définitif (Ban) :** Le gérant peut bannir un membre. Son UID est ajouté à la liste `bannedMemberIds` et retiré de `members`. Toute tentative de réadhésion est bloquée côté service **et** dans les règles Firestore avec un message explicite : *"Vous ne pouvez pas rejoindre ce groupe car vous en avez été banni"*.
@@ -55,13 +59,13 @@ L'interface est organisée en trois **onglets** : **Événements**, **Membres** 
 - **Membres les plus actifs :** Classement (Top 5) avec compteurs d'événements créés et de réponses de disponibilité.
 
 ### 4. Saisie des Disponibilités, Sondage & Retours Visuels (`EventDetails` & `UserAvailabilityForm`)
-- **Sélection des jours (Format Calendrier Grille Airbnb) :** Grille mensuelle 7 colonnes optimisée pour le pouce sur smartphone, avec navigation entre les mois.
-- **Personnalisation des Créneaux Horaires :** Liste déroulante ergonomique (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*) avec boutons tactiles adaptés.
+- **Sélection des jours et créneaux horaires :** Interface intuitive permettant de choisir des dates et des créneaux horaires précis (*Matin*, *Après-midi*, *Soirée*, *Nuit*).
+- **Gestion de l'indisponibilité globale :** Possibilité de déclarer son indisponibilité totale en un clic.
 - **Retour Visuel Immédiat & Zéro Décalage (Feedback Utilisateur) :**
   - État de chargement explicite (*"Enregistrement en cours..."* avec spinner animé) et désactivation des champs pendant la sauvegarde.
   - Notification Pop-up Toast flottante élégante (*"Vos disponibilités ont bien été mises à jour ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
   - Suppression de tout bandeau dans le flux du formulaire afin d'éliminer 100% des sauts de mise en page (*layout shift* / décalage) lorsque la confirmation s'affiche ou disparaît.
-- **Synthèse & Réponses des Membres :** Progression en temps réel, classement dynamique des meilleures dates (Top 3).
+- **Synthèse & Réponses des Membres :** Progression en temps réel, classement dynamique des meilleures dates (Top 3) et détails par participant.
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)

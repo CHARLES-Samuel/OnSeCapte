@@ -4,7 +4,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IEventService } from "../interfaces/IEventService";
-import type { Event, CreateEventDTO, EventAvailability, TimeSlot } from "../../models/Event";
+import type { Event, CreateEventDTO, EventParticipation, TimeSlot } from "../../models/Event";
 
 const EVENTS_COLLECTION = "events";
 
@@ -22,7 +22,7 @@ export class FirestoreEventService implements IEventService {
       createdByName: data.createdByName,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
       state: data.state || 'sondage',
-      availabilities: data.availabilities || {},
+      participations: data.participations || {},
       finalDate: data.finalDate,
       finalTimeSlot: data.finalTimeSlot,
     };
@@ -66,7 +66,7 @@ export class FirestoreEventService implements IEventService {
       createdByName: userName,
       createdAt: serverTimestamp(),
       state: 'sondage',
-      availabilities: {}
+      participations: { [userId]: 'participating' }
     };
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventData);
     
@@ -77,7 +77,7 @@ export class FirestoreEventService implements IEventService {
       createdByName: userName,
       createdAt: Date.now(),
       state: 'sondage',
-      availabilities: {}
+      participations: { [userId]: 'participating' }
     };
   }
 
@@ -107,7 +107,7 @@ export class FirestoreEventService implements IEventService {
     await deleteDoc(eventRef);
   }
 
-  async updateAvailability(eventId: string, userId: string, availability: EventAvailability): Promise<void> {
+  async updateParticipation(eventId: string, userId: string, participation: EventParticipation): Promise<void> {
     const eventRef = doc(db, EVENTS_COLLECTION, eventId);
     const eventSnap = await getDoc(eventRef);
     if (!eventSnap.exists()) throw new Error("Événement introuvable.");
@@ -120,7 +120,7 @@ export class FirestoreEventService implements IEventService {
     }
 
     await updateDoc(eventRef, {
-      [`availabilities.${userId}`]: availability
+      [`participations.${userId}`]: participation
     });
   }
 
