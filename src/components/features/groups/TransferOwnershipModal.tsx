@@ -6,7 +6,7 @@ interface TransferOwnershipModalProps {
   onClose: () => void;
   members: string[];
   currentOwnerId: string;
-  memberNamesMap?: Record<string, string>;
+  memberProfilesMap?: Record<string, import('../../../models/Group').MemberProfile>;
   onTransfer: (newOwnerId: string) => Promise<boolean | undefined>;
 }
 
@@ -15,7 +15,7 @@ export const TransferOwnershipModal = ({
   onClose,
   members,
   currentOwnerId,
-  memberNamesMap = {},
+  memberProfilesMap = {},
   onTransfer,
 }: TransferOwnershipModalProps) => {
   const [selectedMember, setSelectedMember] = useState("");
@@ -27,7 +27,7 @@ export const TransferOwnershipModal = ({
   const eligibleMembers = members.filter((id) => id !== currentOwnerId);
 
   const getMemberDisplayName = (id: string) => {
-    if (memberNamesMap[id]) return memberNamesMap[id];
+    if (memberProfilesMap[id]?.displayName) return memberProfilesMap[id].displayName;
     return `Membre (${id.substring(0, 6)})`;
   };
 

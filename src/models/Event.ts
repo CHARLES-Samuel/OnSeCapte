@@ -14,6 +14,7 @@ export interface Event {
   price: number; // 0 means Free
   createdBy: string;
   createdByName?: string; // Nom du créateur de l'événement
+  createdByPhoto?: string | null; // Photo du créateur de l'événement
   createdAt: number;
   state: EventState;
   dateMode?: EventDateMode; // Optionnel pour rétrocompatibilité (défaut: 'poll')

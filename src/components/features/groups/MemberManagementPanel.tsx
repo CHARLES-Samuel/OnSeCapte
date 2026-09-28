@@ -6,7 +6,7 @@ import { MemberRow } from './MemberRow';
 
 interface MemberManagementPanelProps {
   group: Group;
-  memberNamesMap: Record<string, string>;
+  memberProfilesMap: Record<string, import('../../../models/Group').MemberProfile>;
   currentUserId: string;
   isOwner: boolean;
   onKick: (uid: string) => Promise<boolean>;
@@ -38,7 +38,7 @@ const EMPTY_CONFIRM: ConfirmConfig = {
 
 export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
   group,
-  memberNamesMap,
+  memberProfilesMap,
   currentUserId,
   isOwner,
   onKick,
@@ -57,7 +57,9 @@ export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
   const memberName = (uid: string) =>
     uid === currentUserId
       ? 'Vous'
-      : memberNamesMap[uid] ?? `Utilisateur (${uid.slice(0, 6)}…)`;
+      : memberProfilesMap[uid]?.displayName ?? `Utilisateur (${uid.slice(0, 6)}…)`;
+
+  const memberPhoto = (uid: string) => memberProfilesMap[uid]?.photoURL;
 
   const openKickConfirm = (uid: string) => {
     setConfirmConfig({
@@ -163,6 +165,7 @@ export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
         <MemberRow
           uid={group.createdBy}
           name={memberName(group.createdBy)}
+          photoUrl={memberPhoto(group.createdBy)}
           badge="Gérant"
           badgeClass="bg-amber-500/20 text-amber-400 border-amber-500/30"
           isCurrentUser={group.createdBy === currentUserId}
@@ -174,6 +177,7 @@ export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
             key={uid}
             uid={uid}
             name={memberName(uid)}
+            photoUrl={memberPhoto(uid)}
             isCurrentUser={uid === currentUserId}
             actions={
               isOwner && uid !== currentUserId ? (
@@ -238,6 +242,7 @@ export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
                     key={uid}
                     uid={uid}
                     name={memberName(uid)}
+                    photoUrl={memberPhoto(uid)}
                     badge="Banni"
                     badgeClass="bg-red-500/20 text-red-400 border-red-500/30"
                     isCurrentUser={false}

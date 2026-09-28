@@ -32,7 +32,7 @@ interface GroupEventsTabProps {
   groupId: string;
   currentUserId?: string;
   isOwner: boolean;
-  getCreatorName: (event: Event) => string;
+  getCreatorProfile: (event: Event) => { name: string; photoUrl?: string | null };
   onEditEvent: (event: Event) => void;
   onDeleteEvent: (event: Event) => void;
   onUpdateParticipation?: (event: Event, participation: EventParticipation) => void;
@@ -53,7 +53,7 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   groupId,
   currentUserId,
   isOwner,
-  getCreatorName,
+  getCreatorProfile,
   onEditEvent,
   onDeleteEvent,
   onUpdateParticipation,
@@ -144,7 +144,7 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
               event={event}
               groupId={groupId}
               canEditOrDelete={isOwner || event.createdBy === currentUserId}
-              creatorName={getCreatorName(event)}
+              creator={getCreatorProfile(event)}
               currentUserId={currentUserId}
               onEdit={(e) => onEditEvent(e)}
               onDelete={(e) => onDeleteEvent(e)}

@@ -41,7 +41,7 @@ const ALL_CATEGORIES: EventCategory[] = [
  */
 export function computeGroupEventStats(
   events: Event[],
-  memberNamesMap: Record<string, string>
+  memberProfilesMap: Record<string, import("../models/Group").MemberProfile>
 ): GroupEventStats {
   const totalEvents = events.length;
 
@@ -74,13 +74,13 @@ export function computeGroupEventStats(
 
   for (const event of events) {
     const creatorName =
-      memberNamesMap[event.createdBy] ?? event.createdByName ?? "Membre inconnu";
+      memberProfilesMap[event.createdBy]?.displayName ?? event.createdByName ?? "Membre inconnu";
     const creator = getOrCreateMember(event.createdBy, creatorName);
     creator.eventsCreated += 1;
 
     if (event.participations) {
       for (const [uid, _] of Object.entries(event.participations)) {
-        const name = memberNamesMap[uid] ?? "Membre inconnu";
+        const name = memberProfilesMap[uid]?.displayName ?? "Membre inconnu";
         const member = getOrCreateMember(uid, name);
         member.availabilityResponses += 1;
       }

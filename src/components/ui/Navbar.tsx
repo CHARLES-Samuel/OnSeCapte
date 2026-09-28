@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, Users, LogOut, Edit2, Loader2 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { EditPseudoModal } from "../features/auth/EditPseudoModal";
+import { UserAvatar } from "./UserAvatar";
 
 export const Navbar = () => {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
@@ -36,13 +37,12 @@ export const Navbar = () => {
             <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
           ) : user ? (
             <div className="flex items-center gap-1.5 sm:gap-3">
-              {user.photoURL && (
-                <img 
-                  src={user.photoURL} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border border-slate-700 hidden sm:block shrink-0" 
-                />
-              )}
+              <UserAvatar
+                photoUrl={user.photoURL}
+                name={user.displayName || "User"}
+                size="sm"
+                className="hidden sm:flex shrink-0 border border-slate-700"
+              />
               <div className="flex items-center gap-1 sm:gap-2">
                 <span className="text-xs sm:text-sm font-medium text-slate-300 max-w-[100px] sm:max-w-[160px] truncate">
                   {user.displayName || "User"}

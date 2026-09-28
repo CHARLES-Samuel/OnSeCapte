@@ -27,6 +27,7 @@ export interface UpdateGroupDTO {
 export interface MemberProfile {
   uid: string;
   displayName: string;
+  photoURL?: string | null;
 }
 
 export type AvailabilityStatus = 'available' | 'maybe' | 'unavailable';

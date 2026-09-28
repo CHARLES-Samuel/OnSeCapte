@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import type { Event, EventCategory, EventParticipation } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
+import { UserAvatar } from '../../ui/UserAvatar';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
 const categoryIcons: Record<EventCategory, LucideIcon> = {
@@ -22,14 +23,14 @@ interface EventCardProps {
   event: Event;
   groupId: string;
   canEditOrDelete: boolean;
-  creatorName: string;
+  creator: { name: string; photoUrl?: string | null };
   currentUserId?: string;
   onEdit: (event: Event) => void;
   onDelete: (event: Event) => void;
   onUpdateParticipation?: (event: Event, participation: EventParticipation) => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creatorName, currentUserId, onEdit, onDelete, onUpdateParticipation }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creator, currentUserId, onEdit, onDelete, onUpdateParticipation }) => {
   const navigate = useNavigate();
   const Icon = categoryIcons[event.category] || Sparkles;
   
@@ -104,7 +105,15 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
       </div>
       
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-700/50">
-        <span className="text-xs text-slate-500">Par {creatorName}</span>
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <UserAvatar
+            photoUrl={creator.photoUrl}
+            name={creator.name}
+            size="sm"
+            className="!w-5 !h-5 !text-[10px]"
+          />
+          <span>Par {creator.name}</span>
+        </div>
         {canEditOrDelete && (
           <div className="flex items-center gap-1">
             <button 

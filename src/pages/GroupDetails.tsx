@@ -12,6 +12,7 @@ import { TransferOwnershipModal } from '../components/features/groups/TransferOw
 import { EditGroupModal } from '../components/features/groups/EditGroupModal';
 import { MemberManagementPanel } from '../components/features/groups/MemberManagementPanel';
 import { GroupStatsPanel } from '../components/features/groups/GroupStatsPanel';
+import type { MemberProfile } from '../models/Group';
 import { GroupHeader } from '../components/features/groups/GroupHeader';
 import { GroupEventsTab, type EventFilterState } from '../components/features/groups/GroupEventsTab';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
@@ -99,26 +100,35 @@ export const GroupDetails = () => {
     onConfirm: () => {},
   });
 
-  const memberNamesMap = useMemo(() => {
-    const map: Record<string, string> = { ...memberProfiles };
+  const memberProfilesMap = useMemo(() => {
+    const map: Record<string, MemberProfile> = { ...memberProfiles };
     if (user) {
-      map[user.uid] = user.displayName || user.email?.split('@')[0] || 'Vous';
+      map[user.uid] = { 
+        uid: user.uid, 
+        displayName: user.displayName || user.email?.split('@')[0] || 'Vous', 
+        photoURL: user.photoURL 
+      };
     }
     events.forEach(e => {
       if (e.createdBy && e.createdByName && !map[e.createdBy]) {
-        map[e.createdBy] = e.createdByName;
+        map[e.createdBy] = { 
+          uid: e.createdBy, 
+          displayName: e.createdByName,
+          photoURL: e.createdByPhoto 
+        };
       }
     });
     return map;
   }, [events, user, memberProfiles]);
 
-  const groupStats = useMemo(() => computeGroupEventStats(events, memberNamesMap), [events, memberNamesMap]);
+  const groupStats = useMemo(() => computeGroupEventStats(events, memberProfilesMap), [events, memberProfilesMap]);
 
-  const getCreatorName = (e: Event): string => {
-    if (e.createdBy === user?.uid) return 'Vous';
-    if (e.createdByName) return e.createdByName;
-    if (memberNamesMap[e.createdBy]) return memberNamesMap[e.createdBy];
-    return 'Un membre';
+  const getCreatorProfile = (e: Event): { name: string; photoUrl?: string | null } => {
+    if (e.createdBy === user?.uid) return { name: 'Vous', photoUrl: user?.photoURL };
+    const profile = memberProfilesMap[e.createdBy];
+    if (profile) return { name: profile.displayName, photoUrl: profile.photoURL };
+    if (e.createdByName) return { name: e.createdByName, photoUrl: e.createdByPhoto };
+    return { name: 'Un membre' };
   };
 
   const filteredEvents = useMemo(() => {
@@ -304,7 +314,7 @@ export const GroupDetails = () => {
             groupId={groupId ?? ''}
             currentUserId={user?.uid}
             isOwner={isOwner}
-            getCreatorName={getCreatorName}
+            getCreatorProfile={getCreatorProfile}
             onEditEvent={(e) => {
               setEventToEdit(e);
               setIsEditModalOpen(true);
@@ -339,7 +349,7 @@ export const GroupDetails = () => {
         >
           <MemberManagementPanel
             group={group}
-            memberNamesMap={memberNamesMap}
+            memberProfilesMap={memberProfilesMap}
             currentUserId={user?.uid ?? ''}
             isOwner={isOwner}
             onKick={kickMember}
@@ -384,7 +394,7 @@ export const GroupDetails = () => {
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
         members={group.members}
-        memberNamesMap={memberNamesMap}
+        memberProfilesMap={memberProfilesMap}
         currentOwnerId={group.createdBy}
         onTransfer={transferOwnership}
       />

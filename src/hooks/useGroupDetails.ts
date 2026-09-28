@@ -8,7 +8,7 @@ import type { UpdateGroupDTO } from '../models/Group';
 export function useGroupDetails(groupId: string | undefined) {
   const { user } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
-  const [memberProfiles, setMemberProfiles] = useState<Record<string, string>>({});
+  const [memberProfiles, setMemberProfiles] = useState<Record<string, import('../models/Group').MemberProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

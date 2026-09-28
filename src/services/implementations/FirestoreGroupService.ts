@@ -413,7 +413,7 @@ export class FirestoreGroupService implements IGroupService {
 
   }
 
-  async getMemberProfiles(memberIds: string[]): Promise<Record<string, string>> {
+  async getMemberProfiles(memberIds: string[]): Promise<Record<string, import("../../models/Group").MemberProfile>> {
     if (!memberIds || memberIds.length === 0) return {};
     const uniqueIds = Array.from(new Set(memberIds.filter(Boolean)));
     if (uniqueIds.length === 0) return {};
@@ -423,14 +423,14 @@ export class FirestoreGroupService implements IGroupService {
       chunks.push(uniqueIds.slice(i, i + 30));
     }
 
-    const profiles: Record<string, string> = {};
+    const profiles: Record<string, import("../../models/Group").MemberProfile> = {};
     for (const chunk of chunks) {
       const q = query(collection(db, "users"), where(documentId(), "in", chunk));
       const snap = await getDocs(q);
       snap.forEach((doc) => {
         const data = doc.data();
         if (data?.displayName) {
-          profiles[doc.id] = data.displayName;
+          profiles[doc.id] = { uid: doc.id, displayName: data.displayName, photoURL: data.photoURL || null };
         }
       });
     }

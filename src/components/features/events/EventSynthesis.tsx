@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { TimeSlot, EventParticipation, EventState } from '../../../models/Event';
 import type { GroupPlanning } from '../../../models/Group';
+import { UserAvatar } from '../../ui/UserAvatar';
 import { CheckCircle, XCircle, Users, Lock, Unlock, Award, AlertTriangle, UserCheck, HelpCircle, X } from 'lucide-react';
 
 interface EventSynthesisProps {
@@ -17,7 +18,7 @@ interface EventSynthesisProps {
   availabilities: Record<string, EventParticipation>; // renamed to participations below
   participations?: Record<string, EventParticipation>;
   plannings?: GroupPlanning[];
-  memberProfiles?: Record<string, string>;
+  memberProfiles?: Record<string, import('../../../models/Group').MemberProfile>;
   currentUserId?: string;
   canLock: boolean;
   eventState?: EventState;
@@ -37,13 +38,7 @@ const formatDateLong = (dateStr: string): string => {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 };
 
-const getInitials = (name: string) => {
-  const parts = name.split(' ');
-  if (parts.length > 1) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-};
+
 
 export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   respondedMembers,
@@ -114,15 +109,18 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
       <div className="flex items-center gap-1">
         <div className="mr-1">{icon}</div>
         <div className="flex -space-x-2">
-          {userIds.map(uid => (
-            <div 
-              key={uid} 
-              title={memberProfiles[uid] || 'Inconnu'} 
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-slate-900 ${colorClass}`}
-            >
-              {getInitials(memberProfiles[uid] || 'Un')}
-            </div>
-          ))}
+          {userIds.map(uid => {
+            const profile = memberProfiles[uid];
+            return (
+              <UserAvatar
+                key={uid}
+                photoUrl={profile?.photoURL}
+                name={profile?.displayName || 'Inconnu'}
+                size="sm"
+                className={`!w-6 !h-6 !text-[10px] border-2 border-slate-900 ${colorClass}`}
+              />
+            );
+          })}
         </div>
       </div>
     );
@@ -259,7 +257,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                   className="flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-800 text-sm"
                 >
                   <span className="font-medium text-slate-300">
-                    {memberProfiles[avail.userId] || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
+                    {memberProfiles[avail.userId]?.displayName || 'Un membre'} {avail.userId === currentUserId && '(Moi)'}
                   </span>
                   {avail.status === 'participating' ? (
                     <span className="text-emerald-400 flex items-center gap-1 text-xs font-medium">
