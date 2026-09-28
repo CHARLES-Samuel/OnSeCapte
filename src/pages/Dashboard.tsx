@@ -37,25 +37,27 @@ export const Dashboard = () => {
   return (
     <div className="bg-slate-900 text-slate-100 font-sans min-h-full">
 
-      <main className="max-w-5xl mx-auto p-6 pt-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2">Bonjour, {user.displayName?.split(" ")[0]} ! 👋</h2>
-            <p className="text-slate-400">Gérez vos groupes et organisez vos prochaines sorties.</p>
+      <main className="max-w-5xl mx-auto p-4 sm:p-6 pt-6 sm:pt-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 sm:mb-10">
+          <div className="min-w-0">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 truncate">Bonjour, {user.displayName?.split(" ")[0]} ! 👋</h2>
+            <p className="text-slate-400 text-sm sm:text-base">Gérez vos groupes et organisez vos prochaines sorties.</p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button 
+              type="button"
               onClick={() => setIsJoinModalOpen(true)}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2 border border-slate-700 min-h-[42px]"
             >
               Rejoindre
             </button>
             <button 
+              type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex-1 sm:flex-none px-4 py-2.5 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary-600/20"
+              className="flex-1 sm:flex-none px-4 py-2.5 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary-600/20 min-h-[42px]"
             >
-              <Plus className="w-5 h-5" />
-              Nouveau Groupe
+              <Plus className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <span>Nouveau Groupe</span>
             </button>
           </div>
         </div>
@@ -124,12 +126,14 @@ export const Dashboard = () => {
                     <span className="font-mono text-slate-300 bg-slate-900 px-2 py-1 rounded tracking-widest uppercase relative group-hover:text-primary-400 transition-colors">
                       {group.inviteCode}
                       <button 
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleCopyCode(group.inviteCode);
                         }}
-                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                         title="Copier le code"
+                        aria-label="Copier le code d'invitation"
                       >
                         {copiedCode === group.inviteCode ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -139,7 +143,11 @@ export const Dashboard = () => {
                       </button>
                     </span>
                   </div>
-                  <button className="text-primary-400 hover:text-primary-300 p-2 rounded-lg hover:bg-primary-500/10 transition-colors opacity-0 group-hover:opacity-100 -mr-2">
+                  <button 
+                    type="button"
+                    aria-label={`Accéder au groupe ${group.name}`}
+                    className="text-primary-400 hover:text-primary-300 p-2 rounded-lg hover:bg-primary-500/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 -mr-2"
+                  >
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>

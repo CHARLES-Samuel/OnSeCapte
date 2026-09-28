@@ -54,13 +54,27 @@ L'interface est organisée en trois **onglets** : **Événements**, **Membres** 
 - **Activités favorites :** Répartition par catégorie avec barres de progression visuelles.
 - **Membres les plus actifs :** Classement (Top 5) avec compteurs d'événements créés et de réponses de disponibilité.
 
-### 4. Saisie des Disponibilités & Sondage (`EventDetails`)
-- **Sélection des jours (Format Calendrier Grille Airbnb) :** Grille mensuelle 7 colonnes avec navigation entre les mois.
-- **Personnalisation des Créneaux Horaires :** Liste déroulante ergonomique (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*).
+### 4. Saisie des Disponibilités, Sondage & Retours Visuels (`EventDetails` & `UserAvailabilityForm`)
+- **Sélection des jours (Format Calendrier Grille Airbnb) :** Grille mensuelle 7 colonnes optimisée pour le pouce sur smartphone, avec navigation entre les mois.
+- **Personnalisation des Créneaux Horaires :** Liste déroulante ergonomique (*Toute la journée*, *Matin*, *Après-midi*, *Soirée*) avec boutons tactiles adaptés.
+- **Retour Visuel Immédiat & Zéro Décalage (Feedback Utilisateur) :**
+  - État de chargement explicite (*"Enregistrement en cours..."* avec spinner animé) et désactivation des champs pendant la sauvegarde.
+  - Notification Pop-up Toast flottante élégante (*"Vos disponibilités ont bien été mises à jour ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
+  - Suppression de tout bandeau dans le flux du formulaire afin d'éliminer 100% des sauts de mise en page (*layout shift* / décalage) lorsque la confirmation s'affiche ou disparaît.
 - **Synthèse & Réponses des Membres :** Progression en temps réel, classement dynamique des meilleures dates (Top 3).
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
 
-### 5. Conformité Légale & Accessibilité (RGPD / WCAG)
+### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
+- **Interface Produit Finie :** Suppression des indicateurs techniques de test (Firebase) sur la page d'accueil.
+- **Stabilisation du Bouton de Tri :** Largeur minimale calibrée (`min-w-[145px]`) et contenu centré (`whitespace-nowrap`) garantissant une stabilité dimensionnelle parfaite lors de l'alternance *Croissant* / *Décroissant*.
+- **Navigation Optimisée au Pouce :**
+  - Zones tactiles conformes aux recommandations d'accessibilité mobile (minimum 36px à 44px).
+  - Défilement horizontal fluide des barres de filtres (statuts et catégories) avec `overflow-x-auto touch-pan-x` et protection `min-w-0` contre tout débordement d'écran.
+  - Onglets de groupe avec libellés explicites et lisibles sur smartphone.
+  - Toutes les modales sont adaptatives avec défilement interne sécurisé (`max-h-[92vh] overflow-y-auto`) pour s'adapter aux claviers virtuels et à l'orientation paysage.
+- **Zéro Débordement Horizontal :** Intégration de `overflow-x-hidden` et de règles de retour à la ligne propres sur tous les conteneurs principaux.
+
+### 6. Conformité Légale & Accessibilité (RGPD / WCAG)
 - **Pages Légales dédiées :** Mentions Légales, Politique de Confidentialité, Politique des Cookies.
 - **Bannière de Consentement (Cookies) :** Gestion via le `localStorage`.
 - **Accessibilité Universelle (A11y) :**

@@ -63,33 +63,34 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const currentVariant = variantStyles[variant];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-      <div className="bg-slate-800 border border-slate-700/80 rounded-2xl w-full max-w-md p-6 shadow-2xl text-slate-100 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-fadeIn">
+      <div className="bg-slate-800 border border-slate-700/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl text-slate-100 relative max-h-[92vh] overflow-y-auto">
         <button
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition disabled:opacity-50"
+          aria-label="Fermer la boîte de dialogue"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700 transition disabled:opacity-50 min-w-[32px] min-h-[32px] flex items-center justify-center"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4 pr-6">
           <div className={`p-3 rounded-xl border ${currentVariant.iconBg} shrink-0`}>
             {icon || currentVariant.defaultIcon}
           </div>
-          <div className="space-y-1.5 flex-1 pr-4">
-            <h3 className="text-lg font-bold text-white leading-snug">{title}</h3>
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-white leading-snug">{title}</h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{message}</p>
           </div>
         </div>
 
-        <div className="flex justify-end items-center gap-3 pt-6 mt-4 border-t border-slate-700/60">
+        <div className="flex flex-col-reverse sm:flex-row justify-end items-center gap-2 sm:gap-3 pt-5 sm:pt-6 mt-4 border-t border-slate-700/60">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs sm:text-sm font-medium transition disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs sm:text-sm font-medium transition disabled:opacity-50 min-h-[42px]"
           >
             {cancelText}
           </button>
@@ -97,9 +98,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             type="button"
             onClick={handleConfirm}
             disabled={loading}
-            className={`px-4 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold transition shadow-lg flex items-center gap-2 disabled:opacity-50 ${currentVariant.btn}`}
+            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 min-h-[42px] ${currentVariant.btn}`}
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading && <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden="true" />}
             <span>{loading ? 'Action en cours...' : confirmText}</span>
           </button>
         </div>

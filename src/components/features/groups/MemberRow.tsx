@@ -32,7 +32,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           {isCurrentUser && <span className="text-slate-500 ml-1 text-xs">(vous)</span>}
         </span>
         {badge && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${badgeClass}`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${badgeClass}`}>
             {badge}
           </span>
         )}

@@ -46,23 +46,23 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
         <div className="w-full h-24 md:h-32 bg-gradient-to-r from-slate-800 to-slate-800/50" />
       )}
 
-      <div className="p-6 sm:p-8 relative">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+      <div className="p-4 sm:p-8 relative">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           {/* Photo + nom */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 md:gap-6 -mt-16 sm:-mt-20 md:-mt-24 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 md:gap-6 -mt-14 sm:-mt-20 md:-mt-24 relative z-10">
             {group.photoUrl ? (
               <img
                 src={group.photoUrl}
                 alt={`Photo du groupe ${group.name}`}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-2xl shrink-0 border-4 border-slate-900 bg-slate-900"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-2xl shrink-0 border-4 border-slate-900 bg-slate-900"
               />
             ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-slate-800 shadow-2xl shrink-0 border-4 border-slate-900 flex items-center justify-center">
-                <Users className="w-10 h-10 text-slate-600" aria-hidden="true" />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl bg-slate-800 shadow-2xl shrink-0 border-4 border-slate-900 flex items-center justify-center">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-slate-600" aria-hidden="true" />
               </div>
             )}
-            <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-2 text-center sm:text-left">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+            <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-2 text-center sm:text-left min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight break-words">
                 {group.name}
               </h1>
             </div>
@@ -76,27 +76,30 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
             {isOwner && (
               <>
                 <button
+                  type="button"
                   onClick={onEditGroup}
                   aria-label="Modifier les informations du groupe"
-                  className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition text-sm font-medium"
+                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
                 >
-                  <Edit2 className="w-4 h-4" aria-hidden="true" />
+                  <Edit2 className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span className="hidden sm:inline">Modifier</span>
                 </button>
                 <button
+                  type="button"
                   onClick={onTransferOwnership}
                   aria-label="Transférer la propriété du groupe"
-                  className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl transition text-sm font-medium"
+                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
                 >
-                  <UserCheck className="w-4 h-4" aria-hidden="true" />
+                  <UserCheck className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span className="hidden lg:inline">Transférer</span>
                 </button>
                 <button
+                  type="button"
                   onClick={onDeleteGroup}
                   aria-label="Supprimer le groupe définitivement"
-                  className="flex items-center space-x-2 px-3 md:px-4 py-2 md:py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-sm font-medium"
+                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
                 >
-                  <Trash2 className="w-4 h-4" aria-hidden="true" />
+                  <Trash2 className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span className="hidden lg:inline">Supprimer</span>
                 </button>
               </>

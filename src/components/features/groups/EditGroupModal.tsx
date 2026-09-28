@@ -167,20 +167,21 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
-        <div className="flex justify-between items-center p-6 border-b border-slate-800">
-          <h2 className="text-xl font-bold text-white">Modifier le groupe</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up max-h-[92vh] flex flex-col">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-800 shrink-0">
+          <h2 className="text-lg sm:text-xl font-bold text-white">Modifier le groupe</h2>
           <button 
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition rounded-lg p-1 hover:bg-slate-800"
+            className="text-slate-400 hover:text-white transition rounded-lg p-1.5 hover:bg-slate-800 min-w-[32px] min-h-[32px] flex items-center justify-center"
             aria-label="Fermer la modale"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm" role="alert">
               {error}

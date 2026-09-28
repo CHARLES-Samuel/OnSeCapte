@@ -89,9 +89,17 @@ service cloud.firestore {
                     && request.resource.data.createdBy == request.auth.uid
                     && isMemberOfGroup(request.resource.data.groupId);
 
-      // Mise à jour : membre actif du groupe uniquement
+      // Mise à jour : membre actif du groupe uniquement, ou retrait de sa propre disponibilité
       allow update: if request.auth != null
-                    && isMemberOfGroup(resource.data.groupId);
+                    && (
+                      isMemberOfGroup(resource.data.groupId)
+                      || (
+                        // Autoriser un utilisateur qui quitte le groupe (donc potentiellement plus membre dans le writeBatch)
+                        // à retirer sa propre disponibilité.
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availabilities'])
+                        && !(request.auth.uid in request.resource.data.availabilities)
+                      )
+                    );
 
       // Suppression : créateur de l'événement ou gérant du groupe
       allow delete: if request.auth != null

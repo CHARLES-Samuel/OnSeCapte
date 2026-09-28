@@ -13,7 +13,9 @@ import {
   serverTimestamp,
   Timestamp,
   deleteDoc,
-  documentId
+  documentId,
+  writeBatch,
+  deleteField
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IGroupService } from "../interfaces/IGroupService";
@@ -306,9 +308,15 @@ export class FirestoreGroupService implements IGroupService {
       throw new Error("Le gérant ne peut pas s'exclure lui-même.");
     }
 
-    await updateDoc(groupRef, {
+    const batch = writeBatch(db);
+
+    batch.update(groupRef, {
       members: arrayRemove(targetUserId),
     });
+
+    await this.cleanupUserEvents(batch, groupId, targetUserId);
+
+    await batch.commit();
   }
 
   async banMember(groupId: string, ownerId: string, targetUserId: string): Promise<void> {
@@ -325,10 +333,16 @@ export class FirestoreGroupService implements IGroupService {
       throw new Error("Le gérant ne peut pas se bannir lui-même.");
     }
 
-    await updateDoc(groupRef, {
+    const batch = writeBatch(db);
+
+    batch.update(groupRef, {
       members: arrayRemove(targetUserId),
       bannedMemberIds: arrayUnion(targetUserId),
     });
+
+    await this.cleanupUserEvents(batch, groupId, targetUserId);
+
+    await batch.commit();
   }
 
   async unbanMember(groupId: string, ownerId: string, targetUserId: string): Promise<void> {
@@ -364,8 +378,32 @@ export class FirestoreGroupService implements IGroupService {
       throw new Error("Vous n'êtes pas membre de ce groupe.");
     }
 
-    await updateDoc(groupRef, {
+    const batch = writeBatch(db);
+
+    batch.update(groupRef, {
       members: arrayRemove(userId),
+    });
+
+    await this.cleanupUserEvents(batch, groupId, userId);
+
+    await batch.commit();
+  }
+
+  private async cleanupUserEvents(batch: import("firebase/firestore").WriteBatch, groupId: string, userId: string): Promise<void> {
+    const eventsQuery = query(collection(db, "events"), where("groupId", "==", groupId));
+    const eventsSnap = await getDocs(eventsQuery);
+
+    eventsSnap.forEach((eventDoc) => {
+      const eventData = eventDoc.data();
+      if (eventData.createdBy === userId) {
+        // Supprimer l'événement créé par l'utilisateur
+        batch.delete(eventDoc.ref);
+      } else if (eventData.availabilities && eventData.availabilities[userId]) {
+        // Supprimer la disponibilité de l'utilisateur sur les événements des autres
+        batch.update(eventDoc.ref, {
+          [`availabilities.${userId}`]: deleteField()
+        });
+      }
     });
   }
 

@@ -46,10 +46,10 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
   const currentSlots = activeDate ? selectedDatesMap[activeDate] || [] : [];
 
   return (
-    <div className="bg-slate-900/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+    <div className="bg-slate-900/60 p-3.5 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-primary-400" />
+          <Clock className="w-5 h-5 text-primary-400 shrink-0" aria-hidden="true" />
           <h3 className="font-bold text-slate-100 text-base sm:text-lg">
             Personnaliser les créneaux
           </h3>
@@ -61,13 +61,14 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
 
       {/* Select day dropdown */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <label htmlFor="select-date-slots" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
           Choisir le jour à configurer
         </label>
         <select
+          id="select-date-slots"
           value={activeDate}
           onChange={(e) => setActiveDate(e.target.value)}
-          className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 rounded-xl px-4 py-3 text-sm text-slate-100 font-medium outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition shadow-sm cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat pr-10 capitalize"
+          className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-100 font-medium outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition shadow-sm cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat pr-10 capitalize min-h-[44px]"
         >
           {dates.map((dateStr) => (
             <option key={dateStr} value={dateStr} className="bg-slate-900 text-slate-100 py-2">
@@ -79,12 +80,12 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
 
       {/* Time slot buttons for activeDate */}
       {activeDate && (
-        <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 space-y-3">
+        <div className="bg-slate-800/60 p-3 sm:p-4 rounded-xl border border-slate-700/60 space-y-3">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-300 font-medium capitalize">
+            <span className="text-slate-300 font-medium capitalize truncate mr-2">
               {formatDateLong(activeDate)}
             </span>
-            <span className="text-primary-400 font-medium">
+            <span className="text-primary-400 font-medium shrink-0">
               {currentSlots.join(', ')}
             </span>
           </div>
@@ -97,7 +98,9 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
                   key={ts}
                   type="button"
                   onClick={() => onToggleTimeSlot(activeDate, ts)}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-medium border transition-all duration-150 ${
+                  aria-pressed={isSelected}
+                  aria-label={`${ts} pour le ${formatDateLong(activeDate)}`}
+                  className={`py-2.5 px-2.5 sm:px-3 rounded-xl text-xs font-medium border transition-all duration-150 min-h-[42px] flex items-center justify-center text-center ${
                     isSelected
                       ? 'bg-primary-600/30 border-primary-500 text-primary-200 shadow-sm'
                       : 'bg-slate-900/60 border-slate-700/80 text-slate-400 hover:border-slate-600 hover:text-slate-200'

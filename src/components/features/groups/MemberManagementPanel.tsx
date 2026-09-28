@@ -177,21 +177,23 @@ export const MemberManagementPanel: React.FC<MemberManagementPanelProps> = ({
             isCurrentUser={uid === currentUserId}
             actions={
               isOwner && uid !== currentUserId ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
+                    type="button"
                     onClick={() => openKickConfirm(uid)}
                     disabled={actionLoading}
                     aria-label={`Exclure ${memberName(uid)} du groupe`}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition disabled:opacity-40"
+                    className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition disabled:opacity-40 min-w-[36px] min-h-[36px] flex items-center justify-center"
                     title="Exclure temporairement"
                   >
                     <UserX className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => openBanConfirm(uid)}
                     disabled={actionLoading}
                     aria-label={`Bannir définitivement ${memberName(uid)}`}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition disabled:opacity-40"
+                    className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition disabled:opacity-40 min-w-[36px] min-h-[36px] flex items-center justify-center"
                     title="Bannir définitivement"
                   >
                     <Shield className="w-4 h-4" aria-hidden="true" />

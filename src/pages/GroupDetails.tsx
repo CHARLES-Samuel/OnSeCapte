@@ -207,8 +207,8 @@ export const GroupDetails = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-3 sm:p-6 md:p-8 font-sans overflow-x-hidden">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         {/* Header du groupe (Bannière, Photo, Titre, Actions) */}
         <GroupHeader
           group={group}
@@ -233,14 +233,14 @@ export const GroupDetails = () => {
               aria-controls={`tabpanel-${key}`}
               id={`tab-${key}`}
               onClick={() => setActiveTab(key)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition min-h-[40px] ${
                 activeTab === key
                   ? 'bg-slate-700 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
               }`}
             >
-              <Icon className="w-4 h-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{label}</span>
+              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{label}</span>
             </button>
           ))}
         </div>

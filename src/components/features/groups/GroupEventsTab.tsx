@@ -59,16 +59,17 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Filtres */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-slate-800/40 border border-slate-800 p-4 rounded-2xl gap-4">
-        <div className="flex flex-col gap-3 w-full md:w-auto">
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-slate-800/40 border border-slate-800 p-3 sm:p-4 rounded-2xl gap-4">
+        <div className="flex flex-col gap-3 w-full min-w-0 md:w-auto">
           {/* Filtres par état */}
-          <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex space-x-2 overflow-x-auto pb-1.5 scrollbar-thin touch-pan-x -mx-1 px-1">
             {(['Tous', 'En recherche', 'À venir', 'Passés'] as const).map((st) => (
               <button
                 key={st}
+                type="button"
                 onClick={() => onSelectState(st)}
                 aria-pressed={activeState === st}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition border shrink-0 ${
                   activeState === st
                     ? 'bg-slate-700 border-slate-600 text-white shadow-sm'
                     : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-300'
@@ -80,21 +81,22 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
           </div>
 
           {/* Filtres par catégorie */}
-          <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex space-x-2 overflow-x-auto pb-1.5 scrollbar-thin touch-pan-x -mx-1 px-1">
             {categories.map((cat) => {
               const Icon = cat !== 'Toutes' ? categoryIcons[cat] : Sparkles;
               return (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() => onSelectCategory(cat)}
                   aria-pressed={activeCategory === cat}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition border ${
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition border shrink-0 min-h-[36px] ${
                     activeCategory === cat
                       ? 'bg-primary-600 border-primary-500 text-white shadow-md shadow-primary-600/20'
                       : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   <span>{cat}</span>
                 </button>
               );
@@ -102,20 +104,24 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
+        {/* Boutons d'action (Tri & Création) */}
+        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between sm:justify-end shrink-0">
           <button
+            type="button"
             onClick={onToggleSortOrder}
             aria-label={`Trier par prix ${sortOrder === 'asc' ? 'décroissant' : 'croissant'}`}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs font-medium transition"
+            className="inline-flex items-center justify-center min-w-[145px] px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs font-medium whitespace-nowrap transition shrink-0 select-none shadow-sm"
           >
-            Prix: {sortOrder === 'asc' ? 'Croissant ↑' : 'Décroissant ↓'}
+            <span>Prix : {sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}</span>
+            <span className="text-primary-400 font-bold ml-1.5">{sortOrder === 'asc' ? '↑' : '↓'}</span>
           </button>
           <button
+            type="button"
             onClick={onCreateEvent}
             aria-label="Créer un nouvel événement"
-            className="flex items-center space-x-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-sm font-medium"
+            className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-xs sm:text-sm font-medium whitespace-nowrap min-h-[36px]"
           >
-            <Plus className="w-4 h-4" aria-hidden="true" />
+            <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>Créer événement</span>
           </button>
         </div>

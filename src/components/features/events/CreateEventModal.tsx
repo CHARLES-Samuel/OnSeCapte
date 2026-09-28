@@ -68,19 +68,21 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-6 shadow-xl text-white relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-xl text-white relative max-h-[92vh] overflow-y-auto">
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition"
+          aria-label="Fermer la modale"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700 transition min-w-[32px] min-h-[32px] flex items-center justify-center"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <h3 className="text-xl font-bold mb-4">Créer un nouvel événement</h3>
+        <h3 className="text-lg sm:text-xl font-bold mb-4 pr-8">Créer un nouvel événement</h3>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg" role="alert">
             {error}
           </div>
         )}
@@ -122,7 +124,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Catégorie
@@ -155,18 +157,18 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-700">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-slate-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition"
+              className="w-full sm:w-auto px-4 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm font-medium transition min-h-[42px]"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-500 rounded-lg text-sm font-medium transition disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2.5 bg-primary-600 hover:bg-primary-500 rounded-xl text-sm font-medium transition disabled:opacity-50 min-h-[42px]"
             >
               {loading ? "Création..." : "Créer l'événement"}
             </button>

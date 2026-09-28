@@ -60,11 +60,11 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
   }
 
   return (
-    <div className="bg-slate-900/60 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4 select-none">
+    <div className="bg-slate-900/60 p-3 sm:p-5 rounded-2xl border border-slate-800 space-y-4 select-none">
       {/* Calendar Navigation Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="w-5 h-5 text-primary-400" />
+          <CalendarIcon className="w-5 h-5 text-primary-400 shrink-0" aria-hidden="true" />
           <h3 className="font-bold text-slate-100 capitalize text-base sm:text-lg">
             {monthLabel}
           </h3>
@@ -74,18 +74,20 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
             type="button"
             onClick={handlePrevMonth}
             disabled={isPrevDisabled}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition"
             title="Mois précédent"
+            aria-label="Mois précédent"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </button>
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+            className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
             title="Mois suivant"
+            aria-label="Mois suivant"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -103,7 +105,7 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
       <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
         {daysGrid.map((dayNum, index) => {
           if (dayNum === null) {
-            return <div key={`empty-${index}`} className="h-10 sm:h-11" />;
+            return <div key={`empty-${index}`} className="min-h-[40px] sm:h-11" />;
           }
 
           const dateStr = formatDateStr(year, month, dayNum);
@@ -115,7 +117,8 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
             return (
               <div
                 key={dateStr}
-                className="h-10 sm:h-11 rounded-xl flex items-center justify-center text-xs sm:text-sm text-slate-600 bg-slate-900/30 cursor-not-allowed"
+                className="min-h-[40px] sm:h-11 rounded-xl flex items-center justify-center text-xs sm:text-sm text-slate-600 bg-slate-900/30 cursor-not-allowed"
+                aria-disabled="true"
               >
                 {dayNum}
               </div>
@@ -127,7 +130,9 @@ export const MonthCalendarPicker: React.FC<MonthCalendarPickerProps> = ({
               key={dateStr}
               type="button"
               onClick={() => onToggleDate(dateStr)}
-              className={`h-10 sm:h-11 rounded-xl font-medium text-xs sm:text-sm flex flex-col items-center justify-center transition-all duration-150 relative ${
+              aria-pressed={isSelected}
+              aria-label={`${dayNum} ${monthLabel} ${isSelected ? 'sélectionné' : ''}`}
+              className={`min-h-[40px] sm:h-11 rounded-xl font-medium text-xs sm:text-sm flex flex-col items-center justify-center transition-all duration-150 relative ${
                 isSelected
                   ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/30 scale-[1.02] border border-primary-400'
                   : isToday

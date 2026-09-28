@@ -1,10 +1,14 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, MoreHorizontal } from 'lucide-react';
+import { 
+  Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, 
+  Dumbbell, Gamepad2, MoreHorizontal, type LucideIcon 
+} from 'lucide-react';
 import type { Event, EventCategory } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
-const categoryIcons: Record<EventCategory, any> = {
+const categoryIcons: Record<EventCategory, LucideIcon> = {
   'Restaurant': Utensils,
   'Jeux de rôle': Dices,
   'Soirée': PartyPopper,
@@ -23,19 +27,19 @@ interface EventCardProps {
   onDelete: (event: Event) => void;
 }
 
-export const EventCard = ({ event, groupId, canEditOrDelete, creatorName, onEdit, onDelete }: EventCardProps) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creatorName, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const Icon = categoryIcons[event.category] || Sparkles;
 
   return (
     <div 
       onClick={() => navigate(`/groups/${groupId}/events/${event.id}`)}
-      className="bg-slate-800/40 border border-slate-800 hover:border-primary-500/50 p-6 rounded-2xl transition duration-200 cursor-pointer flex flex-col justify-between group hover:shadow-xl hover:shadow-primary-950/20"
+      className="bg-slate-800/40 border border-slate-800 hover:border-primary-500/50 p-4 sm:p-6 rounded-2xl transition duration-200 cursor-pointer flex flex-col justify-between group hover:shadow-xl hover:shadow-primary-950/20"
     >
       <div>
         <div className="flex justify-between items-start mb-4">
           <span className="flex items-center space-x-1.5 px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs font-medium text-slate-300">
-            <Icon className="w-3.5 h-3.5 text-primary-400" />
+            <Icon className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
             <span>{event.category}</span>
           </span>
           <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
@@ -61,24 +65,28 @@ export const EventCard = ({ event, groupId, canEditOrDelete, creatorName, onEdit
         {canEditOrDelete && (
           <div className="flex items-center gap-1">
             <button 
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(event);
               }} 
-              className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition"
+              className="text-slate-400 hover:text-white p-2 sm:p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
               title="Modifier l'événement"
+              aria-label="Modifier l'événement"
             >
-              <Edit className="w-4 h-4 text-primary-400" />
+              <Edit className="w-4 h-4 text-primary-400" aria-hidden="true" />
             </button>
             <button 
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(event);
               }} 
-              className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 transition"
+              className="text-red-400 hover:text-red-300 p-2 sm:p-1.5 rounded-lg hover:bg-red-500/10 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
               title="Supprimer l'événement"
+              aria-label="Supprimer l'événement"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         )}

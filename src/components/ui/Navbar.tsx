@@ -11,7 +11,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <header className="px-6 py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
+      <header className="px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
         <div 
           className="flex items-center gap-2 cursor-pointer group"
           onClick={() => navigate(user ? "/dashboard" : "/")}
@@ -21,35 +21,35 @@ export const Navbar = () => {
               <Users className="text-white w-4 h-4 -rotate-3" />
             </div>
           ) : (
-            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-600 rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
               <Calendar className="text-white w-5 h-5 -rotate-3" />
             </div>
           )}
           
-          <h1 className={`font-bold tracking-tight text-white ${user ? 'text-lg' : 'text-xl'}`}>
+          <h1 className={`font-bold tracking-tight text-white ${user ? 'text-base sm:text-lg' : 'text-lg sm:text-xl'}`}>
             On<span className="text-primary-500">SeCapte</span>
           </h1>
         </div>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 sm:gap-4">
           {loading ? (
             <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
           ) : user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {user.photoURL && (
                 <img 
                   src={user.photoURL} 
                   alt="Profile" 
-                  className="w-8 h-8 rounded-full border border-slate-700 hidden sm:block" 
+                  className="w-8 h-8 rounded-full border border-slate-700 hidden sm:block shrink-0" 
                 />
               )}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-300">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-medium text-slate-300 max-w-[100px] sm:max-w-[160px] truncate">
                   {user.displayName || "User"}
                 </span>
                 <button 
                   onClick={() => setIsEditPseudoModalOpen(true)}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-w-[32px] min-h-[32px] flex items-center justify-center"
                   title="Modifier le pseudo"
                   aria-label="Modifier le pseudo"
                 >
@@ -59,19 +59,19 @@ export const Navbar = () => {
               <div className="w-px h-5 bg-slate-800 mx-1 hidden sm:block"></div>
               <button 
                 onClick={signOut}
-                className="p-2 text-slate-400 hover:text-white hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-w-[36px] min-h-[36px] flex items-center justify-center"
                 title="Déconnexion"
                 aria-label="Se déconnecter"
               >
-                <LogOut className="w-5 h-5" aria-hidden="true" />
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </button>
             </div>
           ) : (
             <button 
               onClick={signInWithGoogle}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 hover:border-slate-600 rounded-xl shadow-sm hover:shadow-md backdrop-blur-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 hover:border-slate-600 rounded-xl shadow-sm hover:shadow-md backdrop-blur-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-h-[38px]"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
@@ -89,7 +89,8 @@ export const Navbar = () => {
                   d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                 />
               </svg>
-              <span>Connexion avec Google</span>
+              <span className="hidden sm:inline">Connexion avec Google</span>
+              <span className="sm:hidden">Connexion</span>
             </button>
           )}
         </nav>
