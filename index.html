@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#0f172a" />
 
     <!-- SEO & Description -->
+    <link rel="canonical" href="https://onsecapte-25bae.firebaseapp.com" />
     <meta
       name="description"
       content="OnSeCapte est l'application simple et moderne pour organiser vos sorties, activités et événements entre amis. Proposez des dates, votez pour vos disponibilités et retrouvez-vous facilement !"
@@ -26,6 +27,7 @@
       content="Fini les boucles interminables de messages. Créez votre groupe, proposez des dates et captez-vous sans prise de tête !"
     />
     <meta property="og:site_name" content="OnSeCapte" />
+    <meta property="og:image" content="https://onsecapte-25bae.firebaseapp.com/og-image.jpg" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -36,6 +38,12 @@
     />
   </head>
   <body class="bg-slate-900 text-slate-100 antialiased selection:bg-primary-500 selection:text-white">
+    <noscript>
+      <div style="padding: 2rem; text-align: center; color: white; background: #0f172a; height: 100vh;">
+        <h1>JavaScript est requis</h1>
+        <p>L'application OnSeCapte nécessite l'activation de JavaScript pour fonctionner correctement. Veuillez l'activer dans les paramètres de votre navigateur.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

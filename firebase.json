@@ -16,10 +16,13 @@
       }
     ],
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/", "destination": "/index.html" },
+      { "source": "/mentions-legales", "destination": "/index.html" },
+      { "source": "/confidentialite", "destination": "/index.html" },
+      { "source": "/cookies", "destination": "/index.html" },
+      { "source": "/dashboard", "destination": "/index.html" },
+      { "source": "/join/**", "destination": "/index.html" },
+      { "source": "/groups/**", "destination": "/index.html" }
     ]
   },
   "firestore": {

@@ -102,7 +102,7 @@ export const EventDetails = () => {
   }, [event, participations, plannings]);
 
   const handleSaveParticipation = async (participation: EventParticipation) => {
-    if (!event || !user || event.state === 'planifie') return;
+    if (!event || !user) return;
     await updateParticipation(event.id, participation);
   };
 
@@ -249,24 +249,41 @@ export const EventDetails = () => {
 
         {/* State: Planifié Banner */}
         {isLocked && event.finalDate && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 sm:p-6 rounded-2xl text-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-emerald-400 mb-2 flex items-center justify-center gap-2">
+          <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 sm:p-6 rounded-2xl text-center space-y-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-emerald-400 flex items-center justify-center gap-2">
               <CheckCircle className="w-6 h-6 shrink-0" aria-hidden="true" />
               <span>Événement Confirmé !</span>
             </h2>
-            <p className="text-emerald-300/80 text-base sm:text-lg font-medium mt-2">
+            <p className="text-emerald-300/80 text-base sm:text-lg font-medium">
               📅 {new Date(event.finalDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} <br/>
               ⏰ {event.finalTimeSlot}
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              {currentUserResponse === 'participating' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Tu es inscrit(e)
+                </span>
+              ) : currentUserResponse === 'not_participating' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-300 border border-red-500/30 rounded-full text-xs font-semibold">
+                  <UserX className="w-3.5 h-3.5 text-red-400" /> Tu es noté(e) indisponible
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-semibold">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> Réponse en attente
+                </span>
+              )}
+            </div>
             {canLock && (
-              <button
-                type="button"
-                onClick={handleUnlockClick}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition text-xs font-semibold min-h-[36px]"
-              >
-                <Unlock className="w-4 h-4 text-amber-400" aria-hidden="true" />
-                <span>Rouvrir le sondage (Imprévu)</span>
-              </button>
+              <div>
+                <button
+                  type="button"
+                  onClick={handleUnlockClick}
+                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl transition text-xs font-semibold min-h-[36px]"
+                >
+                  <Unlock className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                  <span>Rouvrir le sondage (Imprévu)</span>
+                </button>
+              </div>
             )}
           </div>
         )}

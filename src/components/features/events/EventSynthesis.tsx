@@ -60,6 +60,9 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   const memberList = Object.entries(participations).map(([userId, status]) => ({ userId, status }));
   const top3Dates = bestDates.slice(0, 3);
 
+  const participatingCount = memberList.filter(m => m.status === 'participating').length;
+  const unavailableCount = memberList.filter(m => m.status === 'not_participating').length;
+
   const [selectedTopIndex, setSelectedTopIndex] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForceLockWarning, setShowForceLockWarning] = useState(false);
@@ -133,28 +136,52 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
         {/* Progress Bar */}
         <div className="mt-4">
           <div className="flex justify-between items-center text-sm mb-2">
-            <span className="text-slate-400">Progression des votes</span>
+            <span className="text-slate-400">
+              {isLocked ? 'Présences confirmées' : 'Progression des votes'}
+            </span>
             <span
               className={`font-bold ${
-                respondedMembers === totalMembers ? 'text-emerald-400' : 'text-primary-400'
+                isLocked
+                  ? 'text-emerald-400'
+                  : respondedMembers === totalMembers
+                  ? 'text-emerald-400'
+                  : 'text-primary-400'
               }`}
             >
-              {respondedMembers} / {totalMembers} membres
+              {isLocked
+                ? `${participatingCount} présent(s) • ${unavailableCount} indispo.`
+                : `${respondedMembers} / ${totalMembers} membres`}
             </span>
           </div>
           <div className="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 ease-out ${
-                respondedMembers === totalMembers ? 'bg-emerald-500' : 'bg-primary-500'
+                isLocked
+                  ? 'bg-emerald-500'
+                  : respondedMembers === totalMembers
+                  ? 'bg-emerald-500'
+                  : 'bg-primary-500'
               }`}
               style={{
-                width: `${(respondedMembers / Math.max(totalMembers, 1)) * 100}%`,
+                width: `${
+                  isLocked
+                    ? (participatingCount / Math.max(totalMembers, 1)) * 100
+                    : (respondedMembers / Math.max(totalMembers, 1)) * 100
+                }%`,
               }}
             />
           </div>
-          {missingResponses > 0 && !isLocked && (
-            <p className="text-xs text-amber-400/80 mt-2">
-              En attente de réponse de {missingResponses} membre(s).
+          {isLocked && unavailableCount > 0 && (
+            <p className="text-xs text-red-400/90 mt-2 flex items-center gap-1.5">
+              <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+              <span>{unavailableCount} membre(s) indisponible(s) pour cet événement.</span>
+            </p>
+          )}
+          {missingResponses > 0 && (
+            <p className="text-xs text-amber-400/80 mt-1.5">
+              {isLocked
+                ? `En attente de confirmation de ${missingResponses} membre(s).`
+                : `En attente de réponse de ${missingResponses} membre(s).`}
             </p>
           )}
         </div>
@@ -221,7 +248,8 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
         {/* Members responses */}
         <div className="mt-8">
           <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-400" /> Réponses des membres
+            <Users className="w-4 h-4 text-blue-400" />{' '}
+            {isLocked ? `Présence des membres (${participatingCount}/${totalMembers})` : 'Réponses des membres'}
           </h3>
           {memberList.length > 0 ? (
             <div className="space-y-2 max-h-[180px] overflow-y-auto pr-2 scrollbar-none">
@@ -239,7 +267,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                     </span>
                   ) : avail.status === 'not_participating' ? (
                     <span className="text-red-400 flex items-center gap-1 text-xs font-medium">
-                      <XCircle className="w-3 h-3" /> Absent
+                      <XCircle className="w-3 h-3" /> Indisponible
                     </span>
                   ) : (
                      <span className="text-slate-400 flex items-center gap-1 text-xs font-medium">

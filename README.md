@@ -60,12 +60,16 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 
 ### 4. Saisie des Disponibilités, Sondage & Retours Visuels (`EventDetails` & `UserAvailabilityForm`)
 - **Sélection des jours et créneaux horaires :** Interface intuitive permettant de choisir des dates et des créneaux horaires précis (*Matin*, *Après-midi*, *Soirée*, *Nuit*).
-- **Gestion de l'indisponibilité globale :** Possibilité de déclarer son indisponibilité totale en un clic.
+- **Gestion de l'indisponibilité globale & Imprévus après date fixée :**
+  - Possibilité de déclarer son indisponibilité totale en un clic.
+  - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu.
 - **Retour Visuel Immédiat & Zéro Décalage (Feedback Utilisateur) :**
   - État de chargement explicite (*"Enregistrement en cours..."* avec spinner animé) et désactivation des champs pendant la sauvegarde.
-  - Notification Pop-up Toast flottante élégante (*"Vos disponibilités ont bien été mises à jour ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
-  - Suppression de tout bandeau dans le flux du formulaire afin d'éliminer 100% des sauts de mise en page (*layout shift* / décalage) lorsque la confirmation s'affiche ou disparaît.
-- **Synthèse & Réponses des Membres :** Progression en temps réel, classement dynamique des meilleures dates (Top 3) et détails par participant.
+  - Notification Pop-up Toast flottante élégante (*"Votre indisponibilité a été prise en compte"* ou *"Votre participation a bien été enregistrée ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
+  - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Indisponible* ou *Réponse en attente*).
+- **Synthèse & Réponses des Membres en Temps Réel :**
+  - Récapitulatif temps réel des présences confirmées et des indisponibilités (`X présent(s) • Y indispo.`).
+  - Classement dynamique des meilleures dates (Top 3) et détails nominatifs par participant.
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
