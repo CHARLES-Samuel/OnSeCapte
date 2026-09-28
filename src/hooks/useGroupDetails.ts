@@ -66,14 +66,28 @@ export function useGroupDetails(groupId: string | undefined) {
     }
   };
 
-  const updateGroupDetails = async (data: UpdateGroupDTO, photoFile?: File): Promise<boolean> => {
+  const updateGroupDetails = async (data: UpdateGroupDTO, photoFile?: File, bannerFile?: File): Promise<boolean> => {
     if (!groupId || !user) return false;
     try {
       let finalData = { ...data };
+      const uploadTasks: Promise<void>[] = [];
+
       if (photoFile) {
-        const photoUrl = await storageService.uploadGroupPhoto(groupId, photoFile);
-        finalData.photoUrl = photoUrl;
+        uploadTasks.push(
+          storageService.uploadGroupPhoto(groupId, photoFile).then(url => {
+            finalData.photoUrl = url;
+          })
+        );
       }
+      if (bannerFile) {
+        uploadTasks.push(
+          storageService.uploadGroupBanner(groupId, bannerFile).then(url => {
+            finalData.bannerUrl = url;
+          })
+        );
+      }
+
+      await Promise.all(uploadTasks);
       await groupService.updateGroup(groupId, finalData, user.uid);
       return true;
     } catch (err) {

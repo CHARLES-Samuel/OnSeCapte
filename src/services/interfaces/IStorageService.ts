@@ -4,4 +4,10 @@ export interface IStorageService {
   
   /** Deletes a group photo */
   deleteGroupPhoto(groupId: string): Promise<void>;
+
+  /** Uploads a group banner and returns the download URL */
+  uploadGroupBanner(groupId: string, file: File | Blob): Promise<string>;
+  
+  /** Deletes a group banner */
+  deleteGroupBanner(groupId: string): Promise<void>;
 }

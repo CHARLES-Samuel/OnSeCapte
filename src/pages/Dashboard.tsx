@@ -104,7 +104,9 @@ export const Dashboard = () => {
                 <div className="p-6 pt-0 flex-1 flex flex-col">
                   <div className="flex justify-between items-end mb-4 -mt-8 relative z-10">
                     {group.photoUrl ? (
-                      <img src={group.photoUrl} alt={`Photo de ${group.name}`} className="w-16 h-16 rounded-xl object-cover shrink-0 border-4 border-slate-900 shadow-xl bg-slate-800" />
+                      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border-4 border-slate-900 shadow-xl photo-gradient-bg flex items-center justify-center">
+                        <img src={group.photoUrl} alt={`Photo de ${group.name}`} className="w-full h-full object-cover" />
+                      </div>
                     ) : (
                       <div className="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center shrink-0 border-4 border-slate-900 shadow-xl">
                         <Users className="w-7 h-7 text-slate-400" />

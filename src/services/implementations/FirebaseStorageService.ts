@@ -26,6 +26,29 @@ export class FirebaseStorageService implements IStorageService {
       }
     }
   }
+
+  async uploadGroupBanner(groupId: string, file: File | Blob): Promise<string> {
+    const storageRef = ref(storage, `groups/${groupId}/banner.webp`);
+    
+    // Upload de la bannière
+    const snapshot = await uploadBytes(storageRef, file);
+    
+    // Récupération de l'URL publique
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    return downloadUrl;
+  }
+
+  async deleteGroupBanner(groupId: string): Promise<void> {
+    const storageRef = ref(storage, `groups/${groupId}/banner.webp`);
+    try {
+      await deleteObject(storageRef);
+    } catch (error: any) {
+      // Ignorer l'erreur si l'objet n'existe pas
+      if (error.code !== "storage/object-not-found") {
+        throw error;
+      }
+    }
+  }
 }
 
 export const storageService = new FirebaseStorageService();

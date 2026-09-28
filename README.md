@@ -73,12 +73,19 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
+- **Gestion des Images avec Transparence (PNG & WebP) :**
+  - Préservation intégrale et sans perte du format PNG (`image/png` lossless) et du canal alpha lors du téléversement, du recadrage client (`ImageCropperModal`) et de la compression client (`compressImage`).
+  - Détection automatique des pixels transparents et intégration d'un dégradé linéaire vibrant (`#6366f1` Indigo ➔ `#a855f7` Violet ➔ `#ec4899` Rose) combiné à la classe dédiée `.photo-gradient-bg`, garantissant un rendu moderne et éclatant sur tous les conteneurs (profil de groupe, dashboard, modale d'édition et avatars).
+- **Barre d'Onglets Fluide & Défilement Tactile Doux (Mobile 320px - 640px) :**
+  - Navigation par onglets fluide avec conteneur à défilement horizontal tactile (`overflow-x-auto`, `no-scrollbar`, `-webkit-overflow-scrolling: touch`).
+  - Aucun retour à la ligne chaotique ni écrasement du texte (`whitespace-nowrap`, `shrink-0 sm:shrink`), garantissant une parfaite lisibilité des intitulés (*Événements*, *Planning*, *Membres*, *Statistiques*).
+  - Cibles tactiles calibrées pour l'ergonomie au pouce (`min-h-[44px]`, `touch-manipulation`).
+  - Accessibilité complète conforme WCAG (`role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls`, `id` reliés aux panneaux correspondants).
 - **Interface Produit Finie :** Suppression des indicateurs techniques de test (Firebase) sur la page d'accueil.
 - **Stabilisation du Bouton de Tri :** Largeur minimale calibrée (`min-w-[145px]`) et contenu centré (`whitespace-nowrap`) garantissant une stabilité dimensionnelle parfaite lors de l'alternance *Croissant* / *Décroissant*.
 - **Navigation Optimisée au Pouce :**
   - Zones tactiles conformes aux recommandations d'accessibilité mobile (minimum 36px à 44px).
   - Défilement horizontal fluide des barres de filtres (statuts et catégories) avec `overflow-x-auto touch-pan-x` et protection `min-w-0` contre tout débordement d'écran.
-  - Onglets de groupe avec libellés explicites et lisibles sur smartphone.
   - Toutes les modales sont adaptatives avec défilement interne sécurisé (`max-h-[92vh] overflow-y-auto`) pour s'adapter aux claviers virtuels et à l'orientation paysage.
 - **Zéro Débordement Horizontal :** Intégration de `overflow-x-hidden` et de règles de retour à la ligne propres sur tous les conteneurs principaux.
 

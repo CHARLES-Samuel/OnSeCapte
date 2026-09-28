@@ -7,7 +7,7 @@ interface EditGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   group: Group;
-  onSubmit: (data: UpdateGroupDTO, photoFile?: File) => Promise<boolean>;
+  onSubmit: (data: UpdateGroupDTO, photoFile?: File, bannerFile?: File) => Promise<boolean>;
 }
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 Mo
@@ -30,6 +30,7 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
   const [cropperState, setCropperState] = useState<{
     isOpen: boolean;
     imageUrl: string;
+    mimeType?: string;
     type: 'photo' | 'banner';
     aspectRatio: number;
   }>({ isOpen: false, imageUrl: '', type: 'photo', aspectRatio: 1 });
@@ -68,6 +69,7 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
     setCropperState({
       isOpen: true,
       imageUrl: previewUrl,
+      mimeType: file.type,
       type: isBanner ? 'banner' : 'photo',
       aspectRatio: isBanner ? 3 : 1 // 3:1 for banner, 1:1 for profile
     });
@@ -87,41 +89,89 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
     }
   };
 
-  const compressImage = (file: File, maxDim: number = 800): Promise<string> => {
+  const compressImage = (source: File | Blob | string, maxDim: number = 400): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
+      const img = new Image();
+
+      img.onload = () => {
+        try {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          
-          // Redimensionnement max
+
+          // Redimensionnement proportionnel
           const MAX_SIZE = maxDim;
           if (width > height && width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
+            height = Math.round((height * MAX_SIZE) / width);
             width = MAX_SIZE;
           } else if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
+            width = Math.round((width * MAX_SIZE) / height);
             height = MAX_SIZE;
           }
-          
+
           canvas.width = width;
           canvas.height = height;
-          
+
           const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Compression en JPEG (qualité 0.7)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          resolve(dataUrl);
-        };
-        img.onerror = (err) => reject(err);
+          if (!ctx) {
+            resolve(typeof source === 'string' ? source : '');
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Détecter si l'image possède de la transparence
+          let hasAlpha = false;
+          try {
+            const imgData = ctx.getImageData(0, 0, width, height);
+            for (let i = 3; i < imgData.data.length; i += 4) {
+              if (imgData.data[i] < 255) {
+                hasAlpha = true;
+                break;
+              }
+            }
+          } catch {
+            // Ignorer les erreurs d'accès aux pixels
+          }
+
+          // Si l'image a de la transparence, on applique le dégradé en fond
+          if (hasAlpha) {
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = width;
+            compCanvas.height = height;
+            const compCtx = compCanvas.getContext('2d');
+            if (compCtx) {
+              const grad = compCtx.createLinearGradient(0, 0, width, height);
+              grad.addColorStop(0, '#6366f1');   // indigo-500
+              grad.addColorStop(0.5, '#a855f7'); // purple-500
+              grad.addColorStop(1, '#ec4899');   // pink-500
+              compCtx.fillStyle = grad;
+              compCtx.fillRect(0, 0, width, height);
+              compCtx.drawImage(canvas, 0, 0);
+              resolve(compCanvas.toDataURL('image/jpeg', 0.8));
+              return;
+            }
+          }
+
+          // Compression en JPEG qualité 0.75 par défaut
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        } catch (err) {
+          reject(err);
+        }
       };
-      reader.onerror = (err) => reject(err);
+
+      img.onerror = (err) => reject(err);
+
+      if (typeof source === 'string') {
+        img.src = source;
+      } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(source);
+      }
     });
   };
 
@@ -132,27 +182,27 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
     try {
       setLoading(true);
       setError(null);
-      
+
       let base64Photo: string | undefined;
-      if (photoFile) {
-        base64Photo = await compressImage(photoFile, 800);
-      } else if (photoPreview && photoPreview !== group.photoUrl && photoPreview.startsWith('data:')) {
-        base64Photo = photoPreview;
+      if (photoPreview && photoPreview !== group.photoUrl && photoPreview.startsWith('data:')) {
+        base64Photo = await compressImage(photoPreview, 400);
+      } else if (photoFile) {
+        base64Photo = await compressImage(photoFile, 400);
       }
-      
+
       let base64Banner: string | undefined;
-      if (bannerFile) {
-        base64Banner = await compressImage(bannerFile, 1200);
-      } else if (bannerPreview && bannerPreview !== group.bannerUrl && bannerPreview.startsWith('data:')) {
-        base64Banner = bannerPreview;
+      if (bannerPreview && bannerPreview !== group.bannerUrl && bannerPreview.startsWith('data:')) {
+        base64Banner = await compressImage(bannerPreview, 1000);
+      } else if (bannerFile) {
+        base64Banner = await compressImage(bannerFile, 1000);
       }
-      
+
       const success = await onSubmit({
         name: name.trim(),
         description: description.trim(),
         ...(base64Photo ? { photoUrl: base64Photo } : {}),
         ...(base64Banner ? { bannerUrl: base64Banner } : {})
-      }, undefined); // Ne pas envoyer le photoFile pour court-circuiter le Storage qui bloque
+      }, undefined, undefined);
 
       if (success) {
         onClose();
@@ -191,11 +241,11 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
           <div className="flex flex-col sm:flex-row items-start gap-6">
             <div className="flex flex-col items-center gap-3 w-full sm:w-auto">
               <span className="text-xs font-medium text-slate-400">Photo profil</span>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center group shrink-0">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden photo-gradient-bg border border-slate-700 flex items-center justify-center group shrink-0 shadow-lg">
                 {photoPreview ? (
                   <img src={photoPreview} alt="Aperçu de la photo de groupe" className="w-full h-full object-cover" />
                 ) : (
-                  <ImageIcon className="w-8 h-8 text-slate-600" />
+                  <ImageIcon className="w-8 h-8 text-white/80" />
                 )}
                 <div 
                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
@@ -315,6 +365,7 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
         isOpen={cropperState.isOpen}
         onClose={() => setCropperState(prev => ({ ...prev, isOpen: false }))}
         imageUrl={cropperState.imageUrl}
+        mimeType={cropperState.mimeType}
         aspectRatio={cropperState.aspectRatio}
         onCropCompleteAction={handleCropComplete}
         title={cropperState.type === 'banner' ? "Recadrer la bannière" : "Recadrer la photo"}

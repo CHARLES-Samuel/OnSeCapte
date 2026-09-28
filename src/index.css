@@ -41,3 +41,20 @@
     box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #3b82f6 !important; /* Ring offset + ring */
   }
 }
+
+/* Utilitaires pour le défilement horizontal fluide sans barre de défilement apparente */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fond dégradé vibrant et moderne pour les images PNG et photos de profil */
+.photo-gradient-bg {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%) !important;
+}
+
+

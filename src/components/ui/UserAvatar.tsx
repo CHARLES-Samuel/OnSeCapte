@@ -36,13 +36,17 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 
   if (photoUrl && !imageError) {
     return (
-      <img
-        src={photoUrl}
-        alt={`Avatar de ${name}`}
-        className={`rounded-full object-cover ${sizeClasses[size]} ${className}`}
-        referrerPolicy="no-referrer"
-        onError={() => setImageError(true)}
-      />
+      <div
+        className={`rounded-full overflow-hidden flex items-center justify-center shrink-0 photo-gradient-bg ${sizeClasses[size]} ${className}`}
+      >
+        <img
+          src={photoUrl}
+          alt={`Avatar de ${name}`}
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={() => setImageError(true)}
+        />
+      </div>
     );
   }
 

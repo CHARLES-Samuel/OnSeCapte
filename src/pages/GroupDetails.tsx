@@ -266,30 +266,32 @@ export const GroupDetails = () => {
           onDeleteGroup={handleDeleteGroupClick}
         />
 
-        {/* Onglets */}
-        <div
-          role="tablist"
-          aria-label="Sections du groupe"
-          className="flex gap-1 bg-slate-800/40 border border-slate-800 p-1 rounded-2xl"
-        >
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              role="tab"
-              aria-selected={activeTab === key}
-              aria-controls={`tabpanel-${key}`}
-              id={`tab-${key}`}
-              onClick={() => setActiveTab(key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition min-h-[40px] ${
-                activeTab === key
-                  ? 'bg-slate-700 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
-              }`}
-            >
-              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>{label}</span>
-            </button>
-          ))}
+        {/* Onglets avec défilement horizontal fluide et ergonomie tactile mobile */}
+        <div className="w-full overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
+          <div
+            role="tablist"
+            aria-label="Sections du groupe"
+            className="flex items-center gap-1.5 sm:gap-2 bg-slate-800/40 border border-slate-800 p-1.5 rounded-2xl min-w-max sm:min-w-0 sm:w-full"
+          >
+            {TABS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={activeTab === key}
+                aria-controls={`tabpanel-${key}`}
+                id={`tab-${key}`}
+                onClick={() => setActiveTab(key)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 sm:shrink min-h-[44px] touch-manipulation ${
+                  activeTab === key
+                    ? 'bg-slate-700 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Contenu Onglet : Événements */}

@@ -7,6 +7,7 @@ interface ImageCropperModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
+  mimeType?: string;
   aspectRatio: number;
   onCropCompleteAction: (croppedImageUrl: string) => void;
   title?: string;
@@ -24,7 +25,8 @@ export const getCroppedImg = async (
   imageSrc: string,
   pixelCrop: Area,
   rotation = 0,
-  flip = { horizontal: false, vertical: false }
+  flip = { horizontal: false, vertical: false },
+  mimeType?: string
 ): Promise<string | null> => {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
@@ -59,6 +61,58 @@ export const getCroppedImg = async (
   canvas.height = pixelCrop.height;
   ctx.putImageData(data, 0, 0);
 
+  // Détecter si l'image possède des pixels transparents
+  let hasAlpha = false;
+  const pixels = data.data;
+  for (let i = 3; i < pixels.length; i += 4) {
+    if (pixels[i] < 255) {
+      hasAlpha = true;
+      break;
+    }
+  }
+
+  const isPng =
+    mimeType === 'image/png' ||
+    imageSrc.startsWith('data:image/png') ||
+    imageSrc.toLowerCase().includes('.png') ||
+    hasAlpha;
+
+  // Si l'image a de la transparence, on applique directement le dégradé en fond
+  if (hasAlpha || (isPng && mimeType === 'image/png')) {
+    const compCanvas = document.createElement('canvas');
+    compCanvas.width = pixelCrop.width;
+    compCanvas.height = pixelCrop.height;
+    const compCtx = compCanvas.getContext('2d');
+    if (compCtx) {
+      const grad = compCtx.createLinearGradient(0, 0, pixelCrop.width, pixelCrop.height);
+      grad.addColorStop(0, '#6366f1');   // indigo-500
+      grad.addColorStop(0.5, '#a855f7'); // purple-500
+      grad.addColorStop(1, '#ec4899');   // pink-500
+      compCtx.fillStyle = grad;
+      compCtx.fillRect(0, 0, pixelCrop.width, pixelCrop.height);
+      compCtx.drawImage(canvas, 0, 0);
+      return compCanvas.toDataURL('image/png');
+    }
+    return canvas.toDataURL('image/png');
+  }
+
+  const isWebp =
+    mimeType === 'image/webp' ||
+    imageSrc.startsWith('data:image/webp') ||
+    imageSrc.toLowerCase().includes('.webp');
+
+  if (isWebp) {
+    try {
+      const webpUrl = canvas.toDataURL('image/webp', 0.9);
+      if (webpUrl.startsWith('data:image/webp')) {
+        return webpUrl;
+      }
+    } catch {
+      // Fallback
+    }
+    return canvas.toDataURL('image/png');
+  }
+
   // Return base64 string
   return canvas.toDataURL('image/jpeg', 0.9);
 };
@@ -67,6 +121,7 @@ export const ImageCropperModal = ({
   isOpen,
   onClose,
   imageUrl,
+  mimeType,
   aspectRatio,
   onCropCompleteAction,
   title = "Recadrer l'image"
@@ -85,7 +140,13 @@ export const ImageCropperModal = ({
     
     try {
       setIsProcessing(true);
-      const croppedImage = await getCroppedImg(imageUrl, croppedAreaPixels);
+      const croppedImage = await getCroppedImg(
+        imageUrl,
+        croppedAreaPixels,
+        0,
+        { horizontal: false, vertical: false },
+        mimeType
+      );
       if (croppedImage) {
         onCropCompleteAction(croppedImage);
         onClose();
@@ -113,7 +174,7 @@ export const ImageCropperModal = ({
           </button>
         </div>
 
-        <div className="relative flex-1 bg-black overflow-hidden">
+        <div className="relative flex-1 bg-slate-800/90 overflow-hidden">
           <Cropper
             image={imageUrl}
             crop={crop}

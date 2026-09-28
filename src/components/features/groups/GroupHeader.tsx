@@ -51,14 +51,16 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
           {/* Photo + nom */}
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 md:gap-6 -mt-14 sm:-mt-20 md:-mt-24 relative z-10">
             {group.photoUrl ? (
-              <img
-                src={group.photoUrl}
-                alt={`Photo du groupe ${group.name}`}
-                className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl object-cover shadow-2xl shrink-0 border-4 border-slate-900 bg-slate-900"
-              />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl shadow-2xl shrink-0 border-4 border-slate-900 photo-gradient-bg overflow-hidden flex items-center justify-center">
+                <img
+                  src={group.photoUrl}
+                  alt={`Photo du groupe ${group.name}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ) : (
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl bg-slate-800 shadow-2xl shrink-0 border-4 border-slate-900 flex items-center justify-center">
-                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-slate-600" aria-hidden="true" />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 shadow-2xl shrink-0 border-4 border-slate-900 flex items-center justify-center">
+                <Users className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400" aria-hidden="true" />
               </div>
             )}
             <div className="flex flex-col items-center sm:items-start mb-1 sm:mb-2 text-center sm:text-left min-w-0">
