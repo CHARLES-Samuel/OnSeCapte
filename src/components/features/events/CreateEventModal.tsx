@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import type { EventCategory, CreateEventDTO } from "../../../models/Event";
+import type { EventCategory, CreateEventDTO, EventDateMode, TimeSlot } from "../../../models/Event";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -25,6 +25,11 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<EventCategory>("Soirée");
   const [price, setPrice] = useState<number>(0);
+  const [dateMode, setDateMode] = useState<EventDateMode>("poll");
+  const [finalDate, setFinalDate] = useState("");
+  const [finalTimeSlot, setFinalTimeSlot] = useState<TimeSlot>("Soirée");
+  const [location, setLocation] = useState("");
+  const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +55,16 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
       return;
     }
 
+    if (dateMode === 'fixed' && !finalDate) {
+      setError("La date est obligatoire pour un événement planifié.");
+      return;
+    }
+
+    if (link.trim() && !link.trim().startsWith("http://") && !link.trim().startsWith("https://")) {
+      setError("Le lien doit commencer par http:// ou https://");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -58,6 +73,11 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         description: description.trim(),
         category,
         price: Number(price) || 0,
+        dateMode,
+        finalDate: dateMode === 'fixed' ? finalDate : undefined,
+        finalTimeSlot: dateMode === 'fixed' ? finalTimeSlot : undefined,
+        location: location.trim() || undefined,
+        link: link.trim() || undefined,
       });
 
       if (success) {
@@ -65,6 +85,11 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         setDescription("");
         setCategory("Soirée");
         setPrice(0);
+        setDateMode("poll");
+        setFinalDate("");
+        setFinalTimeSlot("Soirée");
+        setLocation("");
+        setLink("");
         onClose();
       }
     } catch (err) {
@@ -132,6 +157,68 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
             </p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Choix de la date
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="dateMode"
+                  value="poll"
+                  checked={dateMode === 'poll'}
+                  onChange={() => setDateMode('poll')}
+                  className="w-4 h-4 text-primary-500 bg-slate-900 border-slate-700 focus:ring-primary-500"
+                />
+                <span className="text-sm text-slate-300">Date à déterminer ensemble (sondage)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="dateMode"
+                  value="fixed"
+                  checked={dateMode === 'fixed'}
+                  onChange={() => setDateMode('fixed')}
+                  className="w-4 h-4 text-primary-500 bg-slate-900 border-slate-700 focus:ring-primary-500"
+                />
+                <span className="text-sm text-slate-300">Date déjà fixée</span>
+              </label>
+            </div>
+          </div>
+
+          {dateMode === 'fixed' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-700/30 p-3 rounded-lg border border-slate-700">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={finalDate}
+                  onChange={(e) => setFinalDate(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                  required={dateMode === 'fixed'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Moment de la journée
+                </label>
+                <select
+                  value={finalTimeSlot}
+                  onChange={(e) => setFinalTimeSlot(e.target.value as TimeSlot)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
+                >
+                  <option value="Matin">Matin</option>
+                  <option value="Après-midi">Après-midi</option>
+                  <option value="Soirée">Soirée</option>
+                  <option value="Toute la journée">Toute la journée</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
@@ -160,6 +247,34 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
                 step="0.5"
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Lieu
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Ex: Chez Maxime, Restaurant Le Bistro..."
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Lien utile
+              </label>
+              <input
+                type="url"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="https://..."
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
               />
             </div>

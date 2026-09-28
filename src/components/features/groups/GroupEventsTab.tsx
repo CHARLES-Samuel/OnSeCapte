@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Plus, Sparkles, Utensils, Dices, PartyPopper, Pizza, Dumbbell, Gamepad2, MoreHorizontal
 } from 'lucide-react';
-import type { Event, EventCategory } from '../../../models/Event';
+import type { Event, EventCategory, EventParticipation } from '../../../models/Event';
 import { EventCard } from '../events/EventCard';
 
 const categoryIcons: Record<EventCategory, React.ElementType> = {
@@ -35,6 +35,7 @@ interface GroupEventsTabProps {
   getCreatorName: (event: Event) => string;
   onEditEvent: (event: Event) => void;
   onDeleteEvent: (event: Event) => void;
+  onUpdateParticipation?: (event: Event, participation: EventParticipation) => void;
 }
 
 export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
@@ -55,6 +56,7 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   getCreatorName,
   onEditEvent,
   onDeleteEvent,
+  onUpdateParticipation,
 }) => {
   return (
     <div className="space-y-6">
@@ -143,8 +145,10 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
               groupId={groupId}
               canEditOrDelete={isOwner || event.createdBy === currentUserId}
               creatorName={getCreatorName(event)}
+              currentUserId={currentUserId}
               onEdit={(e) => onEditEvent(e)}
               onDelete={(e) => onDeleteEvent(e)}
+              onUpdateParticipation={onUpdateParticipation}
             />
           ))}
         </div>

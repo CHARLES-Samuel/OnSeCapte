@@ -2,9 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, 
-  Dumbbell, Gamepad2, MoreHorizontal, type LucideIcon 
+  Dumbbell, Gamepad2, MoreHorizontal, MapPin, type LucideIcon 
 } from 'lucide-react';
-import type { Event, EventCategory } from '../../../models/Event';
+import type { Event, EventCategory, EventParticipation } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
@@ -23,13 +23,24 @@ interface EventCardProps {
   groupId: string;
   canEditOrDelete: boolean;
   creatorName: string;
+  currentUserId?: string;
   onEdit: (event: Event) => void;
   onDelete: (event: Event) => void;
+  onUpdateParticipation?: (event: Event, participation: EventParticipation) => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creatorName, onEdit, onDelete }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creatorName, currentUserId, onEdit, onDelete, onUpdateParticipation }) => {
   const navigate = useNavigate();
   const Icon = categoryIcons[event.category] || Sparkles;
+  
+  const userParticipation = currentUserId ? event.participations?.[currentUserId] : undefined;
+
+  const handleParticipation = (e: React.MouseEvent, status: EventParticipation) => {
+    e.stopPropagation();
+    if (onUpdateParticipation) {
+      onUpdateParticipation(event, status);
+    }
+  };
 
   return (
     <div 
@@ -48,6 +59,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
         </div>
         
         <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary-400 transition">{event.title}</h3>
+
+        {event.location && (
+          <div className="flex items-center gap-1.5 text-sm text-slate-400 mb-3">
+            <MapPin className="w-4 h-4 shrink-0 text-slate-500" aria-hidden="true" />
+            <span className="truncate">{event.location}</span>
+          </div>
+        )}
         
         {event.state === 'planifie' && event.finalDate && (
           <div className="mb-3 text-sm text-amber-300 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 inline-block">
@@ -58,6 +76,31 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
         <div className="mb-4 line-clamp-3">
           <MarkdownView content={event.description || "Pas de description"} />
         </div>
+        
+        {currentUserId && onUpdateParticipation && (
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-700/50">
+            <button
+              onClick={(e) => handleParticipation(e, 'participating')}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
+                userParticipation === 'participating'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white border border-transparent'
+              }`}
+            >
+              Je participe
+            </button>
+            <button
+              onClick={(e) => handleParticipation(e, 'not_participating')}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
+                userParticipation === 'not_participating'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white border border-transparent'
+              }`}
+            >
+              Je ne viens pas
+            </button>
+          </div>
+        )}
       </div>
       
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-700/50">

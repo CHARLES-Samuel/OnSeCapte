@@ -5,7 +5,7 @@ import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
 import type { TimeSlot, EventParticipation, CreateEventDTO } from '../models/Event';
 import { useGroupPlannings } from '../hooks/useGroupPlannings';
-import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle, MapPin, ExternalLink } from 'lucide-react';
 import { UserAvailabilityForm } from '../components/features/events/UserAvailabilityForm';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
 import { EditEventModal } from '../components/features/events/EditEventModal';
@@ -214,6 +214,51 @@ export const EventDetails = () => {
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{event.title}</h1>
               <p className="text-slate-400 text-xs sm:text-sm mt-0.5">{event.category} • {event.price === 0 ? 'Gratuit' : `${event.price} €`}</p>
+              
+              {(event.location || event.link) && (
+                <div className="mt-4 flex flex-col gap-2">
+                  {event.location && (
+                    <div className="flex items-start gap-2 text-sm text-slate-300">
+                      <MapPin className="w-4 h-4 mt-0.5 text-primary-400 shrink-0" aria-hidden="true" />
+                      {!event.link ? (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-primary-400 hover:underline transition"
+                        >
+                          {event.location}
+                        </a>
+                      ) : (
+                        <span>{event.location}</span>
+                      )}
+                    </div>
+                  )}
+                  {event.link && (
+                    <div>
+                      <a 
+                        href={event.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 border border-primary-500/30 rounded-lg text-sm font-medium transition max-w-full"
+                      >
+                        <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        <span className="truncate">
+                          {(() => {
+                            try {
+                              const url = new URL(event.link);
+                              return url.hostname.replace('www.', '');
+                            } catch {
+                              return 'Lien externe';
+                            }
+                          })()}
+                        </span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {event.description && (
                 <div className="mt-4 pt-3 border-t border-slate-700/50">
                   <MarkdownView content={event.description} />

@@ -42,7 +42,7 @@ export const GroupDetails = () => {
   } = useGroupDetails(groupId);
 
   const isOwner = group?.createdBy === user?.uid;
-  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent } = useEvents(groupId, isOwner);
+  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent, updateParticipation } = useEvents(groupId, isOwner);
   const { plannings, updatePlanning } = useGroupPlannings(groupId);
 
   const {
@@ -162,6 +162,30 @@ export const GroupDetails = () => {
         await deleteEvent(targetEvent.id);
       },
     });
+  };
+
+  const handleUpdateParticipation = async (targetEvent: Event, participation: import('../models/Event').EventParticipation) => {
+    // Si l'utilisateur participe à un sondage et n'a pas rempli son planning
+    if (participation === 'participating' && targetEvent.state === 'sondage') {
+      const userPlanning = plannings.find(p => p.userId === user?.uid);
+      const hasFilledPlanning = userPlanning && Object.keys(userPlanning.dates).length > 0;
+      
+      if (!hasFilledPlanning) {
+        setConfirmModalConfig({
+          isOpen: true,
+          title: 'Planning non rempli',
+          message: 'Pour participer à un événement dont la date est à déterminer, merci de remplir tes disponibilités dans l\'onglet Planning.',
+          confirmText: 'Aller au planning',
+          variant: 'danger',
+          onConfirm: () => {
+            setActiveTab('planning');
+            setConfirmModalConfig(prev => ({ ...prev, isOpen: false }));
+          },
+        });
+        return; // On ne met pas à jour la participation tout de suite
+      }
+    }
+    await updateParticipation(targetEvent.id, participation);
   };
 
   const handleLeaveGroup = async (): Promise<boolean> => {
@@ -286,6 +310,7 @@ export const GroupDetails = () => {
               setIsEditModalOpen(true);
             }}
             onDeleteEvent={handleDeleteEventClick}
+            onUpdateParticipation={handleUpdateParticipation}
           />
         </div>
 

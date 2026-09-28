@@ -41,7 +41,7 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - En plus du code court, le gérant peut copier un **lien d'invitation direct** (ex: `https://app.example.com/join/ABCD1234`) d'un simple clic avec retour visuel immédiat ("Lien copié !").
   - La route `/join/:inviteCode` gère l'adhésion directe et idempotente pour les utilisateurs connectés (redirection automatique ou bouton d'accès direct).
   - Pour les visiteurs non connectés, l'invitation est conservée en `sessionStorage` et l'utilisateur est automatiquement redirigé vers l'invitation dès sa connexion via Google.
-- **Gestion des Événements :** Création, édition, suppression avec modales de confirmation, filtres par catégorie et état, tri par prix.
+- **Gestion des Événements :** Création, édition, suppression avec modales de confirmation, filtres par catégorie et état, tri par prix. Ajout d'un **Lieu** (avec lien direct Google Maps) et d'un **Lien externe** (réservation, menu...) facultatifs pour enrichir les événements.
 
 #### Onglet Planning (`GroupPlanningTab`)
 - **Calendrier Partagé du Groupe :** Vue consolidée des dates et disponibilités de tous les membres pour l'ensemble des événements du groupe.

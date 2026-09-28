@@ -22,9 +22,12 @@ export class FirestoreEventService implements IEventService {
       createdByName: data.createdByName,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
       state: data.state || 'sondage',
+      dateMode: data.dateMode || 'poll',
       participations: data.participations || {},
       finalDate: data.finalDate,
       finalTimeSlot: data.finalTimeSlot,
+      location: data.location,
+      link: data.link,
     };
   }
 
@@ -60,14 +63,22 @@ export class FirestoreEventService implements IEventService {
       throw new Error("Action impossible : vous ne faites plus partie de ce groupe.");
     }
 
-    const eventData = {
+    const eventData: Record<string, any> = {
       ...data,
       createdBy: userId,
       createdByName: userName,
       createdAt: serverTimestamp(),
-      state: 'sondage',
+      state: data.dateMode === 'fixed' ? 'planifie' : 'sondage',
       participations: { [userId]: 'participating' }
     };
+
+    // Nettoyage des valeurs undefined pour éviter l'erreur Firestore
+    Object.keys(eventData).forEach(key => {
+      if (eventData[key] === undefined) {
+        delete eventData[key];
+      }
+    });
+
     const docRef = await addDoc(collection(db, EVENTS_COLLECTION), eventData);
     
     return {
@@ -76,7 +87,7 @@ export class FirestoreEventService implements IEventService {
       createdBy: userId,
       createdByName: userName,
       createdAt: Date.now(),
-      state: 'sondage',
+      state: data.dateMode === 'fixed' ? 'planifie' : 'sondage',
       participations: { [userId]: 'participating' }
     };
   }
@@ -91,7 +102,12 @@ export class FirestoreEventService implements IEventService {
       throw new Error("Droits insuffisants pour modifier cet événement.");
     }
     
-    await updateDoc(eventRef, data);
+    const updatePayload: Record<string, any> = {};
+    Object.entries(data).forEach(([key, value]) => {
+      updatePayload[key] = value === undefined ? deleteField() : value;
+    });
+
+    await updateDoc(eventRef, updatePayload);
   }
 
   async deleteEvent(eventId: string, userId: string, isGroupOwner: boolean): Promise<void> {
