@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { EventCategory, CreateEventDTO, EventDateMode, TimeSlot } from "../../../models/Event";
+import { EventDateModeSelector } from "./EventDateModeSelector";
+import { isDatePast } from "../../../utils/dateUtils";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -25,7 +27,9 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<EventCategory>("Soirée");
   const [price, setPrice] = useState<number>(0);
-  const [dateMode, setDateMode] = useState<EventDateMode>("poll");
+  const [dateMode, setDateMode] = useState<EventDateMode>("any");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [finalDate, setFinalDate] = useState("");
   const [finalTimeSlot, setFinalTimeSlot] = useState<TimeSlot>("Soirée");
   const [location, setLocation] = useState("");
@@ -55,9 +59,30 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
       return;
     }
 
-    if (dateMode === 'fixed' && !finalDate) {
-      setError("La date est obligatoire pour un événement planifié.");
-      return;
+    if (dateMode === 'fixed') {
+      if (!finalDate) {
+        setError("La date est obligatoire pour un événement à date fixe.");
+        return;
+      }
+      if (isDatePast(finalDate)) {
+        setError("Impossible de fixer une date à un jour déjà passé.");
+        return;
+      }
+    }
+
+    if (dateMode === 'range') {
+      if (!startDate || !endDate) {
+        setError("Veuillez renseigner la date de début et la date de fin.");
+        return;
+      }
+      if (startDate > endDate) {
+        setError("La date de début ne peut pas être postérieure à la date de fin.");
+        return;
+      }
+      if (isDatePast(endDate)) {
+        setError("La plage de dates ne peut pas être entièrement dans le passé.");
+        return;
+      }
     }
 
     if (link.trim() && !link.trim().startsWith("http://") && !link.trim().startsWith("https://")) {
@@ -74,6 +99,8 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         category,
         price: Number(price) || 0,
         dateMode,
+        startDate: dateMode === 'range' ? startDate : undefined,
+        endDate: dateMode === 'range' ? endDate : undefined,
         finalDate: dateMode === 'fixed' ? finalDate : undefined,
         finalTimeSlot: dateMode === 'fixed' ? finalTimeSlot : undefined,
         location: location.trim() || undefined,
@@ -85,7 +112,9 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         setDescription("");
         setCategory("Soirée");
         setPrice(0);
-        setDateMode("poll");
+        setDateMode("any");
+        setStartDate("");
+        setEndDate("");
         setFinalDate("");
         setFinalTimeSlot("Soirée");
         setLocation("");
@@ -157,67 +186,19 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Choix de la date
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="dateMode"
-                  value="poll"
-                  checked={dateMode === 'poll'}
-                  onChange={() => setDateMode('poll')}
-                  className="w-4 h-4 text-primary-500 bg-slate-900 border-slate-700 focus:ring-primary-500"
-                />
-                <span className="text-sm text-slate-300">Date à déterminer ensemble (sondage)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="dateMode"
-                  value="fixed"
-                  checked={dateMode === 'fixed'}
-                  onChange={() => setDateMode('fixed')}
-                  className="w-4 h-4 text-primary-500 bg-slate-900 border-slate-700 focus:ring-primary-500"
-                />
-                <span className="text-sm text-slate-300">Date déjà fixée</span>
-              </label>
-            </div>
-          </div>
-
-          {dateMode === 'fixed' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-700/30 p-3 rounded-lg border border-slate-700">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={finalDate}
-                  onChange={(e) => setFinalDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                  required={dateMode === 'fixed'}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Moment de la journée
-                </label>
-                <select
-                  value={finalTimeSlot}
-                  onChange={(e) => setFinalTimeSlot(e.target.value as TimeSlot)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
-                >
-                  <option value="Matin">Matin</option>
-                  <option value="Après-midi">Après-midi</option>
-                  <option value="Soirée">Soirée</option>
-                  <option value="Toute la journée">Toute la journée</option>
-                </select>
-              </div>
-            </div>
-          )}
+          <EventDateModeSelector
+            dateMode={dateMode}
+            onDateModeChange={setDateMode}
+            startDate={startDate}
+            onStartDateChange={setStartDate}
+            endDate={endDate}
+            onEndDateChange={setEndDate}
+            finalDate={finalDate}
+            onFinalDateChange={setFinalDate}
+            finalTimeSlot={finalTimeSlot}
+            onFinalTimeSlotChange={setFinalTimeSlot}
+            disabled={loading}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

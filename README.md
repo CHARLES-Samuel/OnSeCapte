@@ -41,7 +41,12 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - En plus du code court, le gérant peut copier un **lien d'invitation direct** (ex: `https://app.example.com/join/ABCD1234`) d'un simple clic avec retour visuel immédiat ("Lien copié !").
   - La route `/join/:inviteCode` gère l'adhésion directe et idempotente pour les utilisateurs connectés (redirection automatique ou bouton d'accès direct).
   - Pour les visiteurs non connectés, l'invitation est conservée en `sessionStorage` et l'utilisateur est automatiquement redirigé vers l'invitation dès sa connexion via Google.
-- **Gestion & Consultation des Événements (`GroupEventsTab`) :**
+- **Gestion, Filtrage & Consultation des Événements (`GroupEventsTab`) :**
+  - **Désengorgement de la vue "Tous" & Catégorie "Passés" dédiée :**
+    - Le filtre **"Tous"** n'affiche désormais que les **événements actifs** (*En recherche* et *À venir*), évitant la surcharge visuelle avec d'anciens événements obsolètes.
+    - Les événements passés sont isolés dans leur propre catégorie / onglet **"Passés"**.
+    - **Compteurs dynamiques :** Chaque bouton de statut affiche un badge de comptage en temps réel (*Tous (N)*, *En recherche (N)*, *À venir (N)*, *Passés (N)*).
+    - **Bannière d'accès rapide aux archives :** Lorsqu'on consulte "Tous" et que des événements passés existent, un encart discret en bas de liste permet de basculer en un clic vers la vue des événements passés.
   - **Bascule Grille vs Liste (`EventViewToggle`) :** Bouton discret permettant d'alterner entre l'affichage en **Cartes** (visuel) et le mode **Ligne / Liste compacte** (`EventListItem`), idéal pour les groupes avec de nombreux événements. La préférence est automatiquement mémorisée dans le `localStorage` via `useEventsViewMode`.
   - **Tri Intelligent des Événements (`EventSortDropdown` & `eventSortUtils`) :** Menu déroulant moderne avec tri chronologique par date (*Prochains événements d'abord*, *Plus lointains d'abord*), par date de création récente, ou par prix (croissant / décroissant). Les événements à date fixée se positionnent à leur date exacte, et ceux sans date fixée (en recherche de date) sont classés en fin de liste.
   - **Nombre de Participants & Réponses en Direct (`EventParticipationBadge`) :** Chaque carte et chaque ligne affiche un badge récapitulatif clair indiquant le nombre de participants confirmés (*ex: "4 participants"*) ainsi que les réponses en attente (*ex: "2 en attente"*), offrant une visibilité immédiate sans ouvrir l'événement.
@@ -63,22 +68,54 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Activités favorites :** Répartition par catégorie avec barres de progression visuelles.
 - **Membres les plus actifs :** Classement (Top 5) avec compteurs d'événements créés et de réponses de disponibilité.
 
-### 4. Saisie des Disponibilités, Sondage & Retours Visuels (`EventDetails` & `UserAvailabilityForm`)
-- **Sélection des jours et créneaux horaires :** Interface intuitive permettant de choisir des dates et des créneaux horaires précis (*Matin*, *Après-midi*, *Soirée*, *Nuit*).
+### 4. Saisie des Disponibilités, Sondage & Heatmap de Dates (`EventDetails`)
+- **Contrôles Stricts de Dates & Protection Anti-Erreur :**
+  - **Interdiction Formelle des Dates Passées :** Impossible de fixer une date à un jour déjà passé (que ce soit via la Heatmap, la sélection rapide du podium, la saisie manuelle ou les formulaires de création et modification). Le podium (Top 3) exclut automatiquement toute date passée.
+  - **Respect Strict de la Plage Définie (`dateMode: 'range'`) :** Lorsqu'un événement a une plage de dates définie, il est strictement impossible de valider une date en dehors de cette plage (contrôle à 3 niveaux : restrictions HTML `min`/`max`, validation JS en temps réel et garde-fou strict côté service `lockEventDate`).
+  - **Transition Automatique vers l'État "Passé" (`state: 'passe'`) & Vue Épurée (`PastEventView`) :**
+    - Dès qu'un événement confirmé voit sa date dépassée, il bascule automatiquement à l'état `passe`. Il est immédiatement sorti de la liste "Tous" pour désencombrer l'écran et reçoit le statut archivé avec persistance en base de données.
+    - **Clôture Totale des Interactions de Présence :** Sur un événement passé, il est désormais **impossible d'interagir sur sa présence** (aucun bouton de vote, formulaires de disponibilité retirés, boutons rapides masqués sur les cartes et les lignes, et rejet strict côté service).
+    - **Affichage Dédié en Lecture Seule :** La page de détails affiche une vue épurée et ciblée présentant uniquement :
+      1. La **date exacte où l'événement s'est produit** (avec le créneau horaire).
+      2. La **liste des personnes présentes** (avatars, pseudos et nombre de participants confirmés).
+      3. La **description complète de l'événement** (au format Markdown).
+- **Fenêtre de Recherche & Plage de Dates à la Création (`EventDateModeSelector`) :**
+  - **3 choix de date à la création et modification :**
+    1. **Sans restriction :** L'algorithme analyse l'ensemble des plannings partagés glissants pour identifier les meilleures dates futures.
+    2. **Plage de dates (Période restreinte) :** L'organisateur définit une fenêtre précise avec sélecteurs de *Date de début* et *Date de fin* (ex: *"Entre le 10 et le 25 du mois"*). Le calcul des scores, le podium et l'affichage interactif se restreignent automatiquement à cet intervalle (les dates extérieures sont atténuées et désactivées).
+    3. **Date fixe :** Événement arrêté à un jour et un créneau horaire précis (contraint aux dates futures).
+  - **Indicateur visuel de plage :** Badge bleu informatif présent dans les listes d'événements et dans l'en-tête de la page de détails (*"Plage : 10 oct. - 25 oct."*).
+- **Calendrier Choroplèthe (Heatmap des Disponibilités) (`AvailabilityHeatmapCalendar` & `AvailabilityHeatmapCell`) :**
+  - **Remplacement de la vue classique de sondage :** Vue calendrier mensuelle sous forme de heatmap interactive avec navigation fluide de mois en mois et centrage automatique sur le début de la plage.
+  - **Opacité dynamique selon le taux de présence :**
+    - 0 disponible : fond neutre et discret.
+    - Faible disponibilité : vert pastel très doux.
+    - Disponibilité moyenne / forte : vert franc.
+    - 100% du groupe disponible : vert émeraude vibrant avec ombre portée lumineuse.
+    - Dates passées : atténuées avec opacité réduite et sans possibilité de verrouillage.
+  - **Mise en avant du Podium (Top 3) :**
+    - 🥇 **1ère place (Or) :** Bordure dorée brillante, halo ambré et badge médaille d'or.
+    - 🥈 **2ème place (Argent) :** Bordure argentée élégante et badge médaille d'argent.
+    - 🥉 **3ème place (Bronze) :** Bordure cuivrée bronze et badge médaille de bronze.
+    - **Barre de raccourcis Podium :** Accès direct aux 3 meilleures dates d'un simple clic pour naviguer instantanément vers leur mois respectif (dates passées exclues).
+- **Détails Nominatifs au Clic / Survol (`DayAvailabilityDetails`) :**
+  - Clic sur n'importe quel jour actif pour afficher la ventilation exhaustive :
+    - **Disponibles :** Avatars et noms des membres confirmés disponibles.
+    - **À confirmer :** Avatars et noms des membres ayant répondu "Peut-être" ou n'ayant pas encore voté.
+    - **Indisponibles :** Membres ayant indiqué être absents ou indisponibles pour l'événement.
+  - **Verrouillage direct en 1 clic :** L'organisateur peut verrouiller directement la date définitive depuis la vue détaillée du jour sélectionné (bouton sécurisé : masqué si la date est passée ou hors plage avec message d'information explicite).
+- **Architecture Ports & Adapters (`IAvailabilityService` & `AvailabilityService`) :**
+  - Calcul algorithmique pur isolé dans un service TypeScript strict (zéro `any`, sans effet de bord, indépendant de React et de Firebase), garantissant une testabilité unitaire totale.
 - **Gestion de l'indisponibilité globale & Imprévus après date fixée :**
   - Possibilité de déclarer son indisponibilité totale en un clic.
-  - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu.
-- **Retour Visuel Immédiat & Zéro Décalage (Feedback Utilisateur) :**
-  - État de chargement explicite (*"Enregistrement en cours..."* avec spinner animé) et désactivation des champs pendant la sauvegarde.
-  - Notification Pop-up Toast flottante élégante (*"Votre indisponibilité a été prise en compte"* ou *"Votre participation a bien été enregistrée ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
+  - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu tant que l'événement n'est pas passé.
+- **Retour Visuel Immédiat & Feedback Utilisateur :**
+  - État de chargement explicite (*"Enregistrement en cours..."*) et désactivation des champs pendant la sauvegarde.
+  - Notification Toast flottante auto-temporisée (3,5 secondes) confirmant la prise en compte.
   - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Indisponible* ou *Réponse en attente*).
-- **Synthèse & Réponses des Membres en Temps Réel (`EventSynthesis`) :**
-  - Récapitulatif temps réel des présences confirmées et des indisponibilités (`X présent(s) • Y indispo.`).
-  - Classement dynamique des meilleures dates (Top 3) et détails nominatifs par participant.
-- **Nettoyage & Affichage Épuré pour les Événements à Date Fixe (`EventFixedParticipantsList`) :**
-  - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), le bloc de sondage et recherche de dates (`EventSynthesis`) est complètement masqué pour alléger l'interface.
-  - Il est remplacé par une liste claire et ciblée des membres participants inscrits et indisponibles, avec leurs avatars et statuts en direct.
-- **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates).
+- **Affichage Épuré pour les Événements à Date Fixe (`EventFixedParticipantsList`) :**
+  - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), la vue calendrier de sondage est masquée au profit d'une liste claire et ciblée des participants inscrits et indisponibles.
+- **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates non encore passés).
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
 - **Gestion des Images avec Transparence (PNG & WebP) :**

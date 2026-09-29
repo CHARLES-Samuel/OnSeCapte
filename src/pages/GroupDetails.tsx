@@ -128,7 +128,10 @@ export const GroupDetails = () => {
     if (activeCategory !== 'Toutes') {
       filtered = filtered.filter(e => e.category === activeCategory);
     }
-    if (activeState !== 'Tous') {
+    if (activeState === 'Tous') {
+      // "Tous" n'affiche que les événements actifs pour éviter la surcharge
+      filtered = filtered.filter(e => e.state !== 'passe');
+    } else {
       const stateMapping = {
         'En recherche': 'sondage',
         'À venir': 'planifie',
@@ -138,6 +141,19 @@ export const GroupDetails = () => {
     }
     return sortEvents(filtered, sortOption);
   }, [events, activeCategory, activeState, sortOption]);
+
+  const stateCounts = useMemo(() => {
+    const baseEvents = activeCategory !== 'Toutes'
+      ? events.filter(e => e.category === activeCategory)
+      : events;
+
+    return {
+      'Tous': baseEvents.filter(e => e.state !== 'passe').length,
+      'En recherche': baseEvents.filter(e => e.state === 'sondage').length,
+      'À venir': baseEvents.filter(e => e.state === 'planifie').length,
+      'Passés': baseEvents.filter(e => e.state === 'passe').length,
+    };
+  }, [events, activeCategory]);
 
   const handleDeleteGroupClick = () => {
     setConfirmModalConfig({
@@ -271,6 +287,7 @@ export const GroupDetails = () => {
             onSelectCategory={setActiveCategory}
             activeState={activeState}
             onSelectState={setActiveState}
+            stateCounts={stateCounts}
             sortOption={sortOption}
             onSelectSortOption={setSortOption}
             viewMode={viewMode}

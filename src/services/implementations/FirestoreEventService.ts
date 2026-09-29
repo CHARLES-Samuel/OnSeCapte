@@ -5,12 +5,23 @@ import {
 import { db } from "../../config/firebase";
 import type { IEventService } from "../interfaces/IEventService";
 import type { Event, CreateEventDTO, EventParticipation, TimeSlot } from "../../models/Event";
+import { getTodayDateStr, isDatePast, validateEventDateSelection } from "../../utils/dateUtils";
 
 const EVENTS_COLLECTION = "events";
 
 export class FirestoreEventService implements IEventService {
   
   private mapDocToEvent(docId: string, data: import("firebase/firestore").DocumentData): Event {
+    const todayStr = getTodayDateStr();
+    let state = data.state || 'sondage';
+
+    // Transition automatique : un événement planifié dont la date est dépassée devient passé
+    if (state === 'planifie' && data.finalDate && data.finalDate < todayStr) {
+      state = 'passe';
+      // Persistance transparente dans Firestore si besoin
+      updateDoc(doc(db, EVENTS_COLLECTION, docId), { state: 'passe' }).catch(() => {});
+    }
+
     return {
       id: docId,
       groupId: data.groupId,
@@ -21,8 +32,10 @@ export class FirestoreEventService implements IEventService {
       createdBy: data.createdBy,
       createdByName: data.createdByName,
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
-      state: data.state || 'sondage',
+      state,
       dateMode: data.dateMode || 'poll',
+      startDate: data.startDate,
+      endDate: data.endDate,
       participations: data.participations || {},
       finalDate: data.finalDate,
       finalTimeSlot: data.finalTimeSlot,
@@ -63,6 +76,16 @@ export class FirestoreEventService implements IEventService {
       throw new Error("Action impossible : vous ne faites plus partie de ce groupe.");
     }
 
+    // Validation date passée pour date fixe
+    if (data.dateMode === 'fixed' && data.finalDate && isDatePast(data.finalDate)) {
+      throw new Error("Impossible de fixer une date à un jour déjà passé.");
+    }
+
+    // Validation plage de dates
+    if (data.dateMode === 'range' && data.endDate && isDatePast(data.endDate)) {
+      throw new Error("La plage de dates sélectionnée est entièrement dans le passé.");
+    }
+
     const eventData: Record<string, any> = {
       ...data,
       createdBy: userId,
@@ -101,6 +124,13 @@ export class FirestoreEventService implements IEventService {
     if (eventData.createdBy !== userId && !isGroupOwner) {
       throw new Error("Droits insuffisants pour modifier cet événement.");
     }
+
+    // Si on modifie ou impose une date fixe, vérifier qu'elle n'est pas passée
+    const targetMode = data.dateMode || eventData.dateMode;
+    const targetFinalDate = data.finalDate !== undefined ? data.finalDate : eventData.finalDate;
+    if (targetMode === 'fixed' && targetFinalDate && isDatePast(targetFinalDate)) {
+      throw new Error("Impossible de fixer une date à un jour déjà passé.");
+    }
     
     const updatePayload: Record<string, any> = {};
     Object.entries(data).forEach(([key, value]) => {
@@ -129,6 +159,11 @@ export class FirestoreEventService implements IEventService {
     if (!eventSnap.exists()) throw new Error("Événement introuvable.");
 
     const eventData = eventSnap.data();
+    const todayStr = getTodayDateStr();
+    if (eventData.state === 'passe' || (eventData.finalDate && eventData.finalDate < todayStr)) {
+      throw new Error("Impossible de modifier votre présence : cet événement est déjà passé.");
+    }
+
     const groupRef = doc(db, "groups", eventData.groupId);
     const groupSnap = await getDoc(groupRef);
     if (!groupSnap.exists() || !groupSnap.data()?.members?.includes(userId)) {
@@ -148,6 +183,17 @@ export class FirestoreEventService implements IEventService {
     const eventData = eventSnap.data();
     if (eventData.createdBy !== userId && !isGroupOwner) {
       throw new Error("Seul le créateur de l'événement ou le gérant du groupe peut valider la date.");
+    }
+
+    // Validation stricte : pas de date passée & respect de la plage si définie
+    const validation = validateEventDateSelection(
+      date,
+      eventData.dateMode,
+      eventData.startDate,
+      eventData.endDate
+    );
+    if (!validation.isValid) {
+      throw new Error(validation.errorMessage || "Date invalide pour cet événement.");
     }
     
     await updateDoc(eventRef, {

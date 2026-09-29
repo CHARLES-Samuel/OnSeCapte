@@ -1,7 +1,7 @@
 export type EventCategory = 'Restaurant' | 'Jeux de rôle' | 'Soirée' | 'Repas' | 'Sport' | 'Gaming' | 'Autres';
 export type EventState = 'sondage' | 'planifie' | 'passe';
 export type TimeSlot = 'Matin' | 'Après-midi' | 'Soirée' | 'Toute la journée';
-export type EventDateMode = 'poll' | 'fixed';
+export type EventDateMode = 'poll' | 'fixed' | 'range' | 'any';
 
 export type EventParticipation = 'participating' | 'not_participating' | 'pending';
 
@@ -17,7 +17,9 @@ export interface Event {
   createdByPhoto?: string | null; // Photo du créateur de l'événement
   createdAt: number;
   state: EventState;
-  dateMode?: EventDateMode; // Optionnel pour rétrocompatibilité (défaut: 'poll')
+  dateMode?: EventDateMode; // Optionnel pour rétrocompatibilité (défaut: 'poll' ou 'any')
+  startDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
+  endDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
   participations?: Record<string, EventParticipation>;
   finalDate?: string; // 'YYYY-MM-DD'
   finalTimeSlot?: TimeSlot;
@@ -32,6 +34,8 @@ export interface CreateEventDTO {
   category: EventCategory;
   price: number;
   dateMode: EventDateMode;
+  startDate?: string;
+  endDate?: string;
   finalDate?: string;
   finalTimeSlot?: TimeSlot;
   location?: string;

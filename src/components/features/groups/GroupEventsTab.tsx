@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Archive } from 'lucide-react';
 import type { Event, EventParticipation } from '../../../models/Event';
 import { EventCard } from '../events/EventCard';
 import { EventListItem } from '../events/EventListItem';
@@ -21,6 +21,7 @@ interface GroupEventsTabProps {
   onSelectCategory: (category: CategoryFilterValue) => void;
   activeState: EventFilterState;
   onSelectState: (state: EventFilterState) => void;
+  stateCounts?: Record<EventFilterState, number>;
   sortOption: EventSortOption;
   onSelectSortOption: (option: EventSortOption) => void;
   viewMode: EventsViewMode;
@@ -44,6 +45,7 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   onSelectCategory,
   activeState,
   onSelectState,
+  stateCounts,
   sortOption,
   onSelectSortOption,
   viewMode,
@@ -63,23 +65,37 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
       <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center bg-slate-800/40 border border-slate-800 p-3 sm:p-4 rounded-2xl gap-3 sm:gap-4">
         {/* Filtres : États + Dropdown Catégories */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full min-w-0 lg:w-auto">
-          {/* Filtres par état */}
+          {/* Filtres par état avec compteurs dynamiques */}
           <div className="flex space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin touch-pan-x -mx-1 px-1 sm:mx-0 sm:px-0">
-            {(['Tous', 'En recherche', 'À venir', 'Passés'] as const).map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => onSelectState(st)}
-                aria-pressed={activeState === st}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition border shrink-0 min-h-[36px] ${
-                  activeState === st
-                    ? 'bg-slate-700 border-slate-600 text-white shadow-sm'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-300'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
+            {(['Tous', 'En recherche', 'À venir', 'Passés'] as const).map((st) => {
+              const count = stateCounts ? stateCounts[st] : undefined;
+              return (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => onSelectState(st)}
+                  aria-pressed={activeState === st}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition border shrink-0 min-h-[36px] flex items-center gap-1.5 ${
+                    activeState === st
+                      ? 'bg-slate-700 border-slate-600 text-white shadow-sm'
+                      : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-300'
+                  }`}
+                >
+                  <span>{st}</span>
+                  {count !== undefined && (
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        activeState === st
+                          ? 'bg-slate-600 text-white'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Filtre par catégorie : Sélecteur déroulant stylisé */}
@@ -123,8 +139,26 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
       {eventsLoading && events.length === 0 ? (
         <div className="text-center py-12 text-slate-500">Chargement des événements...</div>
       ) : filteredEvents.length === 0 ? (
-        <div className="text-center py-12 bg-slate-800/20 rounded-2xl border border-slate-800/50">
-          <p className="text-slate-400">Aucun événement ne correspond à tes filtres.</p>
+        <div className="text-center py-12 bg-slate-800/20 rounded-2xl border border-slate-800/50 space-y-3">
+          <p className="text-slate-400 font-medium">
+            {activeState === 'Passés'
+              ? 'Aucun événement passé pour le moment.'
+              : activeState === 'En recherche'
+              ? 'Aucun événement en recherche de date.'
+              : activeState === 'À venir'
+              ? 'Aucun événement planifié à venir.'
+              : 'Aucun événement actif en cours.'}
+          </p>
+          {activeState === 'Tous' && (stateCounts?.['Passés'] || 0) > 0 && (
+            <button
+              type="button"
+              onClick={() => onSelectState('Passés')}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
+            >
+              <Archive className="w-3.5 h-3.5 text-slate-400" />
+              <span>Consulter les événements passés ({stateCounts?.['Passés']})</span>
+            </button>
+          )}
         </div>
       ) : viewMode === 'list' ? (
         /* Vue en Liste Compacte */
@@ -159,6 +193,25 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
               onUpdateParticipation={onUpdateParticipation}
             />
           ))}
+        </div>
+      )}
+
+      {/* Raccourci vers les archives quand on est sur "Tous" et qu'il y a des événements passés */}
+      {activeState === 'Tous' && filteredEvents.length > 0 && (stateCounts?.['Passés'] || 0) > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-center sm:text-left">
+            <Archive className="w-4 h-4 text-slate-500 shrink-0 hidden sm:block" />
+            <span>
+              <strong>{stateCounts?.['Passés']} événement{(stateCounts?.['Passés'] || 0) > 1 ? 's' : ''} passé{(stateCounts?.['Passés'] || 0) > 1 ? 's' : ''}</strong> archivé{(stateCounts?.['Passés'] || 0) > 1 ? 's' : ''} pour alléger l'affichage.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onSelectState('Passés')}
+            className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold transition border border-slate-700 text-center"
+          >
+            Voir les passés ({stateCounts?.['Passés']})
+          </button>
         </div>
       )}
     </div>

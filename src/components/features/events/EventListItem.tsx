@@ -54,6 +54,14 @@ export const EventListItem: React.FC<EventListItemProps> = ({
             <div className="flex sm:flex-col items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold min-w-[76px] text-center">
               <span>Passé</span>
             </div>
+          ) : event.dateMode === 'range' && event.startDate && event.endDate ? (
+            <div
+              className="flex sm:flex-col items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-300 px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold min-w-[76px] text-center gap-1 sm:gap-0"
+              title={`Du ${formatDateShort(event.startDate)} au ${formatDateShort(event.endDate)}`}
+            >
+              <Calendar className="w-3.5 h-3.5 sm:mb-0.5 text-blue-400 shrink-0" aria-hidden="true" />
+              <span className="truncate">{formatDateShort(event.startDate)} - {formatDateShort(event.endDate)}</span>
+            </div>
           ) : (
             <div className="flex sm:flex-col items-center justify-center bg-primary-500/10 border border-primary-500/20 text-primary-300 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold min-w-[76px] text-center">
               <span>Sondage</span>
@@ -88,7 +96,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
         <EventParticipationBadge event={event} />
 
         {/* Actions de participation rapide */}
-        {currentUserId && onUpdateParticipation && (
+        {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
           <div className="flex items-center gap-1.5">
             <button
               type="button"
@@ -122,18 +130,20 @@ export const EventListItem: React.FC<EventListItemProps> = ({
         {/* Actions Modifier / Supprimer */}
         {canEditOrDelete && (
           <div className="flex items-center gap-1 pl-1 border-l border-slate-700/60">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(event);
-              }}
-              className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[32px] min-h-[32px] flex items-center justify-center"
-              title="Modifier l'événement"
-              aria-label="Modifier l'événement"
-            >
-              <Edit className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-            </button>
+            {event.state !== 'passe' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(event);
+                }}
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[32px] min-h-[32px] flex items-center justify-center"
+                title="Modifier l'événement"
+                aria-label="Modifier l'événement"
+              >
+                <Edit className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+              </button>
+            )}
             <button
               type="button"
               onClick={(e) => {

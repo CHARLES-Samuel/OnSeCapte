@@ -75,7 +75,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
           <MarkdownView content={event.description || "Pas de description"} />
         </div>
         
-        {currentUserId && onUpdateParticipation && (
+        {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-700/50">
             <button
               onClick={(e) => handleParticipation(e, 'participating')}
@@ -113,18 +113,20 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
         </div>
         {canEditOrDelete && (
           <div className="flex items-center gap-1">
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(event);
-              }} 
-              className="text-slate-400 hover:text-white p-2 sm:p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
-              title="Modifier l'événement"
-              aria-label="Modifier l'événement"
-            >
-              <Edit className="w-4 h-4 text-primary-400" aria-hidden="true" />
-            </button>
+            {event.state !== 'passe' && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(event);
+                }} 
+                className="text-slate-400 hover:text-white p-2 sm:p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
+                title="Modifier l'événement"
+                aria-label="Modifier l'événement"
+              >
+                <Edit className="w-4 h-4 text-primary-400" aria-hidden="true" />
+              </button>
+            )}
             <button 
               type="button"
               onClick={(e) => {
