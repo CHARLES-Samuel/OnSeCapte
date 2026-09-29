@@ -1,4 +1,4 @@
-# OnSeCapte 🚀 (v1.0.0)
+# OnSeCapte 🚀 (v1.3.0)
 
 > **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
 
