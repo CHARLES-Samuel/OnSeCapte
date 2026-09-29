@@ -1,23 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Edit, Trash2, Sparkles, Utensils, Dices, PartyPopper, Pizza, 
-  Dumbbell, Gamepad2, MoreHorizontal, MapPin, type LucideIcon 
-} from 'lucide-react';
-import type { Event, EventCategory, EventParticipation } from '../../../models/Event';
+import { Edit, Trash2, MapPin } from 'lucide-react';
+import type { Event, EventParticipation } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
 import { UserAvatar } from '../../ui/UserAvatar';
+import { CategoryBadge } from '../../ui/CategoryBadge';
 import { formatPrice, formatDateShort } from '../../../utils/format';
-
-const categoryIcons: Record<EventCategory, LucideIcon> = {
-  'Restaurant': Utensils,
-  'Jeux de rôle': Dices,
-  'Soirée': PartyPopper,
-  'Repas': Pizza,
-  'Sport': Dumbbell,
-  'Gaming': Gamepad2,
-  'Autres': MoreHorizontal,
-};
 
 interface EventCardProps {
   event: Event;
@@ -32,7 +20,6 @@ interface EventCardProps {
 
 export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrDelete, creator, currentUserId, onEdit, onDelete, onUpdateParticipation }) => {
   const navigate = useNavigate();
-  const Icon = categoryIcons[event.category] || Sparkles;
   
   const userParticipation = currentUserId ? event.participations?.[currentUserId] : undefined;
 
@@ -50,10 +37,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
     >
       <div>
         <div className="flex justify-between items-start mb-4">
-          <span className="flex items-center space-x-1.5 px-3 py-1 bg-slate-800 border border-slate-700 rounded-lg text-xs font-medium text-slate-300">
-            <Icon className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-            <span>{event.category}</span>
-          </span>
+          <CategoryBadge category={event.category} />
           <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
             {formatPrice(event.price)}
           </span>

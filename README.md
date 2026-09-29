@@ -76,11 +76,24 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Gestion des Images avec Transparence (PNG & WebP) :**
   - Préservation intégrale et sans perte du format PNG (`image/png` lossless) et du canal alpha lors du téléversement, du recadrage client (`ImageCropperModal`) et de la compression client (`compressImage`).
   - Détection automatique des pixels transparents et intégration d'un dégradé linéaire vibrant (`#6366f1` Indigo ➔ `#a855f7` Violet ➔ `#ec4899` Rose) combiné à la classe dédiée `.photo-gradient-bg`, garantissant un rendu moderne et éclatant sur tous les conteneurs (profil de groupe, dashboard, modale d'édition et avatars).
-- **Barre d'Onglets Fluide & Défilement Tactile Doux (Mobile 320px - 640px) :**
-  - Navigation par onglets fluide avec conteneur à défilement horizontal tactile (`overflow-x-auto`, `no-scrollbar`, `-webkit-overflow-scrolling: touch`).
-  - Aucun retour à la ligne chaotique ni écrasement du texte (`whitespace-nowrap`, `shrink-0 sm:shrink`), garantissant une parfaite lisibilité des intitulés (*Événements*, *Planning*, *Membres*, *Statistiques*).
-  - Cibles tactiles calibrées pour l'ergonomie au pouce (`min-h-[44px]`, `touch-manipulation`).
-  - Accessibilité complète conforme WCAG (`role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls`, `id` reliés aux panneaux correspondants).
+- **Barre de Navigation Interne Parfaitement Alignée (`GroupNavigationTabs`) :**
+  - Navigation par onglets fluide, accessible et sans marge négative parasite.
+  - Alignement au pixel près avec le header du groupe (`GroupHeader`) et les panneaux de contenu (`max-w-6xl`).
+  - Aucun retour à la ligne chaotique ni écrasement du texte (`whitespace-nowrap`), cibles tactiles confortables (`min-h-[44px]`).
+  - Balisage WAI-ARIA complet (`role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls`).
+- **Couleurs Distinctes par Catégorie d'Événement (`CategoryBadge` & `categoryTheme`) :**
+  - Palette colorimétrique dédiée pour chaque catégorie (Restaurant: orange chaud, Jeux de rôle: violet, Soirée: rose vif, Repas: jaune ambré, Sport: vert émeraude, Gaming: cyan, Autres: ardoise neutre).
+  - Fond translucide doux, bordure vive et texte contrasté adapté aux thèmes sombres et clairs pour une scannabilité visuelle instantanée des listes d'événements.
+- **Filtre de Catégories Déroulant Stylisé (`CategoryDropdown`) :**
+  - Remplacement de l'ancienne barre horizontale de catégories surchargée par un sélecteur déroulant compact et accessible.
+  - Option par défaut *"Toutes les catégories"*, pastilles de couleurs vives (*color dots*), icônes Lucide et indicateurs de sélection actifs.
+  - Gestion accessible complète (fermeture au clic extérieur, touche Échap, WAI-ARIA `role="listbox"`).
+- **Partage du Groupe Ouvert à Tous les Membres (`InviteLinkButton`) :**
+  - Le bouton d'invitation / copie de lien n'est plus restreint au seul créateur mais désormais accessible et visible par **tous les membres du groupe**.
+  - Libellé mobile clarifié (*"Inviter"*) avec retour visuel immédiat (*"Lien copié !"*).
+- **Menu d'Administration Propriétaire Tactile sur Mobile (`GroupOwnerActionsMenu`) :**
+  - Sur mobile, remplacement des multiples boutons d'administration compressés par un menu contextuel discret et tactile (*kebab menu* "...").
+  - Regroupe l'édition des infos, le transfert de propriété et la suppression définitive avec des zones tactiles généreuses (`min-h-[44px]`) éliminant tout débordement ou mauvaise manipulation.
 - **Interface Produit Finie :** Suppression des indicateurs techniques de test (Firebase) sur la page d'accueil.
 - **Stabilisation du Bouton de Tri :** Largeur minimale calibrée (`min-w-[145px]`) et contenu centré (`whitespace-nowrap`) garantissant une stabilité dimensionnelle parfaite lors de l'alternance *Croissant* / *Décroissant*.
 - **Navigation Optimisée au Pouce :**

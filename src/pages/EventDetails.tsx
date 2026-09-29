@@ -11,6 +11,7 @@ import { EventSynthesis } from '../components/features/events/EventSynthesis';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
+import { CategoryBadge } from '../components/ui/CategoryBadge';
 
 export const EventDetails = () => {
   const { groupId, eventId } = useParams<{ groupId: string; eventId: string }>();
@@ -213,7 +214,10 @@ export const EventDetails = () => {
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{event.title}</h1>
-              <p className="text-slate-400 text-xs sm:text-sm mt-0.5">{event.category} • {event.price === 0 ? 'Gratuit' : `${event.price} €`}</p>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                <CategoryBadge category={event.category} />
+                <span className="text-slate-400 text-xs sm:text-sm">• {event.price === 0 ? 'Gratuit' : `${event.price} €`}</span>
+              </div>
               
               {(event.location || event.link) && (
                 <div className="mt-4 flex flex-col gap-2">

@@ -55,9 +55,9 @@ export const InviteLinkButton: React.FC<InviteLinkButtonProps> = ({ inviteCode, 
         </>
       ) : (
         <>
-          <Link2 className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Copier le lien</span>
-          <span className="sm:hidden">Lien</span>
+          <Link2 className="w-4 h-4 shrink-0 text-primary-400" aria-hidden="true" />
+          <span className="hidden sm:inline">Inviter des amis</span>
+          <span className="sm:hidden">Inviter</span>
         </>
       )}
     </button>

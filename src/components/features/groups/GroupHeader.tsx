@@ -1,7 +1,8 @@
 import React from 'react';
-import { ArrowLeft, Users, Edit2, UserCheck, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users } from 'lucide-react';
 import type { Group } from '../../../models/Group';
 import { InviteLinkButton } from './InviteLinkButton';
+import { GroupOwnerActionsMenu } from './GroupOwnerActionsMenu';
 import { MarkdownView } from '../../ui/MarkdownView';
 
 interface GroupHeaderProps {
@@ -22,7 +23,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
   onDeleteGroup,
 }) => {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-800/40 overflow-hidden relative">
+    <div className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 overflow-hidden relative">
       {/* Bouton retour */}
       <button
         onClick={onBack}
@@ -70,41 +71,18 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
             </div>
           </div>
 
-          {/* Actions du header */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 md:gap-3 relative z-10 w-full sm:w-auto">
-            {/* Bouton lien d'invitation (gérant uniquement) */}
-            {isOwner && <InviteLinkButton inviteCode={group.inviteCode} />}
+          {/* Actions du header : invitation accessible à TOUS les membres + actions propriétaire responsive */}
+          <div className="flex items-center justify-center sm:justify-end gap-2.5 sm:gap-3 relative z-10 w-full sm:w-auto">
+            {/* Bouton d'invitation visible par tous les membres */}
+            <InviteLinkButton inviteCode={group.inviteCode} />
 
+            {/* Actions d'administration réservées au propriétaire (kebab menu / direct) */}
             {isOwner && (
-              <>
-                <button
-                  type="button"
-                  onClick={onEditGroup}
-                  aria-label="Modifier les informations du groupe"
-                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
-                >
-                  <Edit2 className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span className="hidden sm:inline">Modifier</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onTransferOwnership}
-                  aria-label="Transférer la propriété du groupe"
-                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
-                >
-                  <UserCheck className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span className="hidden lg:inline">Transférer</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onDeleteGroup}
-                  aria-label="Supprimer le groupe définitivement"
-                  className="flex items-center space-x-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl transition text-xs sm:text-sm font-medium min-h-[40px]"
-                >
-                  <Trash2 className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span className="hidden lg:inline">Supprimer</span>
-                </button>
-              </>
+              <GroupOwnerActionsMenu
+                onEditGroup={onEditGroup}
+                onTransferOwnership={onTransferOwnership}
+                onDeleteGroup={onDeleteGroup}
+              />
             )}
           </div>
         </div>
