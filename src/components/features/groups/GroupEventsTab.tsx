@@ -2,8 +2,13 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import type { Event, EventParticipation } from '../../../models/Event';
 import { EventCard } from '../events/EventCard';
+import { EventListItem } from '../events/EventListItem';
 import { CategoryDropdown } from '../events/CategoryDropdown';
+import { EventSortDropdown } from '../events/EventSortDropdown';
+import { EventViewToggle } from '../events/EventViewToggle';
 import type { CategoryFilterValue } from '../../../utils/categoryTheme';
+import type { EventSortOption } from '../../../utils/eventSortUtils';
+import type { EventsViewMode } from '../../../hooks/useEventsViewMode';
 
 export type EventFilterState = 'Tous' | 'En recherche' | 'À venir' | 'Passés';
 
@@ -16,8 +21,10 @@ interface GroupEventsTabProps {
   onSelectCategory: (category: CategoryFilterValue) => void;
   activeState: EventFilterState;
   onSelectState: (state: EventFilterState) => void;
-  sortOrder: 'asc' | 'desc';
-  onToggleSortOrder: () => void;
+  sortOption: EventSortOption;
+  onSelectSortOption: (option: EventSortOption) => void;
+  viewMode: EventsViewMode;
+  onSelectViewMode: (mode: EventsViewMode) => void;
   onCreateEvent: () => void;
   groupId: string;
   currentUserId?: string;
@@ -37,8 +44,10 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   onSelectCategory,
   activeState,
   onSelectState,
-  sortOrder,
-  onToggleSortOrder,
+  sortOption,
+  onSelectSortOption,
+  viewMode,
+  onSelectViewMode,
   onCreateEvent,
   groupId,
   currentUserId,
@@ -51,9 +60,9 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Filtres & Actions */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-slate-800/40 border border-slate-800 p-3 sm:p-4 rounded-2xl gap-3 sm:gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center bg-slate-800/40 border border-slate-800 p-3 sm:p-4 rounded-2xl gap-3 sm:gap-4">
         {/* Filtres : États + Dropdown Catégories */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full min-w-0 md:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full min-w-0 lg:w-auto">
           {/* Filtres par état */}
           <div className="flex space-x-1.5 sm:space-x-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin touch-pan-x -mx-1 px-1 sm:mx-0 sm:px-0">
             {(['Tous', 'En recherche', 'À venir', 'Passés'] as const).map((st) => (
@@ -82,22 +91,27 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
           />
         </div>
 
-        {/* Boutons d'action (Tri & Création) */}
-        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between sm:justify-end shrink-0 pt-1 md:pt-0 border-t border-slate-800/50 md:border-t-0">
-          <button
-            type="button"
-            onClick={onToggleSortOrder}
-            aria-label={`Trier par prix ${sortOrder === 'asc' ? 'décroissant' : 'croissant'}`}
-            className="inline-flex items-center justify-center min-w-[145px] px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs font-medium whitespace-nowrap transition shrink-0 select-none shadow-sm min-h-[38px]"
-          >
-            <span>Prix : {sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}</span>
-            <span className="text-primary-400 font-bold ml-1.5">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-          </button>
+        {/* Boutons d'action (Tri, Bascule Grille/Liste & Création) */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto justify-between sm:justify-end shrink-0 pt-2 lg:pt-0 border-t border-slate-800/60 lg:border-t-0">
+          {/* Sélecteur de tri par date */}
+          <EventSortDropdown
+            sortOption={sortOption}
+            onSelectSortOption={onSelectSortOption}
+            className="flex-1 sm:flex-none"
+          />
+
+          {/* Bascule Grille / Liste */}
+          <EventViewToggle
+            viewMode={viewMode}
+            onChange={onSelectViewMode}
+          />
+
+          {/* Bouton Nouvel Événement */}
           <button
             type="button"
             onClick={onCreateEvent}
             aria-label="Créer un nouvel événement"
-            className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-xs sm:text-sm font-medium whitespace-nowrap min-h-[38px]"
+            className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-xs sm:text-sm font-medium whitespace-nowrap min-h-[38px]"
           >
             <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>Créer événement</span>
@@ -112,7 +126,25 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
         <div className="text-center py-12 bg-slate-800/20 rounded-2xl border border-slate-800/50">
           <p className="text-slate-400">Aucun événement ne correspond à tes filtres.</p>
         </div>
+      ) : viewMode === 'list' ? (
+        /* Vue en Liste Compacte */
+        <div className="space-y-2.5">
+          {filteredEvents.map((event) => (
+            <EventListItem
+              key={event.id}
+              event={event}
+              groupId={groupId}
+              canEditOrDelete={isOwner || event.createdBy === currentUserId}
+              creator={getCreatorProfile(event)}
+              currentUserId={currentUserId}
+              onEdit={onEditEvent}
+              onDelete={onDeleteEvent}
+              onUpdateParticipation={onUpdateParticipation}
+            />
+          ))}
+        </div>
       ) : (
+        /* Vue en Grille de Cartes */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <EventCard
@@ -122,8 +154,8 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
               canEditOrDelete={isOwner || event.createdBy === currentUserId}
               creator={getCreatorProfile(event)}
               currentUserId={currentUserId}
-              onEdit={(e) => onEditEvent(e)}
-              onDelete={(e) => onDeleteEvent(e)}
+              onEdit={onEditEvent}
+              onDelete={onDeleteEvent}
               onUpdateParticipation={onUpdateParticipation}
             />
           ))}

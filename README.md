@@ -41,7 +41,12 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - En plus du code court, le gérant peut copier un **lien d'invitation direct** (ex: `https://app.example.com/join/ABCD1234`) d'un simple clic avec retour visuel immédiat ("Lien copié !").
   - La route `/join/:inviteCode` gère l'adhésion directe et idempotente pour les utilisateurs connectés (redirection automatique ou bouton d'accès direct).
   - Pour les visiteurs non connectés, l'invitation est conservée en `sessionStorage` et l'utilisateur est automatiquement redirigé vers l'invitation dès sa connexion via Google.
-- **Gestion des Événements :** Création, édition, suppression avec modales de confirmation, filtres par catégorie et état, tri par prix. Ajout d'un **Lieu** (avec lien direct Google Maps) et d'un **Lien externe** (réservation, menu...) facultatifs pour enrichir les événements.
+- **Gestion & Consultation des Événements (`GroupEventsTab`) :**
+  - **Bascule Grille vs Liste (`EventViewToggle`) :** Bouton discret permettant d'alterner entre l'affichage en **Cartes** (visuel) et le mode **Ligne / Liste compacte** (`EventListItem`), idéal pour les groupes avec de nombreux événements. La préférence est automatiquement mémorisée dans le `localStorage` via `useEventsViewMode`.
+  - **Tri Intelligent des Événements (`EventSortDropdown` & `eventSortUtils`) :** Menu déroulant moderne avec tri chronologique par date (*Prochains événements d'abord*, *Plus lointains d'abord*), par date de création récente, ou par prix (croissant / décroissant). Les événements à date fixée se positionnent à leur date exacte, et ceux sans date fixée (en recherche de date) sont classés en fin de liste.
+  - **Nombre de Participants & Réponses en Direct (`EventParticipationBadge`) :** Chaque carte et chaque ligne affiche un badge récapitulatif clair indiquant le nombre de participants confirmés (*ex: "4 participants"*) ainsi que les réponses en attente (*ex: "2 en attente"*), offrant une visibilité immédiate sans ouvrir l'événement.
+  - **Actions rapides :** Possibilité de répondre directement (*Je participe* / *Pas dispo*) et d'accéder aux actions de modification/suppression depuis les cartes et lignes.
+  - **Création & Détails complets :** Gestion avec modales, filtres par catégorie (`CategoryDropdown`) et par statut (*Tous*, *En recherche*, *À venir*, *Passés*). Lieu (avec lien Google Maps) et lien externe (réservation, menu...) intégrés.
 
 #### Onglet Planning (`GroupPlanningTab`)
 - **Calendrier Partagé du Groupe :** Vue consolidée des dates et disponibilités de tous les membres pour l'ensemble des événements du groupe.
@@ -67,10 +72,13 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - État de chargement explicite (*"Enregistrement en cours..."* avec spinner animé) et désactivation des champs pendant la sauvegarde.
   - Notification Pop-up Toast flottante élégante (*"Votre indisponibilité a été prise en compte"* ou *"Votre participation a bien été enregistrée ✓"*) auto-temporisée (3,5 secondes) et dismissible manuellement.
   - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Indisponible* ou *Réponse en attente*).
-- **Synthèse & Réponses des Membres en Temps Réel :**
+- **Synthèse & Réponses des Membres en Temps Réel (`EventSynthesis`) :**
   - Récapitulatif temps réel des présences confirmées et des indisponibilités (`X présent(s) • Y indispo.`).
   - Classement dynamique des meilleures dates (Top 3) et détails nominatifs par participant.
-- **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale.
+- **Nettoyage & Affichage Épuré pour les Événements à Date Fixe (`EventFixedParticipantsList`) :**
+  - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), le bloc de sondage et recherche de dates (`EventSynthesis`) est complètement masqué pour alléger l'interface.
+  - Il est remplacé par une liste claire et ciblée des membres participants inscrits et indisponibles, avec leurs avatars et statuts en direct.
+- **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates).
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
 - **Gestion des Images avec Transparence (PNG & WebP) :**
@@ -119,10 +127,10 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 ## 🛡️ Qualité & Sécurité (Clean Code & SOLID)
 - **Sécurité et variables d'environnement** : Toutes les clés API sont sécurisées via `.env` exclues de Git.
 - **Principes SOLID & DRY** :
-  - Découpage strict des composants respectant la limite de 150-200 lignes (`GroupHeader`, `GroupEventsTab`, `MemberRow`, `MemberManagementPanel`, `GroupStatsPanel`).
-  - **Inversion des Dépendances (DIP)** : Ni les composants React ni les Custom Hooks ne dépendent directement de Firebase Firestore. Tout transite par `IGroupService` (notamment `getMemberProfiles` pour la récupération des profils).
+  - Découpage strict des composants respectant la limite de 150-200 lignes (`GroupHeader`, `GroupEventsTab`, `EventListItem`, `EventCard`, `EventSortDropdown`, `EventViewToggle`, `EventFixedParticipantsList`, `MemberRow`, `MemberManagementPanel`, `GroupStatsPanel`).
+  - **Inversion des Dépendances (DIP)** : Ni les composants React ni les Custom Hooks ne dépendent directement de Firebase Firestore. Tout transite par les interfaces de services (`IGroupService`, `IEventService`, etc.).
 - **Typage Strict** : TypeScript strict, zéro `any`, gestion sécurisée des erreurs.
-- **Logique métier isolée** : `eventStatsUtils.ts` est une fonction **pure** (zéro effet de bord, zéro dépendance Firebase) pour le calcul des statistiques, facilement testable.
+- **Logique métier isolée** : `eventSortUtils.ts` (tri chronologique intelligent), `eventParticipationUtils.ts` (calcul des participations) et `eventStatsUtils.ts` sont des fonctions **pures** (zéro effet de bord, zéro dépendance externe), hautement modulaires et testables.
 - **Firestore Security Rules** :
   - `allow read: if request.auth != null;` autorise les requêtes de recherche par code d'invitation sans bloquer les nouveaux membres ni la vérification d'unicité lors de la création d'un groupe.
   - Règles d'écriture strictes avec helpers sécurisés (`isOwner`, `isMember`, `isBanned` avec vérification de présence du champ `bannedMemberIds`) — les membres bannis sont bloqués à l'écriture côté base de données indépendamment de l'UI.

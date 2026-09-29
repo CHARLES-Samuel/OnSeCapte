@@ -16,6 +16,8 @@ import { MemberManagementPanel } from '../components/features/groups/MemberManag
 import { GroupStatsPanel } from '../components/features/groups/GroupStatsPanel';
 import { GroupModals, type ConfirmModalState } from '../components/features/groups/GroupModals';
 import { computeGroupEventStats } from '../utils/eventStatsUtils';
+import { useEventsViewMode } from '../hooks/useEventsViewMode';
+import { sortEvents, type EventSortOption } from '../utils/eventSortUtils';
 
 const CATEGORIES: (EventCategory | 'Toutes')[] = [
   'Toutes', 'Restaurant', 'Jeux de rôle', 'Soirée', 'Repas', 'Sport', 'Gaming', 'Autres'
@@ -73,8 +75,9 @@ export const GroupDetails = () => {
   }, [location.search]);
 
   const [activeCategory, setActiveCategory] = useState<EventCategory | 'Toutes'>('Toutes');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOption, setSortOption] = useState<EventSortOption>('date-asc');
   const [activeState, setActiveState] = useState<EventFilterState>('Tous');
+  const { viewMode, setViewMode } = useEventsViewMode();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -133,8 +136,8 @@ export const GroupDetails = () => {
       } as const;
       filtered = filtered.filter(e => e.state === stateMapping[activeState]);
     }
-    return filtered.sort((a, b) => sortOrder === 'asc' ? a.price - b.price : b.price - a.price);
-  }, [events, activeCategory, activeState, sortOrder]);
+    return sortEvents(filtered, sortOption);
+  }, [events, activeCategory, activeState, sortOption]);
 
   const handleDeleteGroupClick = () => {
     setConfirmModalConfig({
@@ -268,8 +271,10 @@ export const GroupDetails = () => {
             onSelectCategory={setActiveCategory}
             activeState={activeState}
             onSelectState={setActiveState}
-            sortOrder={sortOrder}
-            onToggleSortOrder={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            sortOption={sortOption}
+            onSelectSortOption={setSortOption}
+            viewMode={viewMode}
+            onSelectViewMode={setViewMode}
             onCreateEvent={() => setIsCreateModalOpen(true)}
             groupId={groupId ?? ''}
             currentUserId={user?.uid}

@@ -5,6 +5,7 @@ import type { Event, EventParticipation } from '../../../models/Event';
 import { MarkdownView } from '../../ui/MarkdownView';
 import { UserAvatar } from '../../ui/UserAvatar';
 import { CategoryBadge } from '../../ui/CategoryBadge';
+import { EventParticipationBadge } from './EventParticipationBadge';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
 interface EventCardProps {
@@ -52,11 +53,23 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
           </div>
         )}
         
-        {event.state === 'planifie' && event.finalDate && (
-          <div className="mb-3 text-sm text-amber-300 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 inline-block">
-            📅 {formatDateShort(event.finalDate)} {event.finalTimeSlot ? `- ${event.finalTimeSlot}` : ''}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {event.state === 'planifie' && event.finalDate ? (
+            <div className="text-xs text-amber-300 font-medium bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 inline-flex items-center gap-1.5">
+              <span>📅 {formatDateShort(event.finalDate)} {event.finalTimeSlot ? `- ${event.finalTimeSlot}` : ''}</span>
+            </div>
+          ) : event.state === 'passe' ? (
+            <div className="text-xs text-slate-400 font-medium bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 inline-flex items-center">
+              <span>Passé</span>
+            </div>
+          ) : (
+            <div className="text-xs text-primary-300 font-medium bg-primary-500/10 px-2.5 py-1 rounded-lg border border-primary-500/20 inline-flex items-center">
+              <span>Sondage de dates</span>
+            </div>
+          )}
+          
+          <EventParticipationBadge event={event} />
+        </div>
         
         <div className="mb-4 line-clamp-3">
           <MarkdownView content={event.description || "Pas de description"} />

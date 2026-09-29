@@ -8,6 +8,7 @@ import { useGroupPlannings } from '../hooks/useGroupPlannings';
 import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle, MapPin, ExternalLink } from 'lucide-react';
 import { UserAvailabilityForm } from '../components/features/events/UserAvailabilityForm';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
+import { EventFixedParticipantsList } from '../components/features/events/EventFixedParticipantsList';
 import { EditEventModal } from '../components/features/events/EditEventModal';
 import { MarkdownView } from '../components/ui/MarkdownView';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
@@ -61,7 +62,7 @@ export const EventDetails = () => {
   const currentUserResponse = user ? participations[user.uid] || 'pending' : 'pending';
 
   const bestDates = useMemo(() => {
-    if (!event) return [];
+    if (!event || event.dateMode === 'fixed') return [];
     
     // We only care about users who are "participating"
     const participatingUsers = Object.keys(participations).filter(uid => participations[uid] === 'participating');
@@ -322,7 +323,7 @@ export const EventDetails = () => {
                 </span>
               )}
             </div>
-            {canLock && (
+            {canLock && event.dateMode !== 'fixed' && (
               <div>
                 <button
                   type="button"
@@ -349,21 +350,30 @@ export const EventDetails = () => {
             groupId={groupId || ''}
           />
 
-          {/* Colonne droite : Synthèse des réponses et dates préférées */}
-          <EventSynthesis
-            respondedMembers={respondedMembers}
-            totalMembers={totalMembers}
-            bestDates={bestDates}
-            availabilities={participations} // renamed later in EventSynthesis
-            participations={participations}
-            plannings={plannings}
-            memberProfiles={memberProfiles}
-            currentUserId={user?.uid}
-            canLock={canLock}
-            eventState={event.state}
-            onLock={handleLock}
-            onUnlock={handleUnlockClick}
-          />
+          {/* Colonne droite : Synthèse des réponses et dates OU Participants si date fixe */}
+          {event.dateMode === 'fixed' ? (
+            <EventFixedParticipantsList
+              participations={participations}
+              memberProfiles={memberProfiles}
+              currentUserId={user?.uid}
+              totalMembers={totalMembers}
+            />
+          ) : (
+            <EventSynthesis
+              respondedMembers={respondedMembers}
+              totalMembers={totalMembers}
+              bestDates={bestDates}
+              availabilities={participations} // renamed later in EventSynthesis
+              participations={participations}
+              plannings={plannings}
+              memberProfiles={memberProfiles}
+              currentUserId={user?.uid}
+              canLock={canLock}
+              eventState={event.state}
+              onLock={handleLock}
+              onUnlock={handleUnlockClick}
+            />
+          )}
 
         </div>
       </div>
