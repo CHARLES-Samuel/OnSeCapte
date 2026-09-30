@@ -332,7 +332,7 @@ export class FirestoreGroupService implements IGroupService {
       members: arrayRemove(targetUserId),
     });
 
-    await this.cleanupUserEvents(batch, groupId, targetUserId);
+    await this.cleanupUserEvents(batch, groupId, targetUserId, ownerId);
 
     await batch.commit();
   }
@@ -358,7 +358,7 @@ export class FirestoreGroupService implements IGroupService {
       bannedMemberIds: arrayUnion(targetUserId),
     });
 
-    await this.cleanupUserEvents(batch, groupId, targetUserId);
+    await this.cleanupUserEvents(batch, groupId, targetUserId, ownerId);
 
     await batch.commit();
   }
@@ -396,26 +396,62 @@ export class FirestoreGroupService implements IGroupService {
       throw new Error("Vous n'êtes pas membre de ce groupe.");
     }
 
+    const ownerId = groupData.createdBy;
+
     const batch = writeBatch(db);
 
     batch.update(groupRef, {
       members: arrayRemove(userId),
     });
 
-    await this.cleanupUserEvents(batch, groupId, userId);
+    await this.cleanupUserEvents(batch, groupId, userId, ownerId);
 
     await batch.commit();
   }
 
-  private async cleanupUserEvents(batch: import("firebase/firestore").WriteBatch, groupId: string, userId: string): Promise<void> {
+  private async cleanupUserEvents(
+    batch: import("firebase/firestore").WriteBatch,
+    groupId: string,
+    userId: string,
+    ownerId: string
+  ): Promise<void> {
+    // Récupérer le profil du propriétaire du groupe pour mettre à jour les métadonnées de l'événement
+    let ownerDisplayName = "Gérant";
+    let ownerPhotoURL: string | null = null;
+    try {
+      const ownerDocSnap = await getDoc(doc(db, "users", ownerId));
+      if (ownerDocSnap.exists()) {
+        const ownerData = ownerDocSnap.data();
+        if (ownerData?.displayName) {
+          ownerDisplayName = ownerData.displayName;
+        }
+        if (ownerData?.photoURL !== undefined) {
+          ownerPhotoURL = ownerData.photoURL;
+        }
+      }
+    } catch {
+      // Conserver les valeurs de repli en cas d'erreur de lecture du profil
+    }
+
     const eventsQuery = query(collection(db, "events"), where("groupId", "==", groupId));
     const eventsSnap = await getDocs(eventsQuery);
 
     eventsSnap.forEach((eventDoc) => {
       const eventData = eventDoc.data();
       if (eventData.createdBy === userId) {
-        // Supprimer l'événement créé par l'utilisateur
-        batch.delete(eventDoc.ref);
+        // La propriété des événements qu'il a créés est transmise au propriétaire du groupe
+        const updatePayload: Record<string, any> = {
+          createdBy: ownerId,
+          createdByName: ownerDisplayName,
+        };
+        if (ownerPhotoURL !== undefined) {
+          updatePayload.createdByPhoto = ownerPhotoURL;
+        }
+        // Supprimer la participation du membre sortant de son propre événement
+        if (eventData.participations && eventData.participations[userId]) {
+          updatePayload[`participations.${userId}`] = deleteField();
+        }
+        batch.update(eventDoc.ref, updatePayload);
       } else if (eventData.participations && eventData.participations[userId]) {
         // Supprimer la participation de l'utilisateur sur les événements des autres
         batch.update(eventDoc.ref, {
@@ -427,7 +463,6 @@ export class FirestoreGroupService implements IGroupService {
     // Clean up planning if necessary
     const planningRef = doc(db, GROUPS_COLLECTION, groupId, "plannings", userId);
     batch.delete(planningRef);
-
   }
 
   async getMemberProfiles(memberIds: string[]): Promise<Record<string, import("../../models/Group").MemberProfile>> {

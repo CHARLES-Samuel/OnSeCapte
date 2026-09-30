@@ -48,8 +48,9 @@ service cloud.firestore {
     //   - description: string (optionnel, <= 2000 caractères)
     //   - category: string (optionnel, <= 50 caractères)
     //   - price: number (optionnel, >= 0)
-    //   - createdBy: string (requis, immuable)
-    //   - createdByName: string (optionnel)
+    //   - createdBy: string (requis, immuable sauf transfert au gérant du groupe)
+    //   - createdByName: string (optionnel, <= 50 caractères)
+    //   - createdByPhoto: string ou null (optionnel, <= 1000 caractères)
     //   - createdAt: timestamp (requis, immuable)
     //   - state: string (requis, 'sondage' | 'planifie' | 'passe')
     //   - dateMode: string (optionnel, 'poll' | 'fixed' | 'range' | 'any')
@@ -262,7 +263,24 @@ service cloud.firestore {
       // Nettoyage lors de la sortie d'un membre
       function isLeaveGroupCleanup() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participations'])
-          && !(request.auth.uid in request.resource.data.participations);
+          && (
+            isGroupOwner(resource.data.groupId)
+            || !(request.auth.uid in request.resource.data.participations)
+          );
+      }
+
+      // Transfert de propriété d'un événement vers le gérant du groupe (départ ou exclusion d'un membre)
+      function isValidEventOwnershipTransfer() {
+        let groupOwnerId = get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.createdBy;
+        return (request.auth.uid == groupOwnerId || request.auth.uid == resource.data.createdBy)
+          && request.resource.data.createdBy == groupOwnerId
+          && request.resource.data.groupId == resource.data.groupId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.title == resource.data.title
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['createdBy', 'createdByName', 'createdByPhoto', 'participations'])
+          && (!('createdByName' in request.resource.data) || (request.resource.data.createdByName is string && request.resource.data.createdByName.size() <= 50))
+          && (!('createdByPhoto' in request.resource.data) || request.resource.data.createdByPhoto == null || (request.resource.data.createdByPhoto is string && request.resource.data.createdByPhoto.size() <= 1000))
+          && (!('participations' in request.resource.data) || request.resource.data.participations is map);
       }
 
       // Lecture : STRICTEMENT RÉSERVÉE aux membres du groupe parent
@@ -272,7 +290,7 @@ service cloud.firestore {
 
       allow create: if isAuthenticated() && isValidEventCreate();
       allow update: if isAuthenticated() && (
-        isValidEventDetailUpdate() || isValidParticipationUpdate() || isLeaveGroupCleanup()
+        isValidEventDetailUpdate() || isValidParticipationUpdate() || isLeaveGroupCleanup() || isValidEventOwnershipTransfer()
       );
       allow delete: if isAuthenticated() && (
         request.auth.uid == resource.data.createdBy || isGroupOwner(resource.data.groupId)

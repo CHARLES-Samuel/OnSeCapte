@@ -73,6 +73,7 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Bannissement définitif (Ban) :** Le gérant peut bannir un membre. Son UID est ajouté à la liste `bannedMemberIds` et retiré de `members`. Toute tentative de réadhésion est bloquée côté service **et** dans les règles Firestore avec un message explicite : *"Vous ne pouvez pas rejoindre ce groupe car vous en avez été banni"*.
 - **Levée de bannissement (Unban) :** Le gérant peut consulter la liste des membres bannis (avec récupération complète de leurs pseudos) et lever leur bannissement.
 - **Quitter le groupe :** Chaque membre peut quitter volontairement le groupe avec confirmation modale. Le gérant est informé qu'il doit d'abord transférer la propriété avant de pouvoir quitter.
+- **Transmission Automatique de la Propriété des Événements :** Lorsqu'un membre quitte un groupe (de son plein gré) ou en est exclu (kick ou ban), la propriété (`createdBy`, `createdByName`, `createdByPhoto`) de **l'ensemble des événements qu'il a créés est automatiquement transmise au gérant du groupe**. Les événements restent ainsi pérennes et gérables par le propriétaire du groupe, tandis que les votes et participations du membre sortant sont proprement purgés.
 
 #### Onglet Statistiques (`GroupStatsPanel`)
 - **Résumé global :** Nombre total d'événements avec répartition par statut (*En recherche*, *À venir*, *Passés*).
