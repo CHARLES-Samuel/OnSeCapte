@@ -1,9 +1,20 @@
+import { useEffect } from "react";
 import { Calendar, Users, MapPin, ArrowRight } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export const Home = () => {
   const { user, loading, signInWithGoogle } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === '#fonctionnalites') {
+      const el = document.getElementById('fonctionnalites');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location.hash]);
 
   // Si l'utilisateur est connecté, on l'envoie vers l'invitation en attente ou le dashboard
   if (user && !loading) {
@@ -62,7 +73,7 @@ export const Home = () => {
           </div>
 
           {/* Features Preview */}
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-slate-800/50">
+          <div id="fonctionnalites" className="scroll-mt-24 grid md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-16 pt-12 sm:pt-16 border-t border-slate-800/50">
             <div className="p-6 bg-slate-800/30 rounded-2xl border border-slate-800/50 hover:bg-slate-800/50 transition-colors text-left group">
               <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Users className="w-6 h-6 text-indigo-400" />

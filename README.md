@@ -118,6 +118,14 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates non encore passés).
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
+- **Barre de Navigation Globale Unifiée (`Navbar`, `NavUserMenu`, `NavMobileDrawer`) :**
+  - **Composant Unique & Cohérent :** Une seule et même barre de navigation responsive utilisée à travers toute l'application (landing page publique et application connectée), évitant toute impression de rupture entre la vitrine et l'espace membre.
+  - **Stabilité Dimensionnelle & Zéro Saut de Mise en Page :** Hauteur fixe et garantie (`h-16`, 64px), positionnement sticky (`sticky top-0`), flou d'arrière-plan (`bg-slate-900/80 backdrop-blur-md border-b border-slate-800`), typographie et placement du logo strictement identiques.
+  - **Variantes de Contenu selon l'État d'Authentification :**
+    - *Visiteur déconnecté :* Logo OnSeCapte (redirection accueil `/`), lien de navigation rapide « Fonctionnalités » avec défilement fluide vers la section de présentation, et bouton stylisé « Connexion avec Google ».
+    - *Utilisateur connecté :* Logo OnSeCapte (redirection tableau de bord `/dashboard`), lien direct applicatif « Mes Groupes » avec état actif, et menu profil déroulant ergonomique (`NavUserMenu`) regroupant l'avatar, l'identité, la modification du pseudo et la déconnexion.
+  - **Expérience Mobile Symétrique & Tactile (`NavMobileDrawer`) :** Tiroir latéral coulissant unifié (*drawer*) accessible depuis le bouton burger ou l'avatar mobile, offrant le même confort d'utilisation en mode connecté comme déconnecté avec fermeture automatique lors de la navigation.
+  - **Hiérarchie Stricte des Z-Index :** Navbar fixée à `z-40`, menus flottants et drawer à `z-50`, et sélecteurs de page harmonisés à `z-30` (ex: `EventSortDropdown`), assurant que la barre de navigation reste continuellement et proprement au-dessus de tout le contenu défilant.
 - **Identité Visuelle & Logo / Favicon Unifié (`Logo` & Assets Multi-supports) :**
   - **Source Unique Vectorielle :** Remplacement des anciennes icônes hétérogènes de la navbar (`Users` / `Calendar`) par le visuel officiel de la marque issu directement de la même source SVG (`/favicon.svg`), assurant une reconnaissance immédiate et une identité de marque cohérente.
   - **Composant UI Réutilisable (`Logo.tsx`) :** Conforme aux principes SOLID, modulable en plusieurs tailles (`sm`, `md`, `lg`, `xl`), avec conteneur protecteur optionnel (`withContainer`) assurant un contraste et une lisibilité parfaits sur fonds sombres comme clairs.

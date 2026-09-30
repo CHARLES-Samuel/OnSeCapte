@@ -78,7 +78,7 @@ export const EventSortDropdown: React.FC<EventSortDropdownProps> = ({
         <div
           role="listbox"
           aria-label="Options de tri des événements"
-          className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-64 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl py-1.5 z-40 animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-64 bg-slate-800/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl py-1.5 z-30 animate-in fade-in slide-in-from-top-2 duration-150"
         >
           <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/60">
             Trier les événements

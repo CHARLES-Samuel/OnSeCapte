@@ -1,97 +1,108 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, Edit2, Loader2 } from "lucide-react";
+import { Loader2, Menu } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { EditPseudoModal } from "../features/auth/EditPseudoModal";
-import { UserAvatar } from "./UserAvatar";
 import { Logo } from "./Logo";
+import { UserAvatar } from "./UserAvatar";
+import { NavDesktopLinks } from "./navbar/NavDesktopLinks";
+import { NavUserMenu } from "./navbar/NavUserMenu";
+import { NavMobileDrawer } from "./navbar/NavMobileDrawer";
+import { GoogleSignInButton } from "./navbar/GoogleSignInButton";
 
 export const Navbar = () => {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const [isEditPseudoModalOpen, setIsEditPseudoModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
-      <header className="px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
-        <Link 
-          to={user ? "/dashboard" : "/"}
-          className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl p-1 -m-1"
-          aria-label={user ? "OnSeCapte - Aller au tableau de bord" : "OnSeCapte - Aller à l'accueil"}
-        >
-          <Logo 
-            size="md"
-            withContainer
-            alt=""
-          />
-          <span className="font-bold tracking-tight text-white text-lg sm:text-xl">
-            On<span className="text-primary-500">SeCapte</span>
-          </span>
-        </Link>
+      <header className="sticky top-0 z-40 w-full h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+          {/* Logo gauche — toujours à la même place */}
+          <Link
+            to={user ? "/dashboard" : "/"}
+            className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl p-1 -m-1 select-none"
+            aria-label={user ? "OnSeCapte - Aller au tableau de bord" : "OnSeCapte - Aller à l'accueil"}
+          >
+            <Logo size="md" withContainer alt="" />
+            <span className="font-bold tracking-tight text-white text-lg sm:text-xl">
+              On<span className="text-primary-500">SeCapte</span>
+            </span>
+          </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-4">
-          {loading ? (
-            <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-          ) : user ? (
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <UserAvatar
-                photoUrl={user.photoURL}
-                name={user.displayName || "User"}
-                size="sm"
-                className="hidden sm:flex shrink-0 border border-slate-700"
+          {/* Navigation & actions Desktop */}
+          <div className="hidden md:flex items-center gap-5">
+            <NavDesktopLinks isAuthenticated={!!user} />
+
+            {loading ? (
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-slate-400 animate-spin" aria-hidden="true" />
+              </div>
+            ) : user ? (
+              <NavUserMenu
+                user={user}
+                onEditPseudo={() => setIsEditPseudoModalOpen(true)}
+                onSignOut={signOut}
               />
-              <div className="flex items-center gap-1 sm:gap-2">
-                <span className="text-xs sm:text-sm font-medium text-slate-300 max-w-[100px] sm:max-w-[160px] truncate">
-                  {user.displayName || "User"}
-                </span>
-                <button 
-                  onClick={() => setIsEditPseudoModalOpen(true)}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-w-[32px] min-h-[32px] flex items-center justify-center"
-                  title="Modifier le pseudo"
-                  aria-label="Modifier le pseudo"
+            ) : (
+              <GoogleSignInButton onClick={signInWithGoogle} />
+            )}
+          </div>
+
+          {/* Actions Mobile */}
+          <div className="flex md:hidden items-center gap-2">
+            {loading ? (
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-slate-400 animate-spin" aria-hidden="true" />
+              </div>
+            ) : user ? (
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/60 hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 h-10 cursor-pointer"
+                aria-label="Ouvrir le menu utilisateur"
+              >
+                <UserAvatar
+                  photoUrl={user.photoURL}
+                  name={user.displayName || "User"}
+                  size="sm"
+                  className="border border-slate-700"
+                />
+                <Menu className="w-4 h-4 text-slate-400" aria-hidden="true" />
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <GoogleSignInButton
+                  onClick={signInWithGoogle}
+                  size="sm"
+                  label="Connexion"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl border border-slate-700/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 h-9 w-9 flex items-center justify-center cursor-pointer"
+                  aria-label="Ouvrir le menu de navigation"
                 >
-                  <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  <Menu className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
-              <div className="w-px h-5 bg-slate-800 mx-1 hidden sm:block"></div>
-              <button 
-                onClick={signOut}
-                className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-w-[36px] min-h-[36px] flex items-center justify-center"
-                title="Déconnexion"
-                aria-label="Se déconnecter"
-              >
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={signInWithGoogle}
-              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 hover:border-slate-600 rounded-xl shadow-sm hover:shadow-md backdrop-blur-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 min-h-[38px]"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.16 0 9.94 0 12s.45 3.84 1.24 5.42l4.04-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                />
-              </svg>
-              <span className="hidden sm:inline">Connexion avec Google</span>
-              <span className="sm:hidden">Connexion</span>
-            </button>
-          )}
-        </nav>
+            )}
+          </div>
+        </div>
       </header>
 
+      {/* Drawer mobile unifié */}
+      <NavMobileDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        user={user}
+        signInWithGoogle={signInWithGoogle}
+        signOut={signOut}
+        onEditPseudo={() => setIsEditPseudoModalOpen(true)}
+      />
+
+      {/* Modale d'édition du pseudo */}
       <EditPseudoModal
         isOpen={isEditPseudoModalOpen}
         onClose={() => setIsEditPseudoModalOpen(false)}
