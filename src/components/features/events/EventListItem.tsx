@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, MapPin, Calendar, Check, X } from 'lucide-react';
+import { Edit, Trash2, MapPin, Check, X } from 'lucide-react';
 import type { Event, EventParticipation } from '../../../models/Event';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
-import { formatPrice, formatDateShort } from '../../../utils/format';
+import { EventListDateBadge } from './EventListDateBadge';
+import { EventListDescription } from './EventListDescription';
+import { formatPrice } from '../../../utils/format';
 
 interface EventListItemProps {
   event: Event;
@@ -27,6 +29,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
   onUpdateParticipation,
 }) => {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   const userParticipation = currentUserId ? event.participations?.[currentUserId] : undefined;
 
   const handleParticipation = (e: React.MouseEvent, status: EventParticipation) => {
@@ -36,57 +39,51 @@ export const EventListItem: React.FC<EventListItemProps> = ({
     }
   };
 
+  const handleToggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded((prev) => !prev);
+  };
+
   return (
     <div
       onClick={() => navigate(`/groups/${groupId}/events/${event.id}`)}
-      className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-primary-500/40 p-3 sm:p-4 rounded-xl transition duration-150 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 group shadow-sm hover:shadow-lg hover:shadow-primary-950/20"
+      className={`bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-primary-500/40 p-3 sm:p-4 rounded-xl transition duration-150 cursor-pointer flex flex-col md:flex-row ${
+        isExpanded ? 'md:items-start' : 'md:items-center'
+      } justify-between gap-3 group shadow-sm hover:shadow-lg hover:shadow-primary-950/20`}
     >
-      {/* Informations principales (Date, Titre, Catégorie, Lieu) */}
-      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-        {/* Date ou Statut */}
-        <div className="shrink-0">
-          {event.state === 'planifie' && event.finalDate ? (
-            <div className="flex sm:flex-col items-center justify-center bg-amber-500/10 border border-amber-500/20 text-amber-300 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold min-w-[76px] text-center gap-1 sm:gap-0">
-              <Calendar className="w-3.5 h-3.5 sm:mb-0.5 text-amber-400" aria-hidden="true" />
-              <span>{formatDateShort(event.finalDate)}</span>
-            </div>
-          ) : event.state === 'passe' ? (
-            <div className="flex sm:flex-col items-center justify-center bg-slate-800 border border-slate-700 text-slate-400 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold min-w-[76px] text-center">
-              <span>Passé</span>
-            </div>
-          ) : event.dateMode === 'range' && event.startDate && event.endDate ? (
-            <div
-              className="flex sm:flex-col items-center justify-center bg-blue-500/10 border border-blue-500/20 text-blue-300 px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold min-w-[76px] text-center gap-1 sm:gap-0"
-              title={`Du ${formatDateShort(event.startDate)} au ${formatDateShort(event.endDate)}`}
-            >
-              <Calendar className="w-3.5 h-3.5 sm:mb-0.5 text-blue-400 shrink-0" aria-hidden="true" />
-              <span className="truncate">{formatDateShort(event.startDate)} - {formatDateShort(event.endDate)}</span>
-            </div>
-          ) : (
-            <div className="flex sm:flex-col items-center justify-center bg-primary-500/10 border border-primary-500/20 text-primary-300 px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-semibold min-w-[76px] text-center">
-              <span>Sondage</span>
-            </div>
-          )}
-        </div>
+      {/* Informations principales (Date, Titre, Catégorie, Lieu, Description) */}
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        {/* Colonne Date ou Statut */}
+        <EventListDateBadge event={event} />
 
-        {/* Titre & Métadonnées */}
+        {/* Bloc central à 2 niveaux : Titre & Métadonnées + Description */}
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-primary-400 transition truncate">
+          {/* Première ligne : Titre, Catégorie, Prix, Lieu */}
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-primary-400 transition truncate min-w-0 max-w-full sm:max-w-md">
               {event.title}
             </h3>
             <CategoryBadge category={event.category} size="sm" />
-            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
               {formatPrice(event.price)}
             </span>
+            {event.location && (
+              <span
+                className="inline-flex items-center gap-1 text-xs text-slate-400 shrink-0 max-w-[150px] sm:max-w-[200px]"
+                title={event.location}
+              >
+                <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+                <span className="truncate">{event.location}</span>
+              </span>
+            )}
           </div>
 
-          {event.location && (
-            <div className="flex items-center gap-1 text-xs text-slate-400 truncate">
-              <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
-              <span className="truncate">{event.location}</span>
-            </div>
-          )}
+          {/* Deuxième ligne : Description courte avec aperçu tronqué ou déplié */}
+          <EventListDescription
+            description={event.description}
+            isExpanded={isExpanded}
+            onToggleExpand={handleToggleExpand}
+          />
         </div>
       </div>
 

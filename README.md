@@ -47,7 +47,14 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     - Les événements passés sont isolés dans leur propre catégorie / onglet **"Passés"**.
     - **Compteurs dynamiques :** Chaque bouton de statut affiche un badge de comptage en temps réel (*Tous (N)*, *En recherche (N)*, *À venir (N)*, *Passés (N)*).
     - **Bannière d'accès rapide aux archives :** Lorsqu'on consulte "Tous" et que des événements passés existent, un encart discret en bas de liste permet de basculer en un clic vers la vue des événements passés.
-  - **Bascule Grille vs Liste (`EventViewToggle`) :** Bouton discret permettant d'alterner entre l'affichage en **Cartes** (visuel) et le mode **Ligne / Liste compacte** (`EventListItem`), idéal pour les groupes avec de nombreux événements. La préférence est automatiquement mémorisée dans le `localStorage` via `useEventsViewMode`.
+  - **Bascule Grille vs Liste (`EventViewToggle`) & Vue Liste sur 2 niveaux (`EventListItem`, `EventListDescription`, `EventListDateBadge`) :**
+    - Bouton discret permettant d'alterner entre l'affichage en **Cartes** (visuel) et le mode **Ligne / Liste compacte** (`EventListItem`), avec mémorisation automatique de la préférence dans le `localStorage` via `useEventsViewMode`.
+    - **Disposition sur deux niveaux & Alignement préservé des colonnes :**
+      - **Ligne 1 (Métadonnées) :** Titre (avec troncature intelligente anti-débordement), badge de catégorie, badge de prix et lieu avec icône.
+      - **Ligne 2 (Description courte) :** Aperçu fluide de la description (`line-clamp-1` sur mobile à 360 px, `line-clamp-2` sur écran plus large), nettoyé de la syntaxe Markdown brute grâce à l'utilitaire `formatDescriptionPreview`.
+      - **Dépliage en place ("Voir plus" / "Voir moins") :** Possibilité de déplier la description complète directement dans la liste avec rendu Markdown riche (`MarkdownView`) sans quitter la page, ou de naviguer vers le détail au clic sur la ligne.
+      - **Zéro espace orphelin :** Si un événement ne comporte pas de description, aucun trou ni marge parasite n'est affiché.
+      - **Optimisation Mobile (360 px) :** Aucune barre de défilement horizontal ni débordement, alignement parfait et boutons d'action adaptés.
   - **Tri Intelligent des Événements (`EventSortDropdown` & `eventSortUtils`) :** Menu déroulant moderne avec tri chronologique par date (*Prochains événements d'abord*, *Plus lointains d'abord*), par date de création récente, ou par prix (croissant / décroissant). Les événements à date fixée se positionnent à leur date exacte, et ceux sans date fixée (en recherche de date) sont classés en fin de liste.
   - **Nombre de Participants & Réponses en Direct (`EventParticipationBadge`) :** Chaque carte et chaque ligne affiche un badge récapitulatif clair indiquant le nombre de participants confirmés (*ex: "4 participants"*) ainsi que les réponses en attente (*ex: "2 en attente"*), offrant une visibilité immédiate sans ouvrir l'événement.
   - **Actions rapides :** Possibilité de répondre directement (*Je participe* / *Pas dispo*) et d'accéder aux actions de modification/suppression depuis les cartes et lignes.
