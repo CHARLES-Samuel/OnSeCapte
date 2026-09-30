@@ -169,6 +169,14 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - Zones tactiles conformes aux recommandations d'accessibilité mobile (minimum 36px à 44px).
   - Défilement horizontal fluide des barres de filtres (statuts et catégories) avec `overflow-x-auto touch-pan-x` et protection `min-w-0` contre tout débordement d'écran.
   - Toutes les modales sont adaptatives avec défilement interne sécurisé (`max-h-[92vh] overflow-y-auto`) pour s'adapter aux claviers virtuels et à l'orientation paysage.
+- **Design Système des Barres de Défilement (Scrollbar Cross-Browser & A11y) :**
+  - **Personnalisation Fine & Discrète :** Remplacement des scrollbars système par défaut par un style moderne, fin (`8px`) et arrondi en pilule (`border-radius: 9999px`), parfaitement intégré aux teintes de l'application (Slate 400 à 35% en thème sombre avec surbrillance dynamique au survol et au glissement).
+  - **Compatibilité Universelle (Firefox, Chrome, Safari, Edge) :**
+    - *Firefox :* Prise en charge standard via `scrollbar-width: thin; scrollbar-color: var(--thumb) transparent;` sous condition `@supports not selector(::-webkit-scrollbar)` garantissant un rendu propre et évitant d'annuler les pseudo-éléments WebKit sur Chromium 121+.
+    - *Chrome / Safari / Edge :* Prise en charge complète via `::-webkit-scrollbar`, `::-webkit-scrollbar-thumb` (+ `:hover` et `:active`), coins arrondis et `background-clip: padding-box`.
+  - **Thématisation Dynamique (Clair / Sombre) :** Variables CSS globales (`--scrollbar-thumb`, `--scrollbar-thumb-hover`, `--scrollbar-track`, `--thumb`) ajustant automatiquement le contraste selon les préférences du système (`@media (prefers-color-scheme: light)`) ou les classes `.light` / `.dark`.
+  - **Zéro Saut de Mise en Page (`scrollbar-gutter: stable`) :** Appliqué sur `html` pour réserver l'espace de défilement sans décalage horizontal intempestif du contenu lors des transitions de pages ou du filtrage d'événements, avec classe `.scrollbar-stable` disponible pour les conteneurs et modales.
+  - **Respect Strict de l'Accessibilité (A11y) :** La barre de défilement n'est jamais masquée sur les contenus déroulants principaux, assurant que l'utilisateur repère immédiatement la capacité de défilement.
 - **Zéro Débordement Horizontal :** Intégration de `overflow-x-hidden` et de règles de retour à la ligne propres sur tous les conteneurs principaux.
 
 ### 6. Conformité Légale & Accessibilité (RGPD / WCAG)

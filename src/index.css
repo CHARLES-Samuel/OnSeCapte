@@ -22,6 +22,56 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Variables de barre de défilement (thème sombre par défaut de l'application) */
+    --scrollbar-size: 8px;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: rgba(148, 163, 184, 0.35); /* Slate 400 à 35% - fin et discret */
+    --scrollbar-thumb-hover: rgba(203, 213, 225, 0.6); /* Slate 300 à 60% au survol */
+    --scrollbar-thumb-active: rgba(241, 245, 249, 0.8); /* Slate 100 à 80% au clic/glissement */
+
+    /* Alias standards pour surcharge rapide */
+    --thumb: var(--scrollbar-thumb);
+    --thumb-hover: var(--scrollbar-thumb-hover);
+    --thumb-active: var(--scrollbar-thumb-active);
+    --track: var(--scrollbar-track);
+  }
+
+  /* Support du thème clair (système ou classe/attribut explicite) */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --scrollbar-thumb: rgba(100, 116, 139, 0.4); /* Slate 500 à 40% sur fond clair */
+      --scrollbar-thumb-hover: rgba(71, 85, 105, 0.65); /* Slate 600 à 65% au survol */
+      --scrollbar-thumb-active: rgba(30, 41, 59, 0.8); /* Slate 800 à 80% */
+      --thumb: var(--scrollbar-thumb);
+      --thumb-hover: var(--scrollbar-thumb-hover);
+      --thumb-active: var(--scrollbar-thumb-active);
+    }
+  }
+
+  :root[data-theme='light'],
+  .light {
+    --scrollbar-thumb: rgba(100, 116, 139, 0.4);
+    --scrollbar-thumb-hover: rgba(71, 85, 105, 0.65);
+    --scrollbar-thumb-active: rgba(30, 41, 59, 0.8);
+    --thumb: var(--scrollbar-thumb);
+    --thumb-hover: var(--scrollbar-thumb-hover);
+    --thumb-active: var(--scrollbar-thumb-active);
+  }
+
+  :root[data-theme='dark'],
+  .dark {
+    --scrollbar-thumb: rgba(148, 163, 184, 0.35);
+    --scrollbar-thumb-hover: rgba(203, 213, 225, 0.6);
+    --scrollbar-thumb-active: rgba(241, 245, 249, 0.8);
+    --thumb: var(--scrollbar-thumb);
+    --thumb-hover: var(--scrollbar-thumb-hover);
+    --thumb-active: var(--scrollbar-thumb-active);
+  }
+
+  /* Gouttière stable sur le conteneur principal pour éviter tout saut de mise en page */
+  html {
+    scrollbar-gutter: stable;
   }
 
   html, body {
@@ -42,6 +92,48 @@
   }
 }
 
+/* ==========================================================================
+   Styles de barre de défilement globaux et adaptatifs (Cross-Browser)
+   ========================================================================== */
+
+/* Chrome, Safari, Edge, Opera (navigateurs basés sur WebKit / Blink) */
+::-webkit-scrollbar {
+  width: var(--scrollbar-size, 8px);
+  height: var(--scrollbar-size, 8px);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--track, transparent);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--thumb);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--thumb-active);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox (spécification standard CSS Scrollbars) */
+@supports not selector(::-webkit-scrollbar) {
+  html,
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumb) transparent;
+  }
+}
+
 /* Utilitaires pour le défilement horizontal fluide sans barre de défilement apparente */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -50,6 +142,40 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   Classes utilitaires pour conteneurs à défilement interne (modales, listes)
+   ========================================================================== */
+
+/* Évite les sauts de contenu dans les conteneurs scrollables internes */
+.scrollbar-stable {
+  scrollbar-gutter: stable;
+}
+
+/* Variante accentuée bleu primaire */
+.scrollbar-primary {
+  --scrollbar-thumb: rgba(59, 130, 246, 0.5);
+  --scrollbar-thumb-hover: rgba(37, 99, 235, 0.8);
+  --scrollbar-thumb-active: rgba(29, 78, 216, 0.95);
+  --thumb: var(--scrollbar-thumb);
+  --thumb-hover: var(--scrollbar-thumb-hover);
+  --thumb-active: var(--scrollbar-thumb-active);
+}
+
+/* Variante neutre discrète */
+.scrollbar-slate {
+  --scrollbar-thumb: rgba(148, 163, 184, 0.35);
+  --scrollbar-thumb-hover: rgba(203, 213, 225, 0.6);
+  --scrollbar-thumb-active: rgba(241, 245, 249, 0.8);
+  --thumb: var(--scrollbar-thumb);
+  --thumb-hover: var(--scrollbar-thumb-hover);
+  --thumb-active: var(--scrollbar-thumb-active);
+}
+
+/* Variante fine pour conteneurs denses */
+.scrollbar-thin {
+  --scrollbar-size: 6px;
 }
 
 /* Fond dégradé vibrant et moderne pour les images PNG et photos de profil */

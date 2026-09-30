@@ -131,7 +131,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-xl text-white relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg p-4 sm:p-6 shadow-xl text-white relative max-h-[92vh] overflow-y-auto scrollbar-stable">
         <button
           type="button"
           onClick={onClose}

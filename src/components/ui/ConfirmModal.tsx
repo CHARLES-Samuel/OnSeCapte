@@ -72,7 +72,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-fadeIn">
-      <div className="bg-slate-800 border border-slate-700/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl text-slate-100 relative max-h-[92vh] overflow-y-auto">
+      <div className="bg-slate-800 border border-slate-700/80 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl text-slate-100 relative max-h-[92vh] overflow-y-auto scrollbar-stable">
         <button
           type="button"
           onClick={onClose}

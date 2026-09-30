@@ -231,7 +231,7 @@ export const EditGroupModal = ({ isOpen, onClose, group, onSubmit }: EditGroupMo
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto scrollbar-stable flex-1">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm" role="alert">
               {error}
