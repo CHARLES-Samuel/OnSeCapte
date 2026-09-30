@@ -6,6 +6,12 @@
   --color-primary-500: #3b82f6;
   --color-primary-600: #2563eb;
   --color-primary-700: #1d4ed8;
+
+  /* Échelle z-index cohérente (Tailwind v4 tokens) */
+  --z-sticky: 40;
+  --z-dropdown: 50;
+  --z-modal: 60;
+  --z-toast: 70;
 }
 
 @layer base {
@@ -29,6 +35,12 @@
     --scrollbar-thumb: rgba(148, 163, 184, 0.35); /* Slate 400 à 35% - fin et discret */
     --scrollbar-thumb-hover: rgba(203, 213, 225, 0.6); /* Slate 300 à 60% au survol */
     --scrollbar-thumb-active: rgba(241, 245, 249, 0.8); /* Slate 100 à 80% au clic/glissement */
+
+    /* Échelle z-index de référence : contenu (0-20) < sticky (40) < dropdowns (50) < modales (60) < toasts (70) */
+    --z-sticky: 40;
+    --z-dropdown: 50;
+    --z-modal: 60;
+    --z-toast: 70;
 
     /* Alias standards pour surcharge rapide */
     --thumb: var(--scrollbar-thumb);

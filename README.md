@@ -160,9 +160,11 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Partage du Groupe Ouvert à Tous les Membres (`InviteLinkButton`) :**
   - Le bouton d'invitation / copie de lien n'est plus restreint au seul créateur mais désormais accessible et visible par **tous les membres du groupe**.
   - Libellé mobile clarifié (*"Inviter"*) avec retour visuel immédiat (*"Lien copié !"*).
-- **Menu d'Administration Propriétaire Tactile sur Mobile (`GroupOwnerActionsMenu`) :**
-  - Sur mobile, remplacement des multiples boutons d'administration compressés par un menu contextuel discret et tactile (*kebab menu* "...").
-  - Regroupe l'édition des infos, le transfert de propriété et la suppression définitive avec des zones tactiles généreuses (`min-h-[44px]`) éliminant tout débordement ou mauvaise manipulation.
+- **Menu d'Administration Propriétaire Rendu via Portal (`GroupOwnerActionsMenu` & `useFloatingMenu`) :**
+  - Rendu via un **Portal React** à la racine (`document.body`) avec gestion dynamique du positionnement (`useFloatingMenu`), éliminant définitivement tout rognage par `overflow: hidden` et tout conflit de contexte d'empilement (*stacking context*).
+  - Détection dynamique des bords d'écran avec bascule automatique vers le haut lorsque l'espace inférieur est restreint, et synchronisation continue lors du redimensionnement et du défilement.
+  - Regroupe l'édition des infos (sur mobile), le transfert de propriété et la suppression définitive avec des zones tactiles généreuses (`min-h-[44px]`).
+  - Standardisation de l'échelle d'empilement CSS globale (`--z-sticky: 40`, `--z-dropdown: 50`, `--z-modal: 60`, `--z-toast: 70`).
 - **Interface Produit Finie :** Suppression des indicateurs techniques de test (Firebase) sur la page d'accueil.
 - **Stabilisation du Bouton de Tri :** Largeur minimale calibrée (`min-w-[145px]`) et contenu centré (`whitespace-nowrap`) garantissant une stabilité dimensionnelle parfaite lors de l'alternance *Croissant* / *Décroissant*.
 - **Navigation Optimisée au Pouce :**

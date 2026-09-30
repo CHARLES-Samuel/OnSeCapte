@@ -23,7 +23,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
   onDeleteGroup,
 }) => {
   return (
-    <div className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 overflow-hidden relative">
+    <div className="w-full rounded-2xl border border-slate-800 bg-slate-800/40 relative">
       {/* Bouton retour */}
       <button
         onClick={onBack}
@@ -35,7 +35,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
 
       {/* Bannière */}
       {group.bannerUrl ? (
-        <div className="w-full h-32 md:h-56 bg-slate-700 relative">
+        <div className="w-full h-32 md:h-56 bg-slate-700 relative rounded-t-2xl overflow-hidden">
           <img
             src={group.bannerUrl}
             alt={`Bannière du groupe ${group.name}`}
@@ -44,7 +44,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
         </div>
       ) : (
-        <div className="w-full h-24 md:h-32 bg-gradient-to-r from-slate-800 to-slate-800/50" />
+        <div className="w-full h-24 md:h-32 bg-gradient-to-r from-slate-800 to-slate-800/50 rounded-t-2xl" />
       )}
 
       <div className="p-4 sm:p-8 relative">
