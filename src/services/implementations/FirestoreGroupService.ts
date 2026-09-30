@@ -125,9 +125,8 @@ export class FirestoreGroupService implements IGroupService {
 
     const inviteCode = this.generateInviteCode();
 
-    const q = query(collection(db, GROUPS_COLLECTION), where("inviteCode", "==", inviteCode));
-    const existSnap = await getDocs(q);
-    if (!existSnap.empty) {
+    const inviteSnap = await getDoc(doc(db, "inviteCodes", inviteCode));
+    if (inviteSnap.exists()) {
       return this.createGroup(userId, data);
     }
 
@@ -143,6 +142,13 @@ export class FirestoreGroupService implements IGroupService {
 
     const docRef = await addDoc(collection(db, GROUPS_COLLECTION), groupData);
 
+    // Enregistrer le code d'invitation dans le registre sécurisé
+    await setDoc(doc(db, "inviteCodes", inviteCode), {
+      groupId: docRef.id,
+      createdBy: userId,
+      createdAt: serverTimestamp(),
+    });
+
     return {
       id: docRef.id,
       name: groupData.name,
@@ -156,48 +162,55 @@ export class FirestoreGroupService implements IGroupService {
   }
 
   async joinGroup(userId: string, inviteCode: string): Promise<Group> {
+    const cleanCode = inviteCode.trim().toUpperCase();
     // 1. Vérifier le Rate Limit
     this.checkRateLimit(userId);
 
-    const q = query(
-      collection(db, GROUPS_COLLECTION),
-      where("inviteCode", "==", inviteCode.toUpperCase())
-    );
+    // 2. Recherche directe O(1) dans la collection sécurisée inviteCodes
+    const inviteRef = doc(db, "inviteCodes", cleanCode);
+    const inviteSnap = await getDoc(inviteRef);
 
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
+    if (!inviteSnap.exists()) {
       this.recordFailedAttempt(userId);
       throw new Error("Code d'invitation invalide ou expiré.");
     }
 
-    const groupDoc = querySnapshot.docs[0];
-    const groupRef = doc(db, GROUPS_COLLECTION, groupDoc.id);
+    const { groupId } = inviteSnap.data();
+    const groupRef = doc(db, GROUPS_COLLECTION, groupId);
 
-    const groupData = groupDoc.data();
-
-    // 2. Vérifier le bannissement
-    const bannedIds: string[] = groupData.bannedMemberIds || [];
-    if (bannedIds.includes(userId)) {
-      throw new Error("Vous ne pouvez pas rejoindre ce groupe car vous en avez été banni.");
+    // 3. Si déjà membre, getDoc réussit immédiatement
+    try {
+      const existingSnap = await getDoc(groupRef);
+      if (existingSnap.exists()) {
+        const data = existingSnap.data();
+        if (data.members && data.members.includes(userId)) {
+          this.resetFailedAttempts(userId);
+          return this.mapDocToGroup(groupId, data);
+        }
+      }
+    } catch {
+      // Pas encore membre, la lecture est refusée par la règle (normal et sécurisé)
     }
 
-    // 3. Vérifier la présence déjà (idempotent : si déjà membre, réinitialise le rate-limit et renvoie le groupe)
-    if (groupData.members.includes(userId)) {
-      this.resetFailedAttempts(userId);
-      return this.mapDocToGroup(groupDoc.id, groupData);
+    // 4. Adhésion sécurisée avec joinCodeAttempt vérifié par Firestore Security Rules
+    try {
+      await updateDoc(groupRef, {
+        members: arrayUnion(userId),
+        joinCodeAttempt: cleanCode,
+      });
+    } catch (err: any) {
+      this.recordFailedAttempt(userId);
+      throw new Error(err?.message || "Impossible de rejoindre ce groupe (code erroné ou vous en avez été banni).");
     }
 
-    await updateDoc(groupRef, {
-      members: arrayUnion(userId),
-    });
+    // 5. Désormais membre, la lecture est autorisée
+    const updatedSnap = await getDoc(groupRef);
+    if (!updatedSnap.exists()) {
+      throw new Error("Groupe introuvable.");
+    }
 
     this.resetFailedAttempts(userId);
-
-    return this.mapDocToGroup(groupDoc.id, {
-      ...groupData,
-      members: [...groupData.members, userId],
-    });
+    return this.mapDocToGroup(groupId, updatedSnap.data());
   }
 
   async getGroupById(groupId: string): Promise<Group | null> {
@@ -235,6 +248,10 @@ export class FirestoreGroupService implements IGroupService {
     const groupData = groupSnap.data();
     if (groupData.createdBy !== userId) {
       throw new Error("Seul le propriétaire peut supprimer ce groupe.");
+    }
+
+    if (groupData.inviteCode) {
+      await deleteDoc(doc(db, "inviteCodes", groupData.inviteCode)).catch(() => {});
     }
 
     await deleteDoc(groupRef);

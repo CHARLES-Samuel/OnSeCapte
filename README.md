@@ -168,10 +168,16 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Inversion des Dépendances (DIP)** : Ni les composants React ni les Custom Hooks ne dépendent directement de Firebase Firestore. Tout transite par les interfaces de services (`IGroupService`, `IEventService`, etc.).
 - **Typage Strict** : TypeScript strict, zéro `any`, gestion sécurisée des erreurs.
 - **Logique métier isolée** : `eventSortUtils.ts` (tri chronologique intelligent), `eventParticipationUtils.ts` (calcul des participations) et `eventStatsUtils.ts` sont des fonctions **pures** (zéro effet de bord, zéro dépendance externe), hautement modulaires et testables.
-- **Firestore Security Rules** :
-  - `allow read: if request.auth != null;` autorise les requêtes de recherche par code d'invitation sans bloquer les nouveaux membres ni la vérification d'unicité lors de la création d'un groupe.
-  - Règles d'écriture strictes avec helpers sécurisés (`isOwner`, `isMember`, `isBanned` avec vérification de présence du champ `bannedMemberIds`) — les membres bannis sont bloqués à l'écriture côté base de données indépendamment de l'UI.
-  - Révocation systématique sur les événements : `create`, `update` et votes d'événements exigent formellement que l'utilisateur soit membre actif dans le document du groupe parent (`isMemberOfGroup(groupId)`). Tout utilisateur exclu est instantanément rejeté par la base de données.
+- **Architecture de Sécurité & Règles Firestore Durcies** :
+  - **Cloisonnement Strict des Groupes Privés** : Seuls les membres actifs et le propriétaire peuvent lire ou lister un groupe (`allow list` et `allow get` restreints). Aucun non-membre ne peut sonder ou inspecter les groupes privés.
+  - **Registre Anti-Énumération (`inviteCodes`)** : Les codes d'invitation sont isolés dans une collection dédiée indexée par code (`O(1)`). L'énumération globale est formellement interdite (`allow list: if false`), bloquant tout moissonage ou scraping automatisé.
+  - **Validation Cryptographique de l'Adhésion** : L'adhésion à un groupe exige de fournir la preuve du code d'invitation (`joinCodeAttempt == resource.data.inviteCode`). Il est impossible pour un attaquant ou un script de s'injecter dans un groupe sans posséder le code valide.
+  - **Intégrité Granulaire des Événements** :
+    - Seuls le créateur de l'événement ou le propriétaire du groupe peuvent modifier ses détails (titre, dates, état, verrouillage).
+    - Les membres ordinaires ont uniquement le droit de modifier **leur propre participation** (`participations[request.auth.uid]`), sans pouvoir altérer les votes des autres ni le contenu de l'événement.
+    - Seuls les membres du groupe peuvent lire les événements associés.
+  - **Protection des Plannings & Profils** : Les disponibilités partagées sont cloisonnées aux membres du groupe, et les profils utilisateurs sont protégés en écriture avec validation stricte des champs.
+  - **Règles Cloud Storage Renforcées** : Filtrage strict des types MIME (`image/jpeg`, `image/png`, `image/webp`), restriction de taille (5 Mo max) et chemins autorisés uniquement (`photo.jpg`, `banner.webp`).
 - **Gestion de la Mémoire** : Nettoyage systématique des écouteurs temps réel Firestore (`onSnapshot`) et des timers de redirection (`useRef` / `clearTimeout`).
 
 ---

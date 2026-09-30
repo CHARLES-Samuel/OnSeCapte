@@ -31,7 +31,7 @@ export const useGroups = (userId: string | undefined) => {
     try {
       return await groupService.createGroup(userId, data);
     } catch (err) {
-      const msg = "Erreur lors de la création du groupe.";
+      const msg = err instanceof Error ? err.message : "Erreur lors de la création du groupe.";
       setError(msg);
       throw err;
     }
