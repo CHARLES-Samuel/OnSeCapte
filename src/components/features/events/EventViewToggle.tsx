@@ -13,41 +13,23 @@ export const EventViewToggle: React.FC<EventViewToggleProps> = ({
   onChange,
   className = '',
 }) => {
-  return (
-    <div
-      role="group"
-      aria-label="Mode d'affichage des événements"
-      className={`inline-flex items-center bg-slate-900/80 border border-slate-800 rounded-xl p-1 shrink-0 ${className}`}
-    >
-      <button
-        type="button"
-        onClick={() => onChange('grid')}
-        aria-pressed={viewMode === 'grid'}
-        title="Vue en grille (cartes)"
-        className={`p-1.5 sm:px-2 sm:py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 min-h-[32px] ${
-          viewMode === 'grid'
-            ? 'bg-slate-700 text-white shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
-        }`}
-      >
-        <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden="true" />
-        <span className="hidden sm:inline">Grille</span>
-      </button>
+  const isGrid = viewMode === 'grid';
+  const targetMode = isGrid ? 'list' : 'grid';
+  const label = isGrid ? 'Passer en affichage liste' : 'Passer en affichage grille';
 
-      <button
-        type="button"
-        onClick={() => onChange('list')}
-        aria-pressed={viewMode === 'list'}
-        title="Vue en liste compacte"
-        className={`p-1.5 sm:px-2 sm:py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 min-h-[32px] ${
-          viewMode === 'list'
-            ? 'bg-slate-700 text-white shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
-        }`}
-      >
-        <List className="w-4 h-4 shrink-0" aria-hidden="true" />
-        <span className="hidden sm:inline">Liste</span>
-      </button>
-    </div>
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(targetMode)}
+      aria-label={label}
+      title={label}
+      className={`p-2 bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700 rounded-xl transition shadow-sm shrink-0 min-h-[38px] min-w-[38px] flex items-center justify-center ${className}`}
+    >
+      {isGrid ? (
+        <List className="w-4 h-4 shrink-0 text-primary-400" aria-hidden="true" />
+      ) : (
+        <LayoutGrid className="w-4 h-4 shrink-0 text-primary-400" aria-hidden="true" />
+      )}
+    </button>
   );
 };

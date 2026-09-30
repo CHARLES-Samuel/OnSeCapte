@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowUpDown, ChevronDown, Check, Calendar, Sparkles } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, Check, Calendar, Sparkles, Tag } from 'lucide-react';
 import { EVENT_SORT_OPTIONS, type EventSortOption } from '../../../utils/eventSortUtils';
 
 interface EventSortDropdownProps {
@@ -61,6 +61,8 @@ export const EventSortDropdown: React.FC<EventSortDropdownProps> = ({
             <Calendar className="w-3.5 h-3.5 text-primary-400 shrink-0" aria-hidden="true" />
           ) : sortOption === 'created-desc' ? (
             <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
+          ) : sortOption === 'category-asc' ? (
+            <Tag className="w-3.5 h-3.5 text-indigo-400 shrink-0" aria-hidden="true" />
           ) : (
             <ArrowUpDown className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
           )}

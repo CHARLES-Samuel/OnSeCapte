@@ -4,6 +4,7 @@ export type EventSortOption =
   | 'date-asc'
   | 'date-desc'
   | 'created-desc'
+  | 'category-asc'
   | 'price-asc'
   | 'price-desc';
 
@@ -24,6 +25,11 @@ export const EVENT_SORT_OPTIONS: SortOptionConfig[] = [
     value: 'date-desc',
     label: 'Date : Plus lointains d’abord',
     shortLabel: 'Plus lointains',
+  },
+  {
+    value: 'category-asc',
+    label: 'Catégorie : Ordre alphabétique',
+    shortLabel: 'Catégorie',
   },
   {
     value: 'created-desc',
@@ -117,6 +123,20 @@ export const sortEvents = (events: Event[], sortOption: EventSortOption): Event[
 
         if (hasDateA && !hasDateB) return -1;
         if (!hasDateA && hasDateB) return 1;
+
+        return b.createdAt - a.createdAt;
+      }
+
+      case 'category-asc': {
+        const catComparison = (a.category || '').localeCompare(b.category || '', 'fr', { sensitivity: 'base' });
+        if (catComparison !== 0) return catComparison;
+
+        // Tri secondaire : date d'événement la plus proche, sinon création récente
+        const dateA = getEventDateTimestamp(a);
+        const dateB = getEventDateTimestamp(b);
+        if (dateA !== null && dateB !== null) return dateA - dateB;
+        if (dateA !== null) return -1;
+        if (dateB !== null) return 1;
 
         return b.createdAt - a.createdAt;
       }

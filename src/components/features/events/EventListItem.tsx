@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import type { Event, EventParticipation } from '../../../models/Event';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
 import { EventListDateBadge } from './EventListDateBadge';
 import { EventListDescription } from './EventListDescription';
 import { EventParticipationButtons } from './EventParticipationButtons';
+import { EventActionsMenu } from './EventActionsMenu';
 import { formatPrice } from '../../../utils/format';
 
 interface EventListItemProps {
@@ -47,92 +48,83 @@ export const EventListItem: React.FC<EventListItemProps> = ({
   return (
     <div
       onClick={() => navigate(`/groups/${groupId}/events/${event.id}`)}
-      className={`bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-primary-500/40 p-3 sm:p-4 rounded-xl transition duration-150 cursor-pointer flex flex-col md:flex-row ${
-        isExpanded ? 'md:items-start' : 'md:items-center'
-      } justify-between gap-3 group shadow-sm hover:shadow-lg hover:shadow-primary-950/20`}
+      className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-primary-500/40 p-3 sm:p-3.5 rounded-xl transition duration-150 cursor-pointer flex flex-col gap-2 group shadow-sm hover:shadow-lg hover:shadow-primary-950/20 min-w-0"
     >
-      {/* Informations principales (Date, Titre, Catégorie, Lieu, Description) */}
-      <div className="flex items-start gap-3 min-w-0 flex-1">
-        {/* Colonne Date ou Statut */}
-        <EventListDateBadge event={event} />
+      {/* Niveau 1 : Colonnes Prix + Catégorie (largeurs fixes pour aligner les titres) + Titre + Menu ⋯ */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
+        {/* Colonne 1 : Prix (largeur fixe) */}
+        <span
+          className="w-14 sm:w-16 shrink-0 text-center text-xs font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 truncate"
+          title={formatPrice(event.price)}
+        >
+          {formatPrice(event.price)}
+        </span>
 
-        {/* Bloc central à 2 niveaux : Titre & Métadonnées + Description */}
-        <div className="min-w-0 flex-1 space-y-1">
-          {/* Première ligne : Titre, Catégorie, Prix, Lieu */}
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-primary-400 transition truncate min-w-0 max-w-full sm:max-w-md">
-              {event.title}
-            </h3>
-            <CategoryBadge category={event.category} size="sm" />
-            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
-              {formatPrice(event.price)}
-            </span>
-            {event.location && (
-              <span
-                className="inline-flex items-center gap-1 text-xs text-slate-400 shrink-0 max-w-[150px] sm:max-w-[200px]"
-                title={event.location}
-              >
-                <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
-                <span className="truncate">{event.location}</span>
-              </span>
-            )}
-          </div>
-
-          {/* Deuxième ligne : Description courte avec aperçu tronqué ou déplié */}
-          <EventListDescription
-            description={event.description}
-            isExpanded={isExpanded}
-            onToggleExpand={handleToggleExpand}
+        {/* Colonne 2 : Catégorie (largeur fixe) */}
+        <div className="w-24 sm:w-28 shrink-0">
+          <CategoryBadge
+            category={event.category}
+            size="sm"
+            className="w-full justify-center text-center px-1.5 py-0.5 text-[11px] sm:text-xs truncate"
           />
+        </div>
+
+        {/* Colonne 3 : Titre (prend tout l'espace restant et tronqué avec ellipsis) */}
+        <h3
+          className="flex-1 min-w-0 text-sm sm:text-base font-bold text-white group-hover:text-primary-400 transition truncate"
+          title={event.title}
+        >
+          {event.title}
+        </h3>
+
+        {/* Actions secondaires regroupées dans le menu « ⋯ » */}
+        {canEditOrDelete && (
+          <EventActionsMenu
+            canEdit={event.state !== 'passe'}
+            onEdit={() => onEdit(event)}
+            onDelete={() => onDelete(event)}
+          />
+        )}
+      </div>
+
+      {/* Niveau 2 : Statut / Date / Consensus, Lieu, Participants & Boutons d'action */}
+      <div className="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-2 pt-1.5 border-t border-slate-800/60 text-xs text-slate-400 min-w-0">
+        {/* Statut / Date et Lieu */}
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <EventListDateBadge event={event} />
+          {event.location && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-slate-400 shrink-0 max-w-[130px] sm:max-w-[200px]"
+              title={event.location}
+            >
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+              <span className="truncate">{event.location}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Participants & Participation rapide */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <EventParticipationBadge event={event} compact={true} />
+
+          {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
+            <EventParticipationButtons
+              currentParticipation={userParticipation}
+              onSelect={handleParticipation}
+              variant="compact"
+            />
+          )}
         </div>
       </div>
 
-      {/* Bloc droit : Participants & Actions Rapides */}
-      <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t border-slate-800/60 md:border-t-0">
-        {/* Résumé des participants */}
-        <EventParticipationBadge event={event} />
-
-        {/* Actions de participation rapide */}
-        {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
-          <EventParticipationButtons
-            currentParticipation={userParticipation}
-            onSelect={handleParticipation}
-            variant="compact"
-          />
-        )}
-
-        {/* Actions Modifier / Supprimer */}
-        {canEditOrDelete && (
-          <div className="flex items-center gap-1 pl-1 border-l border-slate-700/60">
-            {event.state !== 'passe' && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(event);
-                }}
-                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition min-w-[32px] min-h-[32px] flex items-center justify-center"
-                title="Modifier l'événement"
-                aria-label="Modifier l'événement"
-              >
-                <Edit className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(event);
-              }}
-              className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 transition min-w-[32px] min-h-[32px] flex items-center justify-center"
-              title="Supprimer l'événement"
-              aria-label="Supprimer l'événement"
-            >
-              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Description courte avec aperçu tronqué ou déplié (si renseignée) */}
+      {event.description?.trim() && (
+        <EventListDescription
+          description={event.description}
+          isExpanded={isExpanded}
+          onToggleExpand={handleToggleExpand}
+        />
+      )}
     </div>
   );
 };

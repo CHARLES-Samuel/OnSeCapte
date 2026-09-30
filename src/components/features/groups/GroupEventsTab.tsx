@@ -127,10 +127,11 @@ export const GroupEventsTab: React.FC<GroupEventsTabProps> = ({
             type="button"
             onClick={onCreateEvent}
             aria-label="Créer un nouvel événement"
-            className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-xs sm:text-sm font-medium whitespace-nowrap min-h-[38px]"
+            className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl shadow-lg shadow-primary-600/20 transition text-xs sm:text-sm font-medium whitespace-nowrap min-h-[38px]"
           >
             <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>Créer événement</span>
+            <span>Créer</span>
+            <span className="hidden sm:inline">événement</span>
           </button>
         </div>
       </div>
