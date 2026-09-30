@@ -1,36 +1,32 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Calendar, Users, LogOut, Edit2, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { LogOut, Edit2, Loader2 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { EditPseudoModal } from "../features/auth/EditPseudoModal";
 import { UserAvatar } from "./UserAvatar";
+import { Logo } from "./Logo";
 
 export const Navbar = () => {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
-  const navigate = useNavigate();
   const [isEditPseudoModalOpen, setIsEditPseudoModalOpen] = useState(false);
 
   return (
     <>
       <header className="px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
-        <div 
-          className="flex items-center gap-2 cursor-pointer group"
-          onClick={() => navigate(user ? "/dashboard" : "/")}
+        <Link 
+          to={user ? "/dashboard" : "/"}
+          className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl p-1 -m-1"
+          aria-label={user ? "OnSeCapte - Aller au tableau de bord" : "OnSeCapte - Aller à l'accueil"}
         >
-          {user ? (
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center rotate-3 shadow-lg group-hover:scale-105 transition-transform">
-              <Users className="text-white w-4 h-4 -rotate-3" />
-            </div>
-          ) : (
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-600 rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
-              <Calendar className="text-white w-5 h-5 -rotate-3" />
-            </div>
-          )}
-          
-          <h1 className={`font-bold tracking-tight text-white ${user ? 'text-base sm:text-lg' : 'text-lg sm:text-xl'}`}>
+          <Logo 
+            size="md"
+            withContainer
+            alt=""
+          />
+          <span className="font-bold tracking-tight text-white text-lg sm:text-xl">
             On<span className="text-primary-500">SeCapte</span>
-          </h1>
-        </div>
+          </span>
+        </Link>
 
         <nav className="flex items-center gap-2 sm:gap-4">
           {loading ? (

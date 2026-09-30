@@ -118,6 +118,15 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates non encore passés).
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)
+- **Identité Visuelle & Logo / Favicon Unifié (`Logo` & Assets Multi-supports) :**
+  - **Source Unique Vectorielle :** Remplacement des anciennes icônes hétérogènes de la navbar (`Users` / `Calendar`) par le visuel officiel de la marque issu directement de la même source SVG (`/favicon.svg`), assurant une reconnaissance immédiate et une identité de marque cohérente.
+  - **Composant UI Réutilisable (`Logo.tsx`) :** Conforme aux principes SOLID, modulable en plusieurs tailles (`sm`, `md`, `lg`, `xl`), avec conteneur protecteur optionnel (`withContainer`) assurant un contraste et une lisibilité parfaits sur fonds sombres comme clairs.
+  - **Accessibilité & Sémantique :** Intégration d'un lien sémantique `<Link>` avec `aria-label` descriptif pour les lecteurs d'écran et navigation clavier optimale.
+  - **Couverture Complète des Formats :**
+    - `favicon.svg` : Favicon vectoriel haute définition pour navigateurs modernes.
+    - `favicon.ico` : Icône multi-résolution (16x16, 32x32, 48x48) pour la compatibilité avec les anciens navigateurs, agrégateurs et moteurs de recherche.
+    - `apple-touch-icon.png` : Format 180x180 optimisé pour l'écran d'accueil iOS avec fond plein `#0f172a` évitant le fond noir par défaut d'Apple.
+    - `manifest.json` & Icônes PWA : Fichiers `pwa-192x192.png`, `pwa-512x512.png` et `pwa-maskable-512x512.png` (icône adaptative Android avec marges de sécurité).
 - **Gestion des Images avec Transparence (PNG & WebP) :**
   - Préservation intégrale et sans perte du format PNG (`image/png` lossless) et du canal alpha lors du téléversement, du recadrage client (`ImageCropperModal`) et de la compression client (`compressImage`).
   - Détection automatique des pixels transparents et intégration d'un dégradé linéaire vibrant (`#6366f1` Indigo ➔ `#a855f7` Violet ➔ `#ec4899` Rose) combiné à la classe dédiée `.photo-gradient-bg`, garantissant un rendu moderne et éclatant sur tous les conteneurs (profil de groupe, dashboard, modale d'édition et avatars).
