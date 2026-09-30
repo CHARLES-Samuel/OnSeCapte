@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, MapPin, Check, X } from 'lucide-react';
+import { Edit, Trash2, MapPin } from 'lucide-react';
 import type { Event, EventParticipation } from '../../../models/Event';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
 import { EventListDateBadge } from './EventListDateBadge';
 import { EventListDescription } from './EventListDescription';
+import { EventParticipationButtons } from './EventParticipationButtons';
 import { formatPrice } from '../../../utils/format';
 
 interface EventListItemProps {
@@ -32,8 +33,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const userParticipation = currentUserId ? event.participations?.[currentUserId] : undefined;
 
-  const handleParticipation = (e: React.MouseEvent, status: EventParticipation) => {
-    e.stopPropagation();
+  const handleParticipation = (status: EventParticipation) => {
     if (onUpdateParticipation) {
       onUpdateParticipation(event, status);
     }
@@ -94,34 +94,11 @@ export const EventListItem: React.FC<EventListItemProps> = ({
 
         {/* Actions de participation rapide */}
         {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={(e) => handleParticipation(e, 'participating')}
-              title={userParticipation === 'participating' ? 'Tu participes déjà' : 'Je participe'}
-              className={`p-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 border min-h-[32px] ${
-                userParticipation === 'participating'
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
-                  : 'bg-slate-800 text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-300 border-slate-700'
-              }`}
-            >
-              <Check className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="text-xs hidden lg:inline">Présent</span>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleParticipation(e, 'not_participating')}
-              title={userParticipation === 'not_participating' ? 'Tu es noté indisponible' : 'Pas disponible'}
-              className={`p-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 border min-h-[32px] ${
-                userParticipation === 'not_participating'
-                  ? 'bg-red-500/20 text-red-300 border-red-500/40 shadow-sm'
-                  : 'bg-slate-800 text-slate-300 hover:bg-red-500/10 hover:text-red-300 border-slate-700'
-              }`}
-            >
-              <X className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="text-xs hidden lg:inline">Pas dispo</span>
-            </button>
-          </div>
+          <EventParticipationButtons
+            currentParticipation={userParticipation}
+            onSelect={handleParticipation}
+            variant="compact"
+          />
         )}
 
         {/* Actions Modifier / Supprimer */}

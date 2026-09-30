@@ -6,6 +6,7 @@ import { MarkdownView } from '../../ui/MarkdownView';
 import { UserAvatar } from '../../ui/UserAvatar';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
+import { EventParticipationButtons } from './EventParticipationButtons';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
 interface EventCardProps {
@@ -24,8 +25,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
   
   const userParticipation = currentUserId ? event.participations?.[currentUserId] : undefined;
 
-  const handleParticipation = (e: React.MouseEvent, status: EventParticipation) => {
-    e.stopPropagation();
+  const handleParticipation = (status: EventParticipation) => {
     if (onUpdateParticipation) {
       onUpdateParticipation(event, status);
     }
@@ -76,28 +76,11 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
         </div>
         
         {currentUserId && onUpdateParticipation && event.state !== 'passe' && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-700/50">
-            <button
-              onClick={(e) => handleParticipation(e, 'participating')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-                userParticipation === 'participating'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white border border-transparent'
-              }`}
-            >
-              Je participe
-            </button>
-            <button
-              onClick={(e) => handleParticipation(e, 'not_participating')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-                userParticipation === 'not_participating'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white border border-transparent'
-              }`}
-            >
-              Je ne viens pas
-            </button>
-          </div>
+          <EventParticipationButtons
+            currentParticipation={userParticipation}
+            onSelect={handleParticipation}
+            variant="card"
+          />
         )}
       </div>
       

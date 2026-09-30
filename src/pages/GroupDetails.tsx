@@ -18,6 +18,8 @@ import { GroupModals, type ConfirmModalState } from '../components/features/grou
 import { computeGroupEventStats } from '../utils/eventStatsUtils';
 import { useEventsViewMode } from '../hooks/useEventsViewMode';
 import { sortEvents, type EventSortOption } from '../utils/eventSortUtils';
+import { useEventParticipation } from '../hooks/useEventParticipation';
+import { Toast } from '../components/ui/Toast';
 
 const CATEGORIES: (EventCategory | 'Toutes')[] = [
   'Toutes', 'Restaurant', 'Jeux de rôle', 'Soirée', 'Repas', 'Sport', 'Gaming', 'Autres'
@@ -40,7 +42,7 @@ export const GroupDetails = () => {
   } = useGroupDetails(groupId);
 
   const isOwner = group?.createdBy === user?.uid;
-  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent, updateParticipation } = useEvents(groupId, isOwner);
+  const { events, loading: eventsLoading, createEvent, updateEvent, deleteEvent } = useEvents(groupId, isOwner);
   const { plannings, updatePlanning } = useGroupPlannings(groupId);
 
   const {
@@ -182,27 +184,17 @@ export const GroupDetails = () => {
     });
   };
 
+  const {
+    toastConfig: participationToast,
+    closeToast: closeParticipationToast,
+    submitParticipation,
+  } = useEventParticipation({
+    groupId,
+    plannings,
+  });
+
   const handleUpdateParticipation = async (targetEvent: Event, participation: import('../models/Event').EventParticipation) => {
-    if (participation === 'participating' && targetEvent.state === 'sondage') {
-      const userPlanning = plannings.find(p => p.userId === user?.uid);
-      const hasFilledPlanning = userPlanning && Object.keys(userPlanning.dates).length > 0;
-      
-      if (!hasFilledPlanning) {
-        setConfirmModalConfig({
-          isOpen: true,
-          title: 'Planning non rempli',
-          message: 'Pour participer à un événement dont la date est à déterminer, merci de remplir tes disponibilités dans l\'onglet Planning.',
-          confirmText: 'Aller au planning',
-          variant: 'danger',
-          onConfirm: () => {
-            setActiveTab('planning');
-            setConfirmModalConfig(prev => ({ ...prev, isOpen: false }));
-          },
-        });
-        return;
-      }
-    }
-    await updateParticipation(targetEvent.id, participation);
+    await submitParticipation(targetEvent.id, participation);
   };
 
   const handleLeaveGroup = async (): Promise<boolean> => {
@@ -379,6 +371,14 @@ export const GroupDetails = () => {
         onUpdateGroupDetails={updateGroupDetails}
         confirmModalConfig={confirmModalConfig}
         onCloseConfirmModal={() => setConfirmModalConfig(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <Toast
+        isOpen={participationToast.isOpen}
+        onClose={closeParticipationToast}
+        message={participationToast.message}
+        variant={participationToast.variant}
+        duration={3500}
       />
     </div>
   );

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { EventParticipation } from '../../../models/Event';
-import { CheckCircle, XCircle, Loader2, AlertTriangle, CalendarDays, Info } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { Toast } from '../../ui/Toast';
 import { useNavigate } from 'react-router-dom';
+import { EventParticipationButtons } from './EventParticipationButtons';
 
 interface UserAvailabilityFormProps {
   isLocked: boolean;
@@ -113,44 +114,12 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
       )}
 
       <div className="space-y-6">
-        <div className="flex gap-3 sm:gap-4">
-          <button
-            type="button"
-            disabled={isSaving}
-            onClick={() => handleSubmit('participating')}
-            aria-pressed={participation === 'participating'}
-            className={`flex-1 py-3 px-3 rounded-xl font-medium border flex items-center justify-center gap-2 transition text-xs sm:text-sm min-h-[44px] ${
-              participation === 'participating'
-                ? 'bg-primary-600 border-primary-500 text-white shadow-lg shadow-primary-600/20'
-                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
-            } ${isSaving ? 'cursor-not-allowed opacity-75' : ''}`}
-          >
-            {isSaving && participation === 'participating' ? (
-              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            ) : (
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-            )}
-            <span>Je participe</span>
-          </button>
-          <button
-            type="button"
-            disabled={isSaving}
-            onClick={() => handleSubmit('not_participating')}
-            aria-pressed={participation === 'not_participating'}
-            className={`flex-1 py-3 px-3 rounded-xl font-medium border flex items-center justify-center gap-2 transition text-xs sm:text-sm min-h-[44px] ${
-              participation === 'not_participating'
-                ? 'bg-red-500/20 border-red-500 text-red-400'
-                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
-            } ${isSaving ? 'cursor-not-allowed opacity-75' : ''}`}
-          >
-            {isSaving && participation === 'not_participating' ? (
-              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            ) : (
-              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-            )}
-            <span>Pas dispo</span>
-          </button>
-        </div>
+        <EventParticipationButtons
+          currentParticipation={participation}
+          onSelect={handleSubmit}
+          isLoading={isSaving}
+          variant="full"
+        />
 
         {!isLocked && participation === 'participating' && !hasCompletedPlanning && (
           <div className="bg-primary-500/10 border border-primary-500/30 p-4 rounded-xl text-primary-300 text-sm font-medium flex flex-col items-center text-center gap-3">

@@ -15,6 +15,8 @@ import { PastEventView } from '../components/features/events/PastEventView';
 import { MarkdownView } from '../components/ui/MarkdownView';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 import { CategoryBadge } from '../components/ui/CategoryBadge';
+import { useEventParticipation } from '../hooks/useEventParticipation';
+import { isUserPlanningCompleted } from '../services/eventParticipationService';
 
 export const EventDetails = () => {
   const { groupId, eventId } = useParams<{ groupId: string; eventId: string }>();
@@ -28,7 +30,6 @@ export const EventDetails = () => {
     events, 
     loading: eventsLoading, 
     error: eventsError,
-    updateParticipation, 
     lockEventDate, 
     unlockEventDate, 
     updateEvent, 
@@ -65,9 +66,17 @@ export const EventDetails = () => {
   const respondedMembers = Object.keys(participations).length;
   const currentUserResponse = user ? participations[user.uid] || 'pending' : 'pending';
 
+  const { submitParticipation } = useEventParticipation({
+    groupId,
+    plannings,
+  });
+
   const handleSaveParticipation = async (participation: EventParticipation) => {
-    if (!event || !user) return;
-    await updateParticipation(event.id, participation);
+    if (!event) return;
+    const result = await submitParticipation(event.id, participation);
+    if (!result) {
+      throw new Error('Impossible d’enregistrer votre participation.');
+    }
   };
 
   const handleLock = async (dateStr: string, timeSlot: TimeSlot) => {
@@ -323,7 +332,7 @@ export const EventDetails = () => {
                 isLocked={isLocked}
                 currentUserResponse={currentUserResponse}
                 onSave={handleSaveParticipation}
-                hasCompletedPlanning={plannings.some(p => p.userId === user?.uid)}
+                hasCompletedPlanning={isUserPlanningCompleted(plannings, user?.uid)}
                 groupId={groupId || ''}
               />
 

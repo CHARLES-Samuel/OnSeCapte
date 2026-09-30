@@ -113,6 +113,10 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Verrouillage direct en 1 clic :** L'organisateur peut verrouiller directement la date définitive depuis la vue détaillée du jour sélectionné (bouton sécurisé : masqué si la date est passée ou hors plage avec message d'information explicite).
 - **Architecture Ports & Adapters (`IAvailabilityService` & `AvailabilityService`) :**
   - Calcul algorithmique pur isolé dans un service TypeScript strict (zéro `any`, sans effet de bord, indépendant de React et de Firebase), garantissant une testabilité unitaire totale.
+- **Gestion Unifiée des Disponibilités & Initialisation à la Volée :**
+  - **Comportement 100% identique entre Liste et Détail :** Factorisation de la saisie de présence via `EventParticipationButtons`, le hook `useEventParticipation` et le service `processEventParticipation`.
+  - **Prise en charge du calendrier vide :** Un utilisateur n'ayant pas encore renseigné de dates dans son planning peut désormais voter et donner sa disponibilité directement depuis la liste des événements sans blocage ni erreur console. Son entrée de planning est initialisée à la volée de façon transparente.
+  - **Feedback non bloquant :** Notification Toast instantanée confirmant la participation tout en rappelant avec bienveillance d'indiquer ses dates dans l'onglet Planning.
 - **Gestion de l'indisponibilité globale & Imprévus après date fixée :**
   - Possibilité de déclarer son indisponibilité totale en un clic.
   - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu tant que l'événement n'est pas passé.
