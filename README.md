@@ -97,19 +97,31 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     2. **Plage de dates (Période restreinte) :** L'organisateur définit une fenêtre précise avec sélecteurs de *Date de début* et *Date de fin* (ex: *"Entre le 10 et le 25 du mois"*). Le calcul des scores, le podium et l'affichage interactif se restreignent automatiquement à cet intervalle (les dates extérieures sont atténuées et désactivées).
     3. **Date fixe :** Événement arrêté à un jour et un créneau horaire précis (contraint aux dates futures).
   - **Indicateur visuel de plage :** Badge bleu informatif présent dans les listes d'événements et dans l'en-tête de la page de détails (*"Plage : 10 oct. - 25 oct."*).
-- **Calendrier Choroplèthe (Heatmap des Disponibilités) (`AvailabilityHeatmapCalendar` & `AvailabilityHeatmapCell`) :**
-  - **Remplacement de la vue classique de sondage :** Vue calendrier mensuelle sous forme de heatmap interactive avec navigation fluide de mois en mois et centrage automatique sur le début de la plage.
-  - **Opacité dynamique selon le taux de présence :**
-    - 0 disponible : fond neutre et discret.
-    - Faible disponibilité : vert pastel très doux.
-    - Disponibilité moyenne / forte : vert franc.
-    - 100% du groupe disponible : vert émeraude vibrant avec ombre portée lumineuse.
-    - Dates passées : atténuées avec opacité réduite et sans possibilité de verrouillage.
-  - **Mise en avant du Podium (Top 3) :**
-    - 🥇 **1ère place (Or) :** Bordure dorée brillante, halo ambré et badge médaille d'or.
-    - 🥈 **2ème place (Argent) :** Bordure argentée élégante et badge médaille d'argent.
-    - 🥉 **3ème place (Bronze) :** Bordure cuivrée bronze et badge médaille de bronze.
-    - **Barre de raccourcis Podium :** Accès direct aux 3 meilleures dates d'un simple clic pour naviguer instantanément vers leur mois respectif (dates passées exclues).
+- **Calendrier Choroplèthe & Heatmap Haute Lisibilité (`AvailabilityHeatmapCalendar`, `AvailabilityHeatmapCell` & `AvailabilityHeatmapLegend`) :**
+  - **Échelle Séquentielle à Fort Contraste (Norme WCAG AA) :**
+    - Calcul de l'intensité strictement **relatif au nombre de membres du groupe** (ex. 4 membres sur 5 = 80%).
+    - 5 paliers bien tranchés permettant de repérer les meilleurs créneaux en moins de 2 secondes :
+      - `0%` : Fond discret et sobre (`bg-slate-900/40`), distingué des jours hors plage et des jours passés.
+      - `25%` : Faible disponibilité (`bg-emerald-950/80 border-emerald-800/80`).
+      - `50%` : Disponibilité modérée (`bg-emerald-900 border-emerald-600/80`).
+      - `75%` : Bonne disponibilité (`bg-emerald-700 border-emerald-500 text-white`).
+      - `100%` : Présence optimale / unanime (`bg-emerald-400 border-emerald-200 text-slate-950 font-black` offrant un contraste exceptionnel > 11:1).
+  - **Contenu des Cases Sans Troncature (`X/Y`) :**
+    - Remplacement des badges texte coupés (`3 di…`) par un affichage synthétique et universel **`X/Y`** (ex. `3/5`, `4/5`), garanti sans aucun retour ni texte tronqué dès 320px de largeur d'écran.
+    - Numéro du jour mis en valeur en en-tête, ratio affiché en secondaire.
+    - Tooltip desktop complet au survol (ex: *"Mercredi 14 octobre 2026 : 4/5 disponible(s) (80%) • 🥇 1ère place"*).
+  - **Séparation Nette des Signaux Visuels & Accessibilité Daltonienne :**
+    - **Remplissage de fond :** Indique uniquement le niveau d'intensité des disponibilités.
+    - **Podium (Top 3) :** Badge compact en haut à droite avec médaille **ET** chiffre arabe explicite (`🥇 1`, `🥈 2`, `🥉 3`), sans bordure colorée sur la case évitant toute confusion.
+    - **Sélection :** Anneau bleu épais avec décalage franc (`ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-950`), immédiatement dissociable du podium.
+    - **Aujourd'hui :** Point indicateur bleu ciel dédié (`ring-2 ring-sky-400/40`) à côté du numéro du jour.
+    - **Jours passés & Hors plage :** Traitement différencié (opacité estompée pour les jours passés, hachures en bordure pointillée pour les jours hors intervalle).
+  - **Légende Unifiée & Pliable (`AvailabilityHeatmapLegend`) :**
+    - Zone unique regroupant les 5 paliers d'intensité avec leurs pourcentages exacts et la clé de tous les indicateurs (Podium, Sélection, Aujourd'hui).
+    - Volet accordéon repliable sur mobile pour libérer l'espace visuel au besoin.
+  - **Encart « Meilleurs créneaux » Recommandés (`PodiumShortcuts`) :**
+    - Cartes d'accès rapide au Top 3 présentant la date, le rang et le ratio de présence (`4/5 (80%)`).
+    - Clic direct pour sélectionner la date et naviguer immédiatement vers le bon mois.
 - **Détails Nominatifs au Clic / Survol (`DayAvailabilityDetails`) :**
   - Clic sur n'importe quel jour actif pour afficher la ventilation exhaustive :
     - **Disponibles :** Avatars et noms des membres confirmés disponibles.

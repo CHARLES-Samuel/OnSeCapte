@@ -99,6 +99,7 @@ export class AvailabilityService implements IAvailabilityService {
         score,
         availableRatio,
         count: available.length + maybe.length,
+        totalMembers: totalTarget,
       });
     });
 
@@ -147,9 +148,9 @@ export class AvailabilityService implements IAvailabilityService {
 
   getIntensityLevel(availableRatio: number, availableCount: number): HeatmapIntensity {
     if (availableCount === 0 || availableRatio <= 0) return 'none';
-    if (availableRatio >= 1.0) return 'full';
-    if (availableRatio >= 0.6) return 'high';
-    if (availableRatio >= 0.25) return 'medium';
+    if (availableRatio > 0.75) return 'full';
+    if (availableRatio > 0.5) return 'high';
+    if (availableRatio > 0.25) return 'medium';
     return 'low';
   }
 }

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, CalendarRange } from 'lucide-react';
 import type { Event } from '../../../models/Event';
 import type { GroupPlanning, MemberProfile } from '../../../models/Group';
 import { useAvailabilityScores } from '../../../hooks/useAvailabilityScores';
 import { AvailabilityHeatmapCell } from './AvailabilityHeatmapCell';
+import { AvailabilityHeatmapLegend } from './AvailabilityHeatmapLegend';
 import { DayAvailabilityDetails } from './DayAvailabilityDetails';
 import { PodiumShortcuts } from './PodiumShortcuts';
 import {
@@ -45,15 +46,9 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
     goToDateMonth,
   } = useAvailabilityScores({ event, plannings, memberIds });
 
-  const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
+  const [userSelectedDateStr, setUserSelectedDateStr] = useState<string | null>(null);
+  const selectedDateStr = userSelectedDateStr ?? (topDates.length > 0 ? topDates[0].date : null);
   const todayStr = getTodayDateStr();
-
-  // Sélectionne par défaut la date #1 si disponible
-  useEffect(() => {
-    if (topDates.length > 0 && !selectedDateStr) {
-      setSelectedDateStr(topDates[0].date);
-    }
-  }, [topDates, selectedDateStr]);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -64,8 +59,10 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
 
   const calendarDays = getDaysInMonthGrid(year, month);
 
+  const totalMembersCount = memberIds.length > 0 ? memberIds.length : Object.keys(memberProfiles).length;
+
   const handleSelectPodiumDate = (dateStr: string) => {
-    setSelectedDateStr(dateStr);
+    setUserSelectedDateStr(dateStr);
     goToDateMonth(dateStr);
   };
 
@@ -135,7 +132,7 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
         <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {calendarDays.map((dayInfo, idx) => {
             if (!dayInfo) {
-              return <div key={`empty-${idx}`} className="min-h-[46px] sm:min-h-[58px]" />;
+              return <div key={`empty-${idx}`} className="min-h-[48px] sm:min-h-[58px]" />;
             }
 
             const { dateStr, dayOfMonth } = dayInfo;
@@ -150,34 +147,18 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
                 dayNumber={dayOfMonth}
                 dateStr={dateStr}
                 score={score}
+                totalMembers={totalMembersCount}
                 isInRange={inRange}
                 isSelected={isSelected}
                 isToday={isToday}
-                onClick={() => inRange && setSelectedDateStr(dateStr)}
+                onClick={() => inRange && setUserSelectedDateStr(dateStr)}
               />
             );
           })}
         </div>
 
-        {/* Légende Heatmap & Podium */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400">
-          <div className="flex items-center gap-1.5">
-            <span>Disponibilités :</span>
-            <span className="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700" title="0 dispo" />
-            <span className="w-2.5 h-2.5 rounded bg-emerald-950/60 border border-emerald-900/40" title="Faible" />
-            <span className="w-2.5 h-2.5 rounded bg-emerald-800/60 border border-emerald-700/50" title="Moyenne" />
-            <span className="w-2.5 h-2.5 rounded bg-emerald-600/70 border border-emerald-500/50" title="Forte" />
-            <span className="w-2.5 h-2.5 rounded bg-emerald-500 text-white font-bold" title="100% disponible" />
-            <span className="text-slate-300 font-medium ml-1">100%</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span>Podium :</span>
-            <span>🥇 Or</span>
-            <span>🥈 Argent</span>
-            <span>🥉 Bronze</span>
-          </div>
-        </div>
+        {/* Légende Heatmap & Indicateurs unifiée */}
+        <AvailabilityHeatmapLegend className="mt-4" />
       </div>
 
       {/* Détails du jour sélectionné */}

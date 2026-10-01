@@ -13,6 +13,7 @@ export interface DateAvailabilityScore {
   availableRatio: number; // 0 to 1
   count: number; // available.length + maybe.length
   rank?: PodiumRank;
+  totalMembers?: number;
 }
 
 export interface AvailabilityCalculationParams {
