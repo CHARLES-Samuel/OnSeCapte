@@ -60,7 +60,7 @@ service cloud.firestore {
     //   - finalTimeSlot: string (optionnel)
     //   - location: string (optionnel, <= 200 caractères)
     //   - link: string (optionnel, <= 500 caractères)
-    //   - participations: map de strings (userId -> 'participating' | 'declined' | 'maybe')
+    //   - participations: map de strings (userId -> 'participating' | 'not_participating' | 'pending' | 'declined' | 'maybe')
     // ===============================================================
 
     // ===============================================================
@@ -256,7 +256,12 @@ service cloud.firestore {
           && request.resource.data.title == resource.data.title
           && (
             (request.auth.uid in request.resource.data.participations)
-            && request.resource.data.participations[request.auth.uid] in ['participating', 'declined', 'maybe']
+            && request.resource.data.participations[request.auth.uid] in ['participating', 'not_participating', 'pending', 'declined', 'maybe']
+          )
+          && (
+            !('participations' in resource.data)
+            || !(resource.data.participations is map)
+            || request.resource.data.participations.diff(resource.data.participations).affectedKeys().hasOnly([request.auth.uid])
           );
       }
 

@@ -1,4 +1,4 @@
-# OnSeCapte 🚀 (v1.0.4)
+# OnSeCapte 🚀 (v1.0.41)
 
 > **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
 
@@ -217,7 +217,7 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Validation Cryptographique de l'Adhésion** : L'adhésion à un groupe exige de fournir la preuve du code d'invitation (`joinCodeAttempt == resource.data.inviteCode`). Il est impossible pour un attaquant ou un script de s'injecter dans un groupe sans posséder le code valide.
   - **Intégrité Granulaire des Événements** :
     - Seuls le créateur de l'événement ou le propriétaire du groupe peuvent modifier ses détails (titre, dates, état, verrouillage).
-    - Les membres ordinaires ont uniquement le droit de modifier **leur propre participation** (`participations[request.auth.uid]`), sans pouvoir altérer les votes des autres ni le contenu de l'événement.
+    - Les membres ordinaires ont uniquement le droit de modifier **leur propre participation** (`participations[request.auth.uid]` avec support complet de `'participating'`, `'not_participating'`, `'pending'`), sans pouvoir altérer les votes des autres ni le contenu de l'événement.
     - Seuls les membres du groupe peuvent lire les événements associés.
   - **Protection des Plannings & Profils** : Les disponibilités partagées sont cloisonnées aux membres du groupe, et les profils utilisateurs sont protégés en écriture avec validation stricte des champs.
   - **Règles Cloud Storage Renforcées** : Filtrage strict des types MIME (`image/jpeg`, `image/png`, `image/webp`), restriction de taille (5 Mo max) et chemins autorisés uniquement (`photo.jpg`, `banner.webp`).

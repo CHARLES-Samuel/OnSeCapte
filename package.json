@@ -1,7 +1,7 @@
 {
   "name": "tmp-vite",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.41",
   "type": "module",
   "scripts": {
     "dev": "vite",
