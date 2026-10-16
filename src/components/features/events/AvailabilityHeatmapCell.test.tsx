@@ -70,7 +70,7 @@ describe('AvailabilityHeatmapCell', () => {
     expect(screen.getByText('0/5')).toBeInTheDocument();
   });
 
-  it('displays podium badge with medal and numeric rank (1, 2, 3) for colorblind users', () => {
+  it('displays podium badge with medal and framed indicator for top dates', () => {
     const podiumScore: DateAvailabilityScore = {
       ...baseScore,
       rank: 1,
@@ -89,11 +89,10 @@ describe('AvailabilityHeatmapCell', () => {
       />
     );
 
-    // Vérifie la présence de la médaille et du chiffre 1
+    // Vérifie la présence de la médaille et du label d'accessibilité Top #1
     const podiumBadge = screen.getByLabelText(/Top #1/i);
     expect(podiumBadge).toBeInTheDocument();
     expect(podiumBadge).toHaveTextContent('🥇');
-    expect(podiumBadge).toHaveTextContent('1');
   });
 
   it('renders distinct selection ring when isSelected is true without interfering with podium', () => {
@@ -232,6 +231,50 @@ describe('AvailabilityHeatmapCell', () => {
     expect(screen.getByText('M')).toBeInTheDocument();
     expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('S')).toBeInTheDocument();
+  });
+
+  it('provides a detailed, informative desktop tooltip with ratio, total and percentage', () => {
+    render(
+      <AvailabilityHeatmapCell
+        dayNumber={15}
+        dateStr="2026-10-15"
+        score={baseScore}
+        totalMembers={5}
+        isInRange={true}
+        isSelected={false}
+        isToday={false}
+        onClick={vi.fn()}
+      />
+    );
+
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('title', expect.stringContaining('3 membre(s) disponible(s) sur 5 (60%)'));
+  });
+
+  it('applies high-contrast full intensity style (bg-emerald-400 text-slate-950) when ratio > 75%', () => {
+    const fullScore: DateAvailabilityScore = {
+      ...baseScore,
+      available: ['u1', 'u2', 'u3', 'u4', 'u5'],
+      availableRatio: 1,
+      count: 5,
+    };
+
+    const { container } = render(
+      <AvailabilityHeatmapCell
+        dayNumber={15}
+        dateStr="2026-10-15"
+        score={fullScore}
+        totalMembers={5}
+        isInRange={true}
+        isSelected={false}
+        isToday={false}
+        onClick={vi.fn()}
+      />
+    );
+
+    const button = container.querySelector('button');
+    expect(button?.className).toContain('bg-emerald-400');
+    expect(button?.className).toContain('text-slate-950');
   });
 });
 

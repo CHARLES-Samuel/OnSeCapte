@@ -1,4 +1,4 @@
-# OnSeCapte 🚀 (v1.0.43)
+# OnSeCapte 🚀 (v2.0.0)
 
 > **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
 
@@ -129,26 +129,26 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     - **Planning Groupe (`GroupPlanningDayCell`) :** Remplacement des 3 micro-boutons par une jauge visuelle continue à 3 segments colorés, sans aucun débordement horizontal. Clic direct sur la case ouvrant le sélecteur dédié `DaySlotAvailabilityPicker`.
     - **Saisie par Créneau (`DaySlotAvailabilityPicker`) :** Boutons de vote *Dispo*, *Peut-être*, *Indispo* et *Toute la journée* calibrés à une hauteur minimale de 44px pour une manipulation au pouce rapide, sans raté ni micro-clic accidentel.
     - **Ventilation (`DayAvailabilityDetails`) :** Onglets de créneaux agencés en grille 2x2 symétrique et cibles de verrouillage tactiles adaptées aux écrans tactiles.
-  - **Échelle Séquentielle à Fort Contraste (Norme WCAG AA) :**
+  - **Échelle Séquentielle à Fort Contraste (Norme WCAG AA & AAA) :**
     - Calcul de l'intensité strictement **relatif au nombre de membres du groupe** (ex. 4 membres sur 5 = 80%).
-    - 5 paliers bien tranchés permettant de repérer les meilleurs créneaux en moins de 2 secondes :
-      - `0%` : Fond discret et sobre (`bg-slate-900/40`), distingué des jours hors plage et des jours passés.
-      - `25%` : Faible disponibilité (`bg-emerald-950/80 border-emerald-800/80`).
-      - `50%` : Disponibilité modérée (`bg-emerald-900 border-emerald-600/80`).
-      - `75%` : Bonne disponibilité (`bg-emerald-700 border-emerald-500 text-white`).
-      - `100%` : Présence optimale / unanime (`bg-emerald-400 border-emerald-200 text-slate-950 font-black` offrant un contraste exceptionnel > 11:1).
+    - 5 paliers bien tranchés avec saut de luminance marqué, permettant de repérer les meilleurs créneaux en moins de 2 secondes :
+      - `0%` : Fond sombre neutre de calendrier (`bg-slate-900/50 border-slate-800/80`), sans aucune teinte verte pour ne pas fausser la perception, bien distinct des jours hors plage et passés.
+      - `25%` : Faible disponibilité (`bg-emerald-950/70 border-emerald-800/90 text-emerald-200`), teinte émeraude subtile avec bordure nette.
+      - `50%` : Disponibilité modérée (`bg-emerald-800/80 border-emerald-600 text-white`), vert moyen franc tranchant nettement avec le palier précédent.
+      - `75%` : Bonne disponibilité (`bg-emerald-600 border-emerald-400 text-white font-extrabold`), vert émeraude vif et lumineux.
+      - `100%` : Présence optimale / unanime (`bg-emerald-400 border-emerald-200 text-slate-950 font-black`), couleur menthe éclatante avec texte noir très contrasté (> 11:1, conforme WCAG AAA) qui attire immédiatement le regard.
   - **Contenu des Cases Sans Troncature (`X/Y`) :**
     - Remplacement des badges texte coupés (`3 di…`) par un affichage synthétique et universel **`X/Y`** (ex. `3/5`, `4/5`), garanti sans aucun retour ni texte tronqué dès 320px de largeur d'écran.
-    - Numéro du jour mis en valeur en en-tête, ratio affiché en secondaire.
-    - Tooltip desktop complet au survol (ex: *"Mercredi 14 octobre 2026 : 4/5 disponible(s) (80%) • 🥇 1ère place"*).
-  - **Séparation Nette des Signaux Visuels & Accessibilité Daltonienne :**
-    - **Remplissage de fond :** Indique uniquement le niveau d'intensité des disponibilités.
-    - **Podium (Top 3 par Date et Créneau) :** Badge compact en haut à droite avec médaille **ET** chiffre arabe explicite (`🥇 1`, `🥈 2`, `🥉 3`), sans bordure colorée sur la case évitant toute confusion.
+    - Numéro du jour mis en valeur en gras en en-tête, ratio de présence affiché en secondaire.
+    - Tooltip desktop complet au survol (ex: *"Mercredi 14 octobre 2026 : 4 membre(s) disponible(s) sur 5 (80%) • Rang #1 au podium"*).
+  - **Séparation Nette des Signaux Visuels & Accessibilité :**
+    - **Remplissage de fond :** Indique uniquement le niveau d'intensité des disponibilités (0% à 100%).
+    - **Podium (Top 3 par Date et Créneau) :** Médaille colorée compacte dans son cadre individuel (`🥇`, `🥈`, `🥉`) en haut à droite, sans débordement ni bordure sur la case pour éviter toute confusion avec la sélection ou le hover.
     - **Sélection :** Anneau bleu épais avec décalage franc (`ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-950`), immédiatement dissociable du podium.
     - **Aujourd'hui :** Point indicateur bleu ciel dédié (`ring-2 ring-sky-400/40`) à côté du numéro du jour.
-    - **Jours passés & Hors plage :** Traitement différencié (opacité estompée pour les jours passés, hachures en bordure pointillée pour les jours hors intervalle).
+    - **Jours passés & Hors plage :** Traitement différencié (opacité à 45% et libellé "passé" pour les jours passés, hachures en bordure pointillée pour les jours hors intervalle).
   - **Légende Unifiée & Pliable (`AvailabilityHeatmapLegend`) :**
-    - Zone unique regroupant les 5 paliers d'intensité avec leurs pourcentages exacts et la clé de tous les indicateurs (Podium, Sélection, Aujourd'hui, Créneaux).
+    - Zone unique dynamique connectée directement aux styles de la heatmap, regroupant les 5 paliers d'intensité avec leurs pourcentages exacts et la clé de tous les indicateurs (Podium, Sélection, Aujourd'hui, Inactif / Passé).
     - Volet accordéon repliable sur mobile pour libérer l'espace visuel au besoin.
   - **Encart « Meilleurs créneaux » Recommandés (`PodiumShortcuts`) :**
     - Cartes d'accès rapide au Top 3 présentant la date, le créneau horaire précis, le rang et le ratio de présence (`4/5 (80%) • Soirée`).

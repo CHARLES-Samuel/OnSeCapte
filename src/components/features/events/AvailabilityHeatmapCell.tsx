@@ -60,9 +60,9 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
 
   const formattedDate = formatDateLongFr(dateStr);
   const percentStr = `${Math.round(ratio * 100)}%`;
-  const tooltipText = `${formattedDate} : ${availableCount}/${resolvedTotal} disponible(s) (${percentStr})${
-    rank ? ` • #${rank} au podium` : ''
-  }${isToday ? " • Aujourd'hui" : ''}${isPast ? ' • Passé' : ''}`;
+  const tooltipText = `${formattedDate} : ${availableCount} membre(s) disponible(s) sur ${resolvedTotal} (${percentStr})${
+    rank ? ` • Rang #${rank} au podium` : ''
+  }${isToday ? " • Aujourd'hui" : ''}${isPast ? ' • Date passée' : ''}`;
 
   return (
     <button
@@ -80,12 +80,12 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
       {/* Ligne haute : Numéro du jour & Médaille Podium */}
       <div className="flex items-center justify-between w-full gap-0.5">
         <div className="flex items-center gap-1">
-          <span className={`text-xs sm:text-sm font-semibold ${viewMode === 'slots' ? 'text-slate-200' : style.dayNumber}`}>
+          <span className={`text-xs sm:text-sm font-bold ${viewMode === 'slots' ? 'text-slate-200' : style.dayNumber}`}>
             {dayNumber}
           </span>
           {isToday && (
             <span
-              className="w-1.5 h-1.5 rounded-full bg-sky-400 ring-2 ring-sky-400/40 shrink-0 inline-block"
+              className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-sky-400 ring-2 ring-sky-400/40 shrink-0 inline-block"
               title="Aujourd'hui"
               aria-label="Aujourd'hui"
             />
@@ -94,22 +94,22 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
 
         {rank && !isPast && (
           <span
-            className={`inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[10px] sm:text-xs font-black shrink-0 leading-none shadow-sm ${
+            className={`inline-flex items-center justify-center p-0.5 rounded border leading-none shrink-0 shadow-sm ${
               rank === 1
-                ? 'bg-amber-400 text-slate-950'
+                ? 'bg-amber-500/20 border-amber-400/80 shadow-amber-500/10'
                 : rank === 2
-                ? 'bg-slate-200 text-slate-950'
-                : 'bg-amber-700 text-amber-50'
+                ? 'bg-slate-200/20 border-slate-300/80 shadow-slate-300/10'
+                : 'bg-amber-700/25 border-amber-600/80 shadow-amber-700/10'
             }`}
             title={`Top #${rank} au podium`}
             aria-label={`Top #${rank}`}
           >
-            <span>{rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}</span>
-            <span>{rank}</span>
+            <span className="leading-none text-[11px] sm:text-xs select-none" aria-hidden="true">
+              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
+            </span>
           </span>
         )}
       </div>
-
 
       {/* Corps : Soit vue Journée (ratio unique), soit vue Créneaux (3 segments scindés) */}
       {viewMode === 'slots' && score?.slots ? (
@@ -146,8 +146,8 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
         </div>
       ) : (
         <div className="w-full flex items-center justify-between mt-1">
-          <span className={`text-[10px] sm:text-xs ${style.counter}`}>
-            {isPast ? <span className="opacity-70">passé</span> : `${availableCount}/${resolvedTotal}`}
+          <span className={`text-[10px] sm:text-xs font-semibold ${style.counter} tracking-tight`}>
+            {isPast ? <span className="opacity-70 text-[9px] sm:text-[10px]">passé</span> : `${availableCount}/${resolvedTotal}`}
           </span>
         </div>
       )}

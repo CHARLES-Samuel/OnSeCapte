@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { getIntensityStyles } from '../../../utils/heatmapStyleUtils';
+import type { HeatmapIntensity } from '../../../models/Availability';
 
 interface AvailabilityHeatmapLegendProps {
   className?: string;
   defaultExpanded?: boolean;
 }
+
+interface LegendTier {
+  intensity: HeatmapIntensity;
+  label: string;
+  badgeValue: string;
+  description: string;
+}
+
+const HEATMAP_TIERS: LegendTier[] = [
+  { intensity: 'none', label: '0%', badgeValue: '0', description: '0% disponible' },
+  { intensity: 'low', label: '25%', badgeValue: '25', description: '1% à 25% disponible' },
+  { intensity: 'medium', label: '50%', badgeValue: '50', description: '26% à 50% disponible' },
+  { intensity: 'high', label: '75%', badgeValue: '75', description: '51% à 75% disponible' },
+  { intensity: 'full', label: '100%', badgeValue: '100', description: '76% à 100% disponible' },
+];
 
 export const AvailabilityHeatmapLegend: React.FC<AvailabilityHeatmapLegendProps> = ({
   className = '',
@@ -40,95 +57,59 @@ export const AvailabilityHeatmapLegend: React.FC<AvailabilityHeatmapLegendProps>
 
       {/* Contenu de la légende unifiée */}
       {isExpanded && (
-        <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 space-y-2.5 animate-fade-in">
+        <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 space-y-3 animate-fade-in">
           {/* Paliers d'intensité */}
           <div>
             <span className="block text-[11px] font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
               Taux de présence du groupe :
             </span>
-            <div className="grid grid-cols-5 gap-1.5 text-center">
-              {/* 0% */}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full h-5 rounded-md bg-slate-900/80 border border-slate-800 flex items-center justify-center text-[10px] text-slate-500 font-medium"
-                  title="0% disponible"
-                >
-                  0
-                </div>
-                <span className="text-[10px] text-slate-400">0%</span>
-              </div>
-
-              {/* 25% */}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full h-5 rounded-md bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-[10px] text-emerald-300 font-semibold"
-                  title="1% à 25% disponible"
-                >
-                  25
-                </div>
-                <span className="text-[10px] text-slate-400">25%</span>
-              </div>
-
-              {/* 50% */}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full h-5 rounded-md bg-emerald-900 border border-emerald-600/80 flex items-center justify-center text-[10px] text-emerald-100 font-bold"
-                  title="26% à 50% disponible"
-                >
-                  50
-                </div>
-                <span className="text-[10px] text-slate-400">50%</span>
-              </div>
-
-              {/* 75% */}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full h-5 rounded-md bg-emerald-700 border border-emerald-500 flex items-center justify-center text-[10px] text-white font-bold"
-                  title="51% à 75% disponible"
-                >
-                  75
-                </div>
-                <span className="text-[10px] text-slate-400">75%</span>
-              </div>
-
-              {/* 100% */}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="w-full h-5 rounded-md bg-emerald-400 border border-emerald-200 flex items-center justify-center text-[10px] text-slate-950 font-black shadow-sm"
-                  title="76% à 100% disponible"
-                >
-                  100
-                </div>
-                <span className="text-[10px] text-emerald-400 font-bold">100%</span>
-              </div>
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 text-center">
+              {HEATMAP_TIERS.map((tier) => {
+                const style = getIntensityStyles(tier.intensity, false);
+                return (
+                  <div key={tier.intensity} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-full h-6 rounded-md flex items-center justify-center text-[10px] font-bold border transition ${style.bgAndBorder}`}
+                      title={tier.description}
+                    >
+                      <span className={style.counter}>{tier.badgeValue}</span>
+                    </div>
+                    <span className="text-[10px] sm:text-[11px] text-slate-300 font-semibold">{tier.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Indicateurs complémentaires */}
-          <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-y-2 gap-x-3 text-[11px] text-slate-400">
+          <div className="pt-2.5 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-y-2.5 gap-x-3 text-[11px] text-slate-400">
             {/* Podium */}
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-semibold text-slate-300">Podium :</span>
-              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-slate-950 shadow-sm">
-                🥇 1er
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-amber-400/80 bg-amber-500/20 text-[10px] font-bold text-amber-300 shadow-sm">
+                <span>🥇</span> 1er
               </span>
-              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-950 shadow-sm">
-                🥈 2e
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-slate-300/80 bg-slate-200/20 text-[10px] font-bold text-slate-200 shadow-sm">
+                <span>🥈</span> 2e
               </span>
-              <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-amber-50 shadow-sm">
-                🥉 3e
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-amber-600/80 bg-amber-700/25 text-[10px] font-bold text-amber-400 shadow-sm">
+                <span>🥉</span> 3e
               </span>
             </div>
 
             {/* Sélection & Aujourd'hui */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded bg-slate-800 ring-2 ring-primary-400 ring-offset-1 ring-offset-slate-900 inline-block shrink-0" />
-                <span>Sélectionné</span>
+                <span className="w-3.5 h-3.5 rounded bg-slate-800 ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-900 inline-block shrink-0" />
+                <span className="font-medium text-slate-300">Sélectionné</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-400 ring-2 ring-sky-400/30 inline-block shrink-0" />
-                <span>Aujourd'hui</span>
+                <span className="w-2 h-2 rounded-full bg-sky-400 ring-2 ring-sky-400/40 inline-block shrink-0" />
+                <span className="font-medium text-slate-300">Aujourd'hui</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded border border-dashed border-slate-700 bg-slate-950/40 opacity-50 inline-block shrink-0" />
+                <span className="font-medium text-slate-400">Inactif / Passé</span>
               </div>
             </div>
           </div>
