@@ -1,9 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AvailabilityHeatmapCell } from './AvailabilityHeatmapCell';
 import type { DateAvailabilityScore } from '../../../models/Availability';
 
 describe('AvailabilityHeatmapCell', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const baseScore: DateAvailabilityScore = {
     date: '2026-10-15',
     timeSlot: 'Toute la journée',

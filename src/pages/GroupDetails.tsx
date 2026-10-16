@@ -311,6 +311,9 @@ export const GroupDetails = () => {
               currentUserId={user.uid}
               plannings={plannings}
               onUpdatePlanning={updatePlanning}
+              events={events}
+              totalMembers={group.members.length}
+              memberProfiles={memberProfilesMap}
             />
           )}
         </div>

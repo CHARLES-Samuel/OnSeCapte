@@ -36,6 +36,7 @@ export class FirestoreEventService implements IEventService {
       dateMode: data.dateMode || 'poll',
       startDate: data.startDate,
       endDate: data.endDate,
+      dates: Array.isArray(data.dates) ? data.dates : undefined,
       participations: data.participations || {},
       finalDate: data.finalDate,
       finalTimeSlot: data.finalTimeSlot,

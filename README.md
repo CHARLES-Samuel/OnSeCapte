@@ -1,8 +1,6 @@
-# OnSeCapte 🚀 (v1.0.41)
+# OnSeCapte 🚀 (v1.0.43)
 
 > **Note :** Ce projet a été réalisé en mode **Vibe Coding** ! Il est né d'un besoin concret au sein de notre groupe d'amis : nous ne trouvions aucun logiciel ou application adapté pour organiser facilement nos sorties et activités ensemble.
-
-**OnSeCapte** est une application web moderne qui permet d'organiser facilement des événements, sorties et activités entre amis ou au sein de groupes privés.
 
 🌐 **Application déployée :** [https://onsecapte-25bae.web.app](https://onsecapte-25bae.web.app)
 
@@ -64,9 +62,25 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Actions rapides :** Possibilité de répondre directement (*Je participe* / *Pas dispo*) et d'accéder aux actions de modification/suppression depuis les cartes et lignes.
   - **Création & Détails complets :** Gestion avec modales, filtres par catégorie (`CategoryDropdown`) et par statut (*Tous*, *En recherche*, *À venir*, *Passés*). Lieu (avec lien Google Maps) et lien externe (réservation, menu...) intégrés.
 
-#### Onglet Planning (`GroupPlanningTab`)
-- **Calendrier Partagé du Groupe :** Vue consolidée des dates et disponibilités de tous les membres pour l'ensemble des événements du groupe.
-- **Synchronisation en Temps Réel :** Suivi instantané des plannings et des créneaux sélectionnés via `useGroupPlannings`.
+#### Onglet Planning & Visualisation des Événements (`GroupPlanningTab`)
+- **Visualisation Immédiate des Sorties dans le Calendrier (`CalendarEventChip` & `calendarEventUtils`) :**
+  - **Affichage sur chaque date concernée :** Un événement à date unique apparaît sur son jour. Un événement à $N$ dates (jours arbitraires ponctuels, récurrents ou plage) apparaît exactement sur chacun de ses $N$ jours.
+  - **Pastilles Intelligentes & Signaux Visuels Clairs :**
+    - Titre de l'événement tronqué avec pastille à la couleur de la catégorie.
+    - **Validé (`state: 'planifie'`) :** Style plein très contrasté et bordure nette.
+    - **En sondage (`state: 'sondage'`) :** Style atténué translucide avec bordure pointillée (`border-dashed`) et affichage discret du consensus de présence (ex: `4/5`).
+    - **Passé (`state: 'passe'`) :** Style grisé et estompé pour un confort de lecture optimal.
+  - **Accessibilité Totale :** `aria-label` complet décrivant la sortie, la date, le consensus et le statut (ex: *"D&D, 20 septembre 2026, 4 sur 5 disponibles, en sondage"*), navigation complète au clavier (`Enter` / `Espace`) et `title` au survol.
+  - **Gestion du Débordement (« +N autres ») :** Chaque cellule de calendrier conserve une hauteur stable (`min-h-[112px]`) garantissant l'alignement parfait de la grille. Les 2 premières pastilles sont affichées, puis un bouton compact `+N autre(s)` permet d'ouvrir la vue complète.
+  - **Version Mobile Responsive (dès 360 px) (`CalendarDayEventDots`) :** Sur petit écran, les pastilles texte se condensent automatiquement en puces de couleur sous le numéro du jour. Un tap sur la case ouvre le panneau complet.
+  - **Panneau Détail du Jour & Saisie Rapide de Disponibilité (`DayEventsModal`) :**
+    - En un clic sur `+N` ou au tap sur mobile, ouverture d'un panneau listant toutes les sorties de la journée (catégorie, statut, consensus, bouton direct pour voir le détail).
+    - **Lien direct avec la disponibilité :** Trois boutons instantanés (*Dispo*, *À confirmer*, *Indispo*) permettent d'ajuster sa disponibilité pour le jour en 1 seconde sans quitter la vue.
+  - **Contrôles d'Affichage Dédiés (`GroupPlanningHeader`) :**
+    - **Interrupteur Sorties :** Permet de masquer ou afficher les pastilles pour visualiser uniquement la grille de disponibilité brute sans perturbation.
+    - **Interrupteur Passés :** Permet de masquer ou d'afficher les sorties passées.
+    - **Préservation des fuseaux horaires :** Utilisation stricte de dates locales non altérées par les décalages UTC (`YYYY-MM-DD`).
+- **Synchronisation en Temps Réel & Sauvegarde Automatique Débouncée :** Enregistrement automatique des disponibilités avec indicateur d'état en direct (*Enregistrement...*, *À jour*).
 
 #### Onglet Membres (`MemberManagementPanel` & `MemberRow`)
 - **Exclusion systématique et temps réel (Kick) :** Le gérant peut exclure un membre du groupe avec confirmation. Grâce à la synchronisation temps réel `onSnapshot` du groupe, **l'accès du membre est immédiatement révoqué sur son écran sans qu'il ait besoin de rafraîchir la page**. Toute modale ouverte est fermée, et la création ou modification d'événements est bloquée instantanément à 3 niveaux (UI, Service et Règles Firestore). Le membre exclu peut rejoindre à nouveau via le code ou le lien d'invitation.

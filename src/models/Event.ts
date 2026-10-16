@@ -20,6 +20,7 @@ export interface Event {
   dateMode?: EventDateMode; // Optionnel pour rétrocompatibilité (défaut: 'poll' ou 'any')
   startDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
   endDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
+  dates?: string[]; // Tableau de dates 'YYYY-MM-DD' pour plusieurs dates ponctuelles ou candidates
   participations?: Record<string, EventParticipation>;
   finalDate?: string; // 'YYYY-MM-DD'
   finalTimeSlot?: TimeSlot;
@@ -36,6 +37,7 @@ export interface CreateEventDTO {
   dateMode: EventDateMode;
   startDate?: string;
   endDate?: string;
+  dates?: string[];
   finalDate?: string;
   finalTimeSlot?: TimeSlot;
   location?: string;
