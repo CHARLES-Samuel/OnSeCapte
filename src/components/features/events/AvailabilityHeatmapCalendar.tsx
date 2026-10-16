@@ -204,6 +204,8 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
           selectedSlot={selectedSlot}
           onSelectSlot={(s) => setSelectedSlot(s)}
           onLockDate={onLockDate}
+          eventTitle={event.title}
+          totalMembers={totalMembersCount}
         />
       )}
     </div>

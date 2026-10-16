@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, HelpCircle, XCircle, Lock, Award, Calendar, AlertTriangle, Clock } from 'lucide-react';
+import { Award, Calendar } from 'lucide-react';
 import type { DateAvailabilityScore } from '../../../models/Availability';
 import type { TimeSlot } from '../../../models/Event';
 import type { MemberProfile, DaySlot } from '../../../models/Group';
-import { UserAvatar } from '../../ui/UserAvatar';
 import { formatDateLongFr, isDatePast } from '../../../utils/dateUtils';
 import { DAY_SLOTS, SLOT_DEFINITIONS, daySlotToTimeSlot } from '../../../utils/timeSlotUtils';
+import { DayStatusAccordion } from './DayStatusAccordion';
+import { DayLockFooter } from './DayLockFooter';
+import { DayLockConfirmModal } from './DayLockConfirmModal';
 
 interface DayAvailabilityDetailsProps {
   dateStr: string;
@@ -18,6 +20,8 @@ interface DayAvailabilityDetailsProps {
   selectedSlot?: DaySlot | null;
   onSelectSlot?: (slot: DaySlot | null) => void;
   onLockDate?: (dateStr: string, timeSlot: TimeSlot) => void;
+  eventTitle?: string;
+  totalMembers?: number;
 }
 
 export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
@@ -31,12 +35,15 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
   selectedSlot,
   onSelectSlot,
   onLockDate,
+  eventTitle,
+  totalMembers,
 }) => {
   const isPast = isDatePast(dateStr);
   const [activeSlot, setActiveSlot] = useState<DaySlot | 'all'>(selectedSlot || 'all');
   const [lockTimeSlot, setLockTimeSlot] = useState<TimeSlot>(
     selectedSlot ? daySlotToTimeSlot(selectedSlot) : 'Toute la journée'
   );
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     if (selectedSlot) {
@@ -45,69 +52,107 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
     }
   }, [selectedSlot]);
 
+  const handleTimeSlotChange = (slot: TimeSlot) => {
+    setLockTimeSlot(slot);
+    if (slot === 'Toute la journée') {
+      setActiveSlot('all');
+      onSelectSlot?.(null);
+    } else if (slot === 'Matin') {
+      setActiveSlot('morning');
+      onSelectSlot?.('morning');
+    } else if (slot === 'Après-midi') {
+      setActiveSlot('afternoon');
+      onSelectSlot?.('afternoon');
+    } else if (slot === 'Soirée') {
+      setActiveSlot('evening');
+      onSelectSlot?.('evening');
+    }
+  };
+
   const displayedScore = activeSlot === 'all' ? score : score?.slots?.[activeSlot];
   const available = displayedScore?.available || [];
   const maybe = displayedScore?.maybe || [];
   const unavailable = displayedScore?.unavailable || [];
   const rank = displayedScore?.rank;
 
-  const renderMemberList = (userIds: string[], emptyMessage: string, badgeColor: string) => {
-    if (userIds.length === 0) {
-      return <p className="text-xs text-slate-500 italic py-1">{emptyMessage}</p>;
+  const totalResponding = available.length + maybe.length + unavailable.length;
+  const denominator = totalMembers || totalResponding || 1;
+  const availablePct = Math.round((available.length / denominator) * 100);
+  const maybePct = Math.round((maybe.length / denominator) * 100);
+  const unavailablePct = Math.round((unavailable.length / denominator) * 100);
+
+  const getRankBadge = (rankNum: number) => {
+    if (rankNum === 1) {
+      return {
+        label: '1ère place (Meilleur choix)',
+        tooltip: 'Date avec le plus de disponibilités pour le groupe',
+        classes: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm',
+      };
     }
-    return (
-      <div className="flex flex-wrap gap-2 pt-1">
-        {userIds.map((uid) => {
-          const profile = memberProfiles[uid];
-          const isMe = uid === currentUserId;
-          return (
-            <div
-              key={uid}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${badgeColor}`}
-            >
-              <UserAvatar
-                photoUrl={profile?.photoURL}
-                name={profile?.displayName || 'Membre'}
-                size="sm"
-                className="!w-5 !h-5 !text-[10px]"
-              />
-              <span className="truncate max-w-[120px]">
-                {profile?.displayName || 'Membre'} {isMe && '(Moi)'}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
+    if (rankNum === 2) {
+      return {
+        label: '2ème place',
+        tooltip: 'Deuxième date avec le plus grand consensus',
+        classes: 'bg-slate-300/20 text-slate-200 border-slate-300/40',
+      };
+    }
+    return {
+      label: '3ème place',
+      tooltip: 'Troisième date avec le plus grand consensus',
+      classes: 'bg-amber-700/20 text-amber-400 border-amber-700/40',
+    };
   };
 
+  const rankInfo = rank ? getRankBadge(rank) : null;
+
   return (
-    <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg transition-all animate-fade-in">
-      {/* En-tête : Date sélectionnée et rang */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-primary-400 shrink-0" />
-          <h4 className="font-bold text-white capitalize text-sm sm:text-base">
-            {formatDateLongFr(dateStr)}
-          </h4>
+    <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl transition-all animate-fade-in overflow-hidden">
+      {/* En-tête : Titre de l'événement, Date sélectionnée, Badge rang et Consensus */}
+      <div className="space-y-2 border-b border-slate-800 pb-3">
+        {eventTitle && (
+          <div className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">
+            {eventTitle}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary-400 shrink-0" aria-hidden="true" />
+            <h4 className="font-bold text-white capitalize text-sm sm:text-base">
+              {formatDateLongFr(dateStr)}
+            </h4>
+          </div>
+
+          {rankInfo && (
+            <span
+              title={rankInfo.tooltip}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border cursor-help ${rankInfo.classes}`}
+            >
+              <Award className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{rankInfo.label}</span>
+            </span>
+          )}
         </div>
 
-        {rank && (
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
-              rank === 1
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
-                : rank === 2
-                ? 'bg-slate-300/20 text-slate-200 border-slate-300/40'
-                : 'bg-amber-700/20 text-amber-500 border-amber-700/40'
-            }`}
-          >
-            <Award className="w-3.5 h-3.5" />
+        {/* Résumé du consensus et mini barre segmentée */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex flex-wrap items-center justify-between text-xs text-slate-300 gap-1">
             <span>
-              {rank === 1 ? '🥇 1ère place' : rank === 2 ? '🥈 2ème place' : '🥉 3ème place'}
+              <strong className="text-emerald-400">{available.length}</strong> dispo{available.length > 1 ? 's' : ''} ·{' '}
+              <strong className="text-amber-400">{maybe.length}</strong> à confirmer ·{' '}
+              <strong className="text-slate-300">{unavailable.length}</strong> indispo{unavailable.length > 1 ? 's' : ''}
             </span>
-          </span>
-        )}
+            {totalMembers && (
+              <span className="text-[11px] text-slate-400">
+                ({available.length}/{totalMembers} membres)
+              </span>
+            )}
+          </div>
+          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden flex" aria-hidden="true">
+            <div style={{ width: `${availablePct}%` }} className="bg-emerald-500 h-full transition-all" />
+            <div style={{ width: `${maybePct}%` }} className="bg-amber-500 h-full transition-all" />
+            <div style={{ width: `${unavailablePct}%` }} className="bg-slate-600 h-full transition-all" />
+          </div>
+        </div>
       </div>
 
       {/* Onglets de ventilation : Journée globale vs Créneaux individuels */}
@@ -119,7 +164,7 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
             onSelectSlot?.(null);
             setLockTimeSlot('Toute la journée');
           }}
-          className={`min-h-[44px] sm:min-h-[36px] px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-between sm:justify-start gap-1.5 active:scale-95 ${
+          className={`min-h-[44px] sm:min-h-[36px] px-3 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-between sm:justify-start gap-1.5 active:scale-95 cursor-pointer ${
             activeSlot === 'all'
               ? 'bg-primary-600 text-white shadow-sm ring-1 ring-primary-400'
               : 'text-slate-400 hover:text-white bg-slate-900/40 sm:bg-transparent'
@@ -150,7 +195,7 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
                 onSelectSlot?.(s);
                 setLockTimeSlot(def.timeSlot);
               }}
-              className={`min-h-[44px] sm:min-h-[36px] px-2.5 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-between sm:justify-start gap-1.5 active:scale-95 ${
+              className={`min-h-[44px] sm:min-h-[36px] px-2.5 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-between sm:justify-start gap-1.5 active:scale-95 cursor-pointer ${
                 isSlotActive
                   ? 'bg-primary-600 text-white shadow-sm ring-1 ring-primary-400'
                   : 'text-slate-400 hover:text-white bg-slate-900/40 sm:bg-transparent'
@@ -174,78 +219,39 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
         })}
       </div>
 
-      {/* 3 listes : Disponibles, À confirmer, Absents */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="bg-slate-800/40 border border-slate-800 p-3 rounded-xl space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-            <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>Disponibles ({available.length})</span>
-          </div>
-          {renderMemberList(available, 'Aucun membre disponible', 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30')}
-        </div>
+      {/* Listes de membres en accordéon responsif */}
+      <DayStatusAccordion
+        available={available}
+        maybe={maybe}
+        unavailable={unavailable}
+        memberProfiles={memberProfiles}
+        currentUserId={currentUserId}
+      />
 
-        <div className="bg-slate-800/40 border border-slate-800 p-3 rounded-xl space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-            <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>À confirmer ({maybe.length})</span>
-          </div>
-          {renderMemberList(maybe, 'Aucun membre incertain', 'bg-amber-500/10 text-amber-300 border-amber-500/30')}
-        </div>
+      {/* Zone d'action de verrouillage intégrée */}
+      <DayLockFooter
+        canLock={canLock}
+        isLocked={isLocked}
+        isPast={isPast}
+        isInRange={isInRange}
+        lockTimeSlot={lockTimeSlot}
+        onChangeTimeSlot={handleTimeSlotChange}
+        onOpenConfirmModal={() => setIsConfirmModalOpen(true)}
+      />
 
-        <div className="bg-slate-800/40 border border-slate-800 p-3 rounded-xl space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-            <XCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-            <span>Indisponibles ({unavailable.length})</span>
-          </div>
-          {renderMemberList(unavailable, 'Aucun membre indisponible', 'bg-slate-800 text-slate-400 border-slate-700')}
-        </div>
-      </div>
-
-      {/* Messages d'information si la date ne peut pas être fixée */}
-      {isPast && (
-        <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-xl text-xs text-slate-400 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-slate-500 shrink-0" aria-hidden="true" />
-          <span>Cette date est déjà passée. Il n'est pas possible de fixer un événement dans le passé.</span>
-        </div>
-      )}
-
-      {!isInRange && (
-        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-xs text-amber-300 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
-          <span>Cette date est en dehors de la plage définie pour l'événement.</span>
-        </div>
-      )}
-
-      {/* Action de verrouillage : fixation de la date ET du créneau */}
-      {canLock && !isLocked && !isPast && isInRange && onLockDate && (
-        <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-800">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label htmlFor="lock-slot-select" className="text-xs text-slate-300 font-medium">
-              Créneau :
-            </label>
-            <select
-              id="lock-slot-select"
-              value={lockTimeSlot}
-              onChange={(e) => setLockTimeSlot(e.target.value as TimeSlot)}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 sm:py-1.5 text-xs text-white min-h-[44px] sm:min-h-[36px] focus:ring-1 focus:ring-amber-500 outline-none"
-            >
-              <option value="Matin">Matin (8h - 12h)</option>
-              <option value="Après-midi">Après-midi (12h - 18h)</option>
-              <option value="Soirée">Soirée (18h - 00h)</option>
-              <option value="Toute la journée">Toute la journée</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onLockDate(dateStr, lockTimeSlot)}
-            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 min-h-[44px] sm:min-h-[36px] bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20"
-          >
-            <Lock className="w-4 h-4" />
-            <span>Valider {lockTimeSlot !== 'Toute la journée' ? `en ${lockTimeSlot}` : 'la journée'}</span>
-          </button>
-        </div>
-      )}
+      {/* Modale de confirmation avant verrouillage */}
+      <DayLockConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={() => onLockDate?.(dateStr, lockTimeSlot)}
+        dateStr={dateStr}
+        timeSlot={lockTimeSlot}
+        availableCount={available.length}
+        maybeCount={maybe.length}
+        unavailableCount={unavailable.length}
+        totalMembers={totalMembers}
+        eventTitle={eventTitle}
+      />
     </div>
   );
 };

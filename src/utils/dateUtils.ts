@@ -90,17 +90,6 @@ export const isDatePast = (dateStr: string): boolean => {
 };
 
 /**
- * Calcule la date minimale autorisée pour une sélection (au moins aujourd'hui, et si range avec début ultérieur, startDate).
- */
-export const getEffectiveMinDate = (dateMode?: string, startDate?: string): string => {
-  const today = getTodayDateStr();
-  if (dateMode === 'range' && startDate && startDate > today) {
-    return startDate;
-  }
-  return today;
-};
-
-/**
  * Valide si une date peut être sélectionnée/verrouillée pour un événement.
  * Vérifie l'interdiction de choisir une date passée et le respect strict de la plage éventuelle.
  */

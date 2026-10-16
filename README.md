@@ -96,8 +96,8 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 
 ### 4. Saisie des Disponibilités, Sondage & Heatmap de Dates (`EventDetails`)
 - **Contrôles Stricts de Dates & Protection Anti-Erreur :**
-  - **Interdiction Formelle des Dates Passées :** Impossible de fixer une date à un jour déjà passé (que ce soit via la Heatmap, la sélection rapide du podium, la saisie manuelle ou les formulaires de création et modification). Le podium (Top 3) exclut automatiquement toute date passée.
-  - **Respect Strict de la Plage Définie (`dateMode: 'range'`) :** Lorsqu'un événement a une plage de dates définie, il est strictement impossible de valider une date en dehors de cette plage (contrôle à 3 niveaux : restrictions HTML `min`/`max`, validation JS en temps réel et garde-fou strict côté service `lockEventDate`).
+  - **Interdiction Formelle des Dates Passées :** Impossible de fixer une date à un jour déjà passé (que ce soit via la Heatmap, la sélection rapide du podium ou les formulaires de création et modification). Le podium (Top 3) exclut automatiquement toute date passée.
+  - **Respect Strict de la Plage Définie (`dateMode: 'range'`) :** Lorsqu'un événement a une plage de dates définie, il est strictement impossible de valider une date en dehors de cette plage (contrôle à 2 niveaux : validation JS en temps réel et garde-fou strict côté service `lockEventDate`).
   - **Transition Automatique vers l'État "Passé" (`state: 'passe'`) & Vue Épurée (`PastEventView`) :**
     - Dès qu'un événement confirmé voit sa date dépassée, il bascule automatiquement à l'état `passe`. Il est immédiatement sorti de la liste "Tous" pour désencombrer l'écran et reçoit le statut archivé avec persistance en base de données.
     - **Clôture Totale des Interactions de Présence :** Sur un événement passé, il est désormais **impossible d'interagir sur sa présence** (aucun bouton de vote, formulaires de disponibilité retirés, boutons rapides masqués sur les cartes et les lignes, et rejet strict côté service).
@@ -153,14 +153,23 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Encart « Meilleurs créneaux » Recommandés (`PodiumShortcuts`) :**
     - Cartes d'accès rapide au Top 3 présentant la date, le créneau horaire précis, le rang et le ratio de présence (`4/5 (80%) • Soirée`).
     - Clic direct pour sélectionner la date et le créneau, basculant automatiquement le calendrier sur le mois adéquat.
-- **Détails Nominatifs & Ventilation par Créneau (`DayAvailabilityDetails`) :**
-  - Clic sur n'importe quel jour actif pour afficher les onglets de ventilation :
-    - **Journée entière :** Synthèse globale de la journée.
-    - **Matin / Après-midi / Soirée :** Ventilation détaillée par créneau :
-      - **Disponibles :** Avatars et noms des membres confirmés disponibles pour ce créneau.
-      - **À confirmer :** Avatars et noms des membres indécis.
-      - **Indisponibles :** Membres indisponibles sur ce créneau.
-  - **Verrouillage Combiné Date ET Créneau :** L'organisateur peut verrouiller directement la date définitive avec son créneau horaire (`Matin`, `Après-midi`, `Soirée` ou `Toute la journée`) en un clic sécurisé.
+- **Détails Nominatifs & Ventilation par Créneau Haute Ergonomie (`DayAvailabilityDetails`, `DayMemberChip`, `DayStatusAccordion`, `DayLockFooter`, `DayLockConfirmModal`) :**
+  - **En-tête Enrichi & Consensus Synthétique :**
+    - Rappel automatique du nom de l'événement en en-tête de carte.
+    - Suppression du doublon icône SVG / emoji sur le badge de classement du podium (*1ère place • Meilleur choix*), enrichi d'un tooltip d'explication accessible.
+    - Résumé du consensus de présence en temps réel (*ex: 4 disponibles · 1 à confirmer · 6 indisponibles (4/11 membres)*) avec mini-barre de progression segmentée.
+  - **Chips Membres sans Débordement & Badge « Moi » Dédié (`DayMemberChip`) :**
+    - Troncature fluide (`truncate`) avec `title` affichant le nom complet au survol : aucun débordement de bordure même avec un pseudo de plus de 30 caractères.
+    - Remplacement du suffixe brut `(Moi)` par un badge distinct (*Moi*) stylisé avec contour, préservant la netteté du pseudo.
+    - Avatars agrandis (24px) avec hauteur de chip stable et signaux visuels explicites (`CheckCircle`, `HelpCircle`, `XCircle`) garantissant l'accessibilité sans dépendre uniquement de la couleur.
+  - **Disposition Responsive Mobile-First & Accordéon Dépliable (`DayStatusAccordion`) :**
+    - **Sur mobile (dès 360 px) :** Remplacement des colonnes compressées par des volets accordéon empilés. « Disponibles » et « À confirmer » ouverts par défaut, « Indisponibles » replié par défaut pour désencombrer l'écran.
+    - **Gestion des grands groupes (15-20 membres) :** Limitation aux 8 premiers membres affichés avec bouton compact de dépliage `+X autre(s) membre(s)` / `Voir moins`.
+    - **Contraste rehaussé :** Section des indisponibles retravaillée avec un contraste texte/fond élevé (`text-slate-200`, bordure `border-slate-600`).
+  - **Pied de Panneau Ancré & Modale de Confirmation avant Verrouillage (`DayLockFooter` & `DayLockConfirmModal`) :**
+    - Sélecteur de créneau et bouton d'action clairement rattachés au bas de la carte (pleine largeur sur mobile) avec explication claire des conséquences.
+    - Restriction aux personnes habilitées (organisateur / chef de groupe) avec note informative sinon.
+    - **Modale de confirmation obligatoire :** Récapitule la date et le créneau choisis, rappelle le décompte de présence, prévient en cas de membres absents ou non confirmés, et rappelle la possibilité de réouverture du sondage en cas d'imprévu.
 
 - **Architecture Ports & Adapters (`IAvailabilityService` & `AvailabilityService`) :**
   - Calcul algorithmique pur isolé dans un service TypeScript strict (zéro `any`, sans effet de bord, indépendant de React et de Firebase), garantissant une testabilité unitaire totale.
