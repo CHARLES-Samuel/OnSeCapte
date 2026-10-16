@@ -17,7 +17,13 @@ export interface IAvailabilityService {
   getTopDates(scores: Map<string, DateAvailabilityScore> | DateAvailabilityScore[], limit?: number): DateAvailabilityScore[];
 
   /**
+   * Retourne les N meilleurs créneaux (podium) triés par (date, créneau) par disponibilité décroissante.
+   */
+  getTopSlots(scores: Map<string, DateAvailabilityScore> | DateAvailabilityScore[], limit?: number): DateAvailabilityScore[];
+
+  /**
    * Détermine le niveau d'intensité de la heatmap (none, low, medium, high, full).
    */
   getIntensityLevel(availableRatio: number, availableCount: number): HeatmapIntensity;
 }
+

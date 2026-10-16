@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, CheckCircle, HelpCircle, XCircle, ArrowRight, Calendar, Users } from 'lucide-react';
+import { X, ArrowRight, Calendar, Users } from 'lucide-react';
 import type { Event } from '../../../models/Event';
-import type { AvailabilityStatus, GroupPlanning } from '../../../models/Group';
+import type { GroupPlanning, UserDayAvailability, DaySlotsAvailability } from '../../../models/Group';
 import { formatDateLongFr } from '../../../utils/dateUtils';
 import { getCategoryTheme } from '../../../utils/categoryTheme';
 import { getEventConsensus } from '../../../utils/calendarEventUtils';
+import { DaySlotAvailabilityPicker } from '../groups/DaySlotAvailabilityPicker';
 
 interface DayEventsModalProps {
   isOpen: boolean;
@@ -13,8 +14,8 @@ interface DayEventsModalProps {
   dateStr: string;
   events: Event[];
   groupId: string;
-  userAvailability?: AvailabilityStatus;
-  onUpdateAvailability?: (dateStr: string, status: AvailabilityStatus) => void;
+  userAvailability?: UserDayAvailability;
+  onUpdateAvailability?: (dateStr: string, availability: DaySlotsAvailability) => void;
   plannings?: GroupPlanning[];
   totalMembers?: number;
   isPast?: boolean;
@@ -48,11 +49,6 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
   if (!isOpen) return null;
 
   const formattedDate = formatDateLongFr(dateStr);
-
-  const handleSelectAvailability = (status: AvailabilityStatus) => {
-    if (isPast) return;
-    onUpdateAvailability?.(dateStr, status);
-  };
 
   const handleGoToEvent = (eventId: string) => {
     onClose();
@@ -98,52 +94,16 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
 
         {/* Content */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-5 flex-1">
-          {/* Saisie rapide de disponibilité */}
-          {!isPast && (
-            <div className="bg-slate-800/50 border border-slate-700/60 p-3.5 rounded-xl space-y-2">
-              <span className="text-xs font-semibold text-slate-300">
-                Ta disponibilité pour ce jour :
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSelectAvailability('available')}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition ${
-                    userAvailability === 'available'
-                      ? 'bg-emerald-500/25 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40'
-                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                  }`}
-                >
-                  <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400" />
-                  <span>Dispo</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSelectAvailability('maybe')}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition ${
-                    userAvailability === 'maybe'
-                      ? 'bg-amber-500/25 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
-                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                  }`}
-                >
-                  <HelpCircle className="w-4 h-4 shrink-0 text-amber-400" />
-                  <span>À confirmer</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSelectAvailability('unavailable')}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold border transition ${
-                    userAvailability === 'unavailable'
-                      ? 'bg-rose-500/20 border-rose-500/60 text-rose-300 ring-1 ring-rose-500/40'
-                      : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                  }`}
-                >
-                  <XCircle className="w-4 h-4 shrink-0 text-rose-400" />
-                  <span>Indispo</span>
-                </button>
-              </div>
-            </div>
+          {/* Saisie par créneau (Matin / Après-midi / Soirée + Toute la journée) */}
+          {!isPast && onUpdateAvailability && (
+            <DaySlotAvailabilityPicker
+              dateStr={dateStr}
+              value={userAvailability}
+              onChange={(d, newSlots) => onUpdateAvailability(d, newSlots)}
+              disabled={isPast}
+            />
           )}
+
 
           {/* Liste des événements du jour */}
           <div className="space-y-3">

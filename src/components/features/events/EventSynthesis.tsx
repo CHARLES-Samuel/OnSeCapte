@@ -44,14 +44,15 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForceLockWarning, setShowForceLockWarning] = useState(false);
-  const [pendingLockDate, setPendingLockDate] = useState<string | null>(null);
+  const [pendingLockTarget, setPendingLockTarget] = useState<{ date: string; timeSlot: TimeSlot } | null>(null);
   const [manualDate, setManualDate] = useState('');
+  const [manualTimeSlot, setManualTimeSlot] = useState<TimeSlot>('Soirée');
   const [manualError, setManualError] = useState<string | null>(null);
 
   const effectiveMinDate = getEffectiveMinDate(event.dateMode, event.startDate);
   const effectiveMaxDate = event.dateMode === 'range' ? event.endDate : undefined;
 
-  const handleRequestLock = (dateStr: string) => {
+  const handleRequestLock = (dateStr: string, timeSlot: TimeSlot = 'Toute la journée') => {
     const validation = validateEventDateSelection(
       dateStr,
       event.dateMode,
@@ -64,22 +65,22 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
     }
 
     setManualError(null);
-    setPendingLockDate(dateStr);
+    setPendingLockTarget({ date: dateStr, timeSlot });
     if (respondedMembers < totalMembers) {
       setShowForceLockWarning(true);
     } else {
-      executeLock(dateStr);
+      executeLock(dateStr, timeSlot);
     }
   };
 
-  const executeLock = async (dateStr: string) => {
+  const executeLock = async (dateStr: string, timeSlot: TimeSlot) => {
     setIsSubmitting(true);
     setShowForceLockWarning(false);
     try {
-      await onLock(dateStr, 'Toute la journée');
+      await onLock(dateStr, timeSlot);
     } finally {
       setIsSubmitting(false);
-      setPendingLockDate(null);
+      setPendingLockTarget(null);
     }
   };
 
@@ -96,8 +97,9 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
       return;
     }
     setManualError(null);
-    await executeLock(manualDate);
+    await executeLock(manualDate, manualTimeSlot);
   };
+
 
   return (
     <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-6">
@@ -118,10 +120,10 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
       </div>
 
       {/* Avertissement de forçage si membres manquants */}
-      {showForceLockWarning && pendingLockDate && (
+      {showForceLockWarning && pendingLockTarget && (
         <ForceLockWarning
           isSubmitting={isSubmitting}
-          onConfirm={() => executeLock(pendingLockDate)}
+          onConfirm={() => executeLock(pendingLockTarget.date, pendingLockTarget.timeSlot)}
           onCancel={() => setShowForceLockWarning(false)}
         />
       )}
@@ -191,7 +193,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <details className="text-xs text-slate-400">
               <summary className="cursor-pointer hover:text-slate-300 font-medium">
-                Définir une date manuellement hors sondage...
+                Définir une date et un créneau manuellement hors sondage...
               </summary>
               <div className="space-y-2 mt-2">
                 {event.dateMode === 'range' && event.startDate && event.endDate && (
@@ -199,7 +201,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                     Plage autorisée : du {formatDateShortFr(event.startDate)} au {formatDateShortFr(event.endDate)}
                   </p>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="date"
                     value={manualDate}
@@ -211,6 +213,16 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
                     }}
                     className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary-500 outline-none"
                   />
+                  <select
+                    value={manualTimeSlot}
+                    onChange={(e) => setManualTimeSlot(e.target.value as TimeSlot)}
+                    className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="Matin">Matin (8h - 12h)</option>
+                    <option value="Après-midi">Après-midi (12h - 18h)</option>
+                    <option value="Soirée">Soirée (18h - 00h)</option>
+                    <option value="Toute la journée">Toute la journée</option>
+                  </select>
                   <button
                     type="button"
                     onClick={handleManualLock}
@@ -231,6 +243,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
           </div>
         )
       )}
+
     </div>
   );
 };

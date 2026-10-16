@@ -1,7 +1,8 @@
-import React from 'react';
 import type { DateAvailabilityScore } from '../../../models/Availability';
+import type { DaySlot } from '../../../models/Group';
 import { availabilityService } from '../../../services/implementations/AvailabilityService';
 import { isDatePast, formatDateLongFr } from '../../../utils/dateUtils';
+import { DAY_SLOTS, SLOT_DEFINITIONS } from '../../../utils/timeSlotUtils';
 
 interface AvailabilityHeatmapCellProps {
   dayNumber: number;
@@ -11,8 +12,13 @@ interface AvailabilityHeatmapCellProps {
   isInRange: boolean;
   isSelected: boolean;
   isToday: boolean;
+  viewMode?: 'day' | 'slots';
+  selectedSlot?: DaySlot | null;
   onClick: () => void;
+  onSelectSlot?: (slot: DaySlot) => void;
 }
+
+import { getIntensityStyles } from '../../../utils/heatmapStyleUtils';
 
 export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = ({
   dayNumber,
@@ -22,7 +28,10 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
   isInRange,
   isSelected,
   isToday,
+  viewMode = 'day',
+  selectedSlot,
   onClick,
+  onSelectSlot,
 }) => {
   if (!isInRange) {
     return (
@@ -44,69 +53,34 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
   const rank = score?.rank;
   const resolvedTotal = score?.totalMembers ?? totalMembers ?? 1;
 
-  // Échelle séquentielle à fort contraste (WCAG AA validé)
-  let bgAndBorderClass =
-    'bg-slate-900/40 border-slate-800/80 text-slate-300 hover:bg-slate-800/60 hover:border-slate-700';
-  let counterColorClass = 'text-slate-500 font-medium';
-  let dayNumberColorClass = 'text-slate-200';
-
-  if (isPast) {
-    bgAndBorderClass =
-      'bg-slate-950/40 border-slate-900/60 text-slate-500 opacity-50 hover:opacity-75 hover:bg-slate-900/40';
-    counterColorClass = 'text-slate-600';
-    dayNumberColorClass = 'text-slate-400';
-  } else if (intensity === 'low') {
-    bgAndBorderClass =
-      'bg-emerald-950/80 border-emerald-800/80 text-emerald-200 hover:bg-emerald-950 hover:border-emerald-600';
-    counterColorClass = 'text-emerald-400/90 font-semibold';
-    dayNumberColorClass = 'text-emerald-200 font-semibold';
-  } else if (intensity === 'medium') {
-    bgAndBorderClass =
-      'bg-emerald-900 border-emerald-600/80 text-emerald-100 hover:bg-emerald-800';
-    counterColorClass = 'text-emerald-200 font-bold';
-    dayNumberColorClass = 'text-emerald-100 font-bold';
-  } else if (intensity === 'high') {
-    bgAndBorderClass =
-      'bg-emerald-700 border-emerald-500 text-white hover:bg-emerald-600 shadow-sm shadow-emerald-900/30';
-    counterColorClass = 'text-emerald-100 font-bold';
-    dayNumberColorClass = 'text-white font-bold';
-  } else if (intensity === 'full') {
-    bgAndBorderClass =
-      'bg-emerald-400 border-emerald-200 text-slate-950 hover:bg-emerald-300 shadow-md shadow-emerald-500/20';
-    counterColorClass = 'text-slate-950 font-black';
-    dayNumberColorClass = 'text-slate-950 font-black';
-  }
-
-  // Anneau de sélection distinctif avec décalage pour éliminer toute confusion
+  const style = getIntensityStyles(intensity, isPast);
   const selectedClass = isSelected
     ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-950 scale-[1.03] z-10 shadow-lg shadow-primary-500/25'
     : '';
 
-  // Tooltip descriptif complet et accessible pour le desktop
   const formattedDate = formatDateLongFr(dateStr);
   const percentStr = `${Math.round(ratio * 100)}%`;
   const tooltipText = `${formattedDate} : ${availableCount}/${resolvedTotal} disponible(s) (${percentStr})${
     rank ? ` • #${rank} au podium` : ''
   }${isToday ? " • Aujourd'hui" : ''}${isPast ? ' • Passé' : ''}`;
 
-  const ariaDescription = `${dayNumber}, ${availableCount} sur ${resolvedTotal} disponible(s)${
-    rank ? `, #${rank} au podium` : ''
-  }${isToday ? ', aujourd’hui' : ''}`;
-
   return (
     <button
       type="button"
       data-date={dateStr}
       onClick={onClick}
-      aria-label={ariaDescription}
       aria-pressed={isSelected}
       title={tooltipText}
-      className={`min-h-[48px] sm:min-h-[58px] p-1 sm:p-1.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer relative group ${bgAndBorderClass} ${selectedClass}`}
+      className={`min-h-[48px] sm:min-h-[58px] p-1 sm:p-1.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer relative group ${
+        viewMode === 'slots'
+          ? `bg-slate-900/90 border-slate-800 ${selectedClass}`
+          : `${style.bgAndBorder} ${selectedClass}`
+      }`}
     >
-      {/* Ligne haute : Numéro du jour + Point Aujourd'hui + Badge Podium distinct */}
+      {/* Ligne haute : Numéro du jour & Médaille Podium */}
       <div className="flex items-center justify-between w-full gap-0.5">
         <div className="flex items-center gap-1">
-          <span className={`text-xs sm:text-sm ${dayNumberColorClass}`}>
+          <span className={`text-xs sm:text-sm font-semibold ${viewMode === 'slots' ? 'text-slate-200' : style.dayNumber}`}>
             {dayNumber}
           </span>
           {isToday && (
@@ -118,7 +92,6 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
           )}
         </div>
 
-        {/* Podium : Médaille ET Chiffre pour les personnes daltoniennes, sans bordure de case */}
         {rank && !isPast && (
           <span
             className={`inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[10px] sm:text-xs font-black shrink-0 leading-none shadow-sm ${
@@ -137,16 +110,47 @@ export const AvailabilityHeatmapCell: React.FC<AvailabilityHeatmapCellProps> = (
         )}
       </div>
 
-      {/* Ligne basse : Ratio court "X/Y" sans mot coupé */}
-      <div className="w-full flex items-center justify-between mt-1">
-        <span className={`text-[10px] sm:text-xs ${counterColorClass}`}>
-          {isPast ? (
-            <span className="text-[10px] opacity-70">passé</span>
-          ) : (
-            `${availableCount}/${resolvedTotal}`
-          )}
-        </span>
-      </div>
+
+      {/* Corps : Soit vue Journée (ratio unique), soit vue Créneaux (3 segments scindés) */}
+      {viewMode === 'slots' && score?.slots ? (
+        <div className="flex flex-col sm:grid sm:grid-cols-3 gap-0.5 w-full mt-1">
+          {DAY_SLOTS.map((slotKey) => {
+            const slotScore = score.slots![slotKey];
+            const sAvail = slotScore?.available.length || 0;
+            const sRatio = slotScore?.availableRatio || 0;
+            const sIntensity = availabilityService.getIntensityLevel(sRatio, sAvail);
+            const slotStyle = getIntensityStyles(sIntensity, isPast);
+            const def = SLOT_DEFINITIONS[slotKey];
+            const isSlotActive = isSelected && selectedSlot === slotKey;
+
+            return (
+              <div
+                key={slotKey}
+                onClick={(e) => {
+                  if (onSelectSlot) {
+                    e.stopPropagation();
+                    onSelectSlot(slotKey);
+                  }
+                  onClick();
+                }}
+                title={`${def.fullLabel} : ${sAvail}/${resolvedTotal} disponible(s)`}
+                className={`flex items-center justify-between sm:flex-col sm:items-center sm:justify-center px-1 sm:px-0 py-0.5 rounded text-[8px] sm:text-[9px] border transition ${slotStyle.bgAndBorder} ${
+                  isSlotActive ? 'ring-1 ring-white shadow-sm' : ''
+                }`}
+              >
+                <span className="font-bold leading-tight">{def.badgeLetter}</span>
+                <span className="font-semibold sm:font-normal leading-tight opacity-90">{sAvail}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="w-full flex items-center justify-between mt-1">
+          <span className={`text-[10px] sm:text-xs ${style.counter}`}>
+            {isPast ? <span className="opacity-70">passé</span> : `${availableCount}/${resolvedTotal}`}
+          </span>
+        </div>
+      )}
     </button>
   );
 };

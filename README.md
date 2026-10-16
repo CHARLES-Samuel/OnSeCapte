@@ -111,7 +111,24 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     2. **Plage de dates (Période restreinte) :** L'organisateur définit une fenêtre précise avec sélecteurs de *Date de début* et *Date de fin* (ex: *"Entre le 10 et le 25 du mois"*). Le calcul des scores, le podium et l'affichage interactif se restreignent automatiquement à cet intervalle (les dates extérieures sont atténuées et désactivées).
     3. **Date fixe :** Événement arrêté à un jour et un créneau horaire précis (contraint aux dates futures).
   - **Indicateur visuel de plage :** Badge bleu informatif présent dans les listes d'événements et dans l'en-tête de la page de détails (*"Plage : 10 oct. - 25 oct."*).
-- **Calendrier Choroplèthe & Heatmap Haute Lisibilité (`AvailabilityHeatmapCalendar`, `AvailabilityHeatmapCell` & `AvailabilityHeatmapLegend`) :**
+- **Disponibilité Granulaire par Créneau Horaire (Matin, Après-midi, Soirée) :**
+  - **3 créneaux horaires par jour :**
+    - **Matin :** `8h - 12h`
+    - **Après-midi :** `12h - 18h`
+    - **Soirée :** `18h - 00h`
+  - **Rétrocompatibilité totale & Zéro casse :** Les anciens votes exprimés en "jour entier" sont automatiquement lus comme disponibles sur les 3 créneaux sans nécessiter de migration lourde.
+  - **Saisie Rapide & Accessible (`DaySlotAvailabilityPicker`, `GroupPlanningDayCell`) :**
+    - Dans chaque cellule du calendrier de planning : 3 pastilles compactes `M`, `A`, `S` permettent de basculer l'état de chaque créneau en un clic direct sans ouvrir de modale.
+    - Sur mobile et dans la modale du jour (`DayEventsModal`) : interface tactile avec sélecteur de créneaux et bouton rapide **« Toute la journée »** pour voter sur l'ensemble de la journée en un geste.
+  - **Règle d'Agrégation Synthétique en Vue Jour :** Sans créneau spécifique ciblé, un membre compte comme disponible pour la journée s'il l'est sur **au moins un créneau** (approche souple et permissive).
+- **Calendrier Choroplèthe & Heatmap Haute Lisibilité avec Bascule Vue Jour / Créneaux (`AvailabilityHeatmapCalendar`, `AvailabilityHeatmapCell` & `AvailabilityHeatmapLegend`) :**
+  - **Bascule Instantanée Vue Jour / Vue Créneaux :**
+    - **Vue Jour :** Vision globale de la journée avec intensité choroplèthe de présence consolidée.
+    - **Vue Créneaux :** Chaque cellule est **scindée en 3 segments visuels distincts** (*Matin*, *Après-midi*, *Soirée*). Sur desktop, 3 colonnes interactives. Sur mobile, 3 micro-lignes horizontales pleine largeur évitant tout écrasement et débordement.
+  - **Ergonomie Mobile & Cibles Tactiles (> 44px) :**
+    - **Planning Groupe (`GroupPlanningDayCell`) :** Remplacement des 3 micro-boutons par une jauge visuelle continue à 3 segments colorés, sans aucun débordement horizontal. Clic direct sur la case ouvrant le sélecteur dédié `DaySlotAvailabilityPicker`.
+    - **Saisie par Créneau (`DaySlotAvailabilityPicker`) :** Boutons de vote *Dispo*, *Peut-être*, *Indispo* et *Toute la journée* calibrés à une hauteur minimale de 44px pour une manipulation au pouce rapide, sans raté ni micro-clic accidentel.
+    - **Ventilation (`DayAvailabilityDetails`) :** Onglets de créneaux agencés en grille 2x2 symétrique et cibles de verrouillage tactiles adaptées aux écrans tactiles.
   - **Échelle Séquentielle à Fort Contraste (Norme WCAG AA) :**
     - Calcul de l'intensité strictement **relatif au nombre de membres du groupe** (ex. 4 membres sur 5 = 80%).
     - 5 paliers bien tranchés permettant de repérer les meilleurs créneaux en moins de 2 secondes :
@@ -126,22 +143,25 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     - Tooltip desktop complet au survol (ex: *"Mercredi 14 octobre 2026 : 4/5 disponible(s) (80%) • 🥇 1ère place"*).
   - **Séparation Nette des Signaux Visuels & Accessibilité Daltonienne :**
     - **Remplissage de fond :** Indique uniquement le niveau d'intensité des disponibilités.
-    - **Podium (Top 3) :** Badge compact en haut à droite avec médaille **ET** chiffre arabe explicite (`🥇 1`, `🥈 2`, `🥉 3`), sans bordure colorée sur la case évitant toute confusion.
+    - **Podium (Top 3 par Date et Créneau) :** Badge compact en haut à droite avec médaille **ET** chiffre arabe explicite (`🥇 1`, `🥈 2`, `🥉 3`), sans bordure colorée sur la case évitant toute confusion.
     - **Sélection :** Anneau bleu épais avec décalage franc (`ring-2 ring-primary-400 ring-offset-2 ring-offset-slate-950`), immédiatement dissociable du podium.
     - **Aujourd'hui :** Point indicateur bleu ciel dédié (`ring-2 ring-sky-400/40`) à côté du numéro du jour.
     - **Jours passés & Hors plage :** Traitement différencié (opacité estompée pour les jours passés, hachures en bordure pointillée pour les jours hors intervalle).
   - **Légende Unifiée & Pliable (`AvailabilityHeatmapLegend`) :**
-    - Zone unique regroupant les 5 paliers d'intensité avec leurs pourcentages exacts et la clé de tous les indicateurs (Podium, Sélection, Aujourd'hui).
+    - Zone unique regroupant les 5 paliers d'intensité avec leurs pourcentages exacts et la clé de tous les indicateurs (Podium, Sélection, Aujourd'hui, Créneaux).
     - Volet accordéon repliable sur mobile pour libérer l'espace visuel au besoin.
   - **Encart « Meilleurs créneaux » Recommandés (`PodiumShortcuts`) :**
-    - Cartes d'accès rapide au Top 3 présentant la date, le rang et le ratio de présence (`4/5 (80%)`).
-    - Clic direct pour sélectionner la date et naviguer immédiatement vers le bon mois.
-- **Détails Nominatifs au Clic / Survol (`DayAvailabilityDetails`) :**
-  - Clic sur n'importe quel jour actif pour afficher la ventilation exhaustive :
-    - **Disponibles :** Avatars et noms des membres confirmés disponibles.
-    - **À confirmer :** Avatars et noms des membres ayant répondu "Peut-être" ou n'ayant pas encore voté.
-    - **Indisponibles :** Membres ayant indiqué être absents ou indisponibles pour l'événement.
-  - **Verrouillage direct en 1 clic :** L'organisateur peut verrouiller directement la date définitive depuis la vue détaillée du jour sélectionné (bouton sécurisé : masqué si la date est passée ou hors plage avec message d'information explicite).
+    - Cartes d'accès rapide au Top 3 présentant la date, le créneau horaire précis, le rang et le ratio de présence (`4/5 (80%) • Soirée`).
+    - Clic direct pour sélectionner la date et le créneau, basculant automatiquement le calendrier sur le mois adéquat.
+- **Détails Nominatifs & Ventilation par Créneau (`DayAvailabilityDetails`) :**
+  - Clic sur n'importe quel jour actif pour afficher les onglets de ventilation :
+    - **Journée entière :** Synthèse globale de la journée.
+    - **Matin / Après-midi / Soirée :** Ventilation détaillée par créneau :
+      - **Disponibles :** Avatars et noms des membres confirmés disponibles pour ce créneau.
+      - **À confirmer :** Avatars et noms des membres indécis.
+      - **Indisponibles :** Membres indisponibles sur ce créneau.
+  - **Verrouillage Combiné Date ET Créneau :** L'organisateur peut verrouiller directement la date définitive avec son créneau horaire (`Matin`, `Après-midi`, `Soirée` ou `Toute la journée`) en un clic sécurisé.
+
 - **Architecture Ports & Adapters (`IAvailabilityService` & `AvailabilityService`) :**
   - Calcul algorithmique pur isolé dans un service TypeScript strict (zéro `any`, sans effet de bord, indépendant de React et de Firebase), garantissant une testabilité unitaire totale.
 - **Gestion Unifiée des Disponibilités & Initialisation à la Volée :**

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { groupService } from '../services/implementations/FirestoreGroupService';
-import type { GroupPlanning, AvailabilityStatus } from '../models/Group';
+import type { GroupPlanning, UserDayAvailability } from '../models/Group';
 
 export function useGroupPlannings(groupId: string | undefined) {
   const [plannings, setPlannings] = useState<GroupPlanning[]>([]);
@@ -21,7 +21,8 @@ export function useGroupPlannings(groupId: string | undefined) {
     return () => unsubscribe();
   }, [groupId]);
 
-  const updatePlanning = useCallback(async (userId: string, dates: Record<string, AvailabilityStatus>) => {
+  const updatePlanning = useCallback(async (userId: string, dates: Record<string, UserDayAvailability>) => {
+
     if (!groupId) return false;
     try {
       await groupService.updateGroupPlanning(groupId, userId, dates);

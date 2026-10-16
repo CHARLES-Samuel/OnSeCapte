@@ -208,12 +208,12 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // 4. Plannings de groupe (Disponibilités partagées)
+    // 4. Plannings de groupe (Disponibilités partagées par jour ou par créneau)
     // ===============================================================
     match /groups/{groupId}/plannings/{planningUserId} {
       // Seuls les membres du groupe peuvent consulter les disponibilités
       allow read: if isAuthenticated() && (isGroupMember(groupId) || isGroupOwner(groupId));
-      // Seul le membre concerné peut modifier son propre planning
+      // Seul le membre concerné peut modifier son propre planning (formats rétrocompatible string et nouveau format map par créneau)
       allow write: if isAuthenticated() && request.auth.uid == planningUserId && isGroupMember(groupId);
       // Suppression par le membre lui-même ou le gérant
       allow delete: if isAuthenticated() && (request.auth.uid == planningUserId || isGroupOwner(groupId));
@@ -232,6 +232,7 @@ service cloud.firestore {
           && (!('description' in request.resource.data) || (request.resource.data.description is string && request.resource.data.description.size() <= 2000))
           && request.resource.data.state in ['sondage', 'planifie']
           && (!('dateMode' in request.resource.data) || request.resource.data.dateMode in ['poll', 'fixed', 'range', 'any'])
+          && (!('finalTimeSlot' in request.resource.data) || request.resource.data.finalTimeSlot in ['Matin', 'Après-midi', 'Soirée', 'Toute la journée'])
           && request.resource.data.participations is map
           && request.resource.data.participations.keys().hasOnly([request.auth.uid]);
       }
@@ -244,8 +245,10 @@ service cloud.firestore {
           && request.resource.data.createdAt == resource.data.createdAt
           && request.resource.data.title is string
           && request.resource.data.title.size() > 0
-          && request.resource.data.title.size() <= 100;
+          && request.resource.data.title.size() <= 100
+          && (!('finalTimeSlot' in request.resource.data) || request.resource.data.finalTimeSlot in ['Matin', 'Après-midi', 'Soirée', 'Toute la journée']);
       }
+
 
       // Un membre ordinaire peut UNIQUEMENT modifier sa PROPRE participation
       function isValidParticipationUpdate() {

@@ -17,8 +17,10 @@ import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal
 import { CategoryBadge } from '../components/ui/CategoryBadge';
 import { useEventParticipation } from '../hooks/useEventParticipation';
 import { isUserPlanningCompleted } from '../services/eventParticipationService';
+import { formatSlotLabel } from '../utils/timeSlotUtils';
 
 export const EventDetails = () => {
+
   const { groupId, eventId } = useParams<{ groupId: string; eventId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -292,8 +294,9 @@ export const EventDetails = () => {
                 </h2>
                 <p className="text-emerald-300/80 text-base sm:text-lg font-medium">
                   📅 {new Date(event.finalDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} <br/>
-                  ⏰ {event.finalTimeSlot}
+                  ⏰ {event.finalTimeSlot ? formatSlotLabel(event.finalTimeSlot) : 'Toute la journée'}
                 </p>
+
                 <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                   {currentUserResponse === 'participating' ? (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">

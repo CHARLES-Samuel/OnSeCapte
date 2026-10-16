@@ -512,7 +512,7 @@ export class FirestoreGroupService implements IGroupService {
     });
   }
 
-  async updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").AvailabilityStatus>): Promise<void> {
+  async updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").UserDayAvailability>): Promise<void> {
     const planningRef = doc(db, GROUPS_COLLECTION, groupId, "plannings", userId);
     await setDoc(planningRef, {
       updatedAt: serverTimestamp(),
@@ -520,5 +520,6 @@ export class FirestoreGroupService implements IGroupService {
     }, { merge: true });
   }
 }
+
 
 export const groupService = new FirestoreGroupService();

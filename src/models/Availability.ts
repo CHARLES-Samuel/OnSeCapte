@@ -1,11 +1,12 @@
 import type { TimeSlot, EventDateMode, EventParticipation } from './Event';
-import type { GroupPlanning } from './Group';
+import type { GroupPlanning, DaySlot } from './Group';
 
 export type PodiumRank = 1 | 2 | 3;
 
 export interface DateAvailabilityScore {
   date: string; // 'YYYY-MM-DD'
   timeSlot: TimeSlot;
+  slot?: DaySlot;
   available: string[];
   maybe: string[];
   unavailable: string[];
@@ -14,7 +15,9 @@ export interface DateAvailabilityScore {
   count: number; // available.length + maybe.length
   rank?: PodiumRank;
   totalMembers?: number;
+  slots?: Record<DaySlot, DateAvailabilityScore>;
 }
+
 
 export interface AvailabilityCalculationParams {
   dateMode?: EventDateMode;

@@ -10,8 +10,9 @@ export interface ProcessParticipationParams {
   participation: EventParticipation;
   plannings?: GroupPlanning[];
   updateParticipationFn?: (eventId: string, userId: string, participation: EventParticipation) => Promise<void>;
-  updatePlanningFn?: (groupId: string, userId: string, dates: Record<string, import('../models/Group').AvailabilityStatus>) => Promise<void>;
+  updatePlanningFn?: (groupId: string, userId: string, dates: Record<string, import('../models/Group').UserDayAvailability>) => Promise<void>;
 }
+
 
 export interface ProcessParticipationResult {
   success: boolean;

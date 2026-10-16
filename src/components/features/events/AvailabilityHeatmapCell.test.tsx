@@ -171,4 +171,67 @@ describe('AvailabilityHeatmapCell', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByTitle('Hors de la plage de recherche')).toBeInTheDocument();
   });
+
+  it('renders 3 distinct segments (M, A, S) in slots view mode', () => {
+    const slotScore: DateAvailabilityScore = {
+      ...baseScore,
+      slots: {
+        morning: {
+          date: '2026-10-15',
+          slot: 'morning',
+          timeSlot: 'Matin',
+          available: ['u1', 'u2'],
+          maybe: [],
+          unavailable: ['u3', 'u4', 'u5'],
+          score: 4,
+          availableRatio: 0.4,
+          count: 2,
+          totalMembers: 5,
+        },
+        afternoon: {
+          date: '2026-10-15',
+          slot: 'afternoon',
+          timeSlot: 'Après-midi',
+          available: ['u1'],
+          maybe: ['u2'],
+          unavailable: ['u3', 'u4', 'u5'],
+          score: 3,
+          availableRatio: 0.2,
+          count: 2,
+          totalMembers: 5,
+        },
+        evening: {
+          date: '2026-10-15',
+          slot: 'evening',
+          timeSlot: 'Soirée',
+          available: ['u1', 'u2', 'u3', 'u4'],
+          maybe: [],
+          unavailable: ['u5'],
+          score: 8,
+          availableRatio: 0.8,
+          count: 4,
+          totalMembers: 5,
+        },
+      },
+    };
+
+    render(
+      <AvailabilityHeatmapCell
+        dayNumber={15}
+        dateStr="2026-10-15"
+        score={slotScore}
+        totalMembers={5}
+        isInRange={true}
+        isSelected={false}
+        isToday={false}
+        viewMode="slots"
+        onClick={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('M')).toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getByText('S')).toBeInTheDocument();
+  });
 });
+

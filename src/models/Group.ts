@@ -32,8 +32,13 @@ export interface MemberProfile {
 
 export type AvailabilityStatus = 'available' | 'maybe' | 'unavailable';
 
+export type DaySlot = 'morning' | 'afternoon' | 'evening';
+export type DaySlotsAvailability = Record<DaySlot, AvailabilityStatus>;
+export type UserDayAvailability = AvailabilityStatus | Partial<DaySlotsAvailability>;
+
 export interface GroupPlanning {
   userId: string;
   updatedAt: number;
-  dates: Record<string, AvailabilityStatus>; // 'YYYY-MM-DD' => status
+  dates: Record<string, UserDayAvailability>; // 'YYYY-MM-DD' => status ou { morning, afternoon, evening }
 }
+

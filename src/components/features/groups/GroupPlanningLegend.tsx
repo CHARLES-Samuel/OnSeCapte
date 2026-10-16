@@ -29,6 +29,12 @@ export const GroupPlanningLegend: React.FC<GroupPlanningLegendProps> = ({
         <span>Indispo</span>
       </div>
 
+      <div className="w-px h-3.5 bg-slate-800 mx-1 hidden sm:block" />
+      <span className="text-[11px] text-slate-400">
+        Créneaux : <strong className="text-slate-300">M</strong>atin (8h-12h), <strong className="text-slate-300">A</strong>près-midi (12h-18h), <strong className="text-slate-300">S</strong>oirée (18h-00h)
+      </span>
+
+
       {showEvents && (
         <>
           <div className="w-px h-3.5 bg-slate-800 mx-1 hidden sm:block" />

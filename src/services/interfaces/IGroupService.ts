@@ -64,5 +64,6 @@ export interface IGroupService {
   subscribeToGroupPlannings(groupId: string, callback: (plannings: import("../../models/Group").GroupPlanning[]) => void): () => void;
 
   /** Met à jour le planning du groupe pour un membre */
-  updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").AvailabilityStatus>): Promise<void>;
+  updateGroupPlanning(groupId: string, userId: string, dates: Record<string, import("../../models/Group").UserDayAvailability>): Promise<void>;
 }
+

@@ -67,14 +67,25 @@ describe('DayEventsModal', () => {
     expect(screen.getByText('Restaurant Italien')).toBeInTheDocument();
     expect(screen.getByText(/2 sur 3 disponibles/i)).toBeInTheDocument();
 
-    // Boutons de disponibilité
-    const dispoBtn = screen.getByRole('button', { name: /^Dispo$/i });
-    fireEvent.click(dispoBtn);
-    expect(handleUpdate).toHaveBeenCalledWith('2026-10-24', 'available');
+    // Boutons de disponibilité par créneau
+    const dispoBtns = screen.getAllByRole('button', { name: /Dispo/i });
+    expect(dispoBtns.length).toBeGreaterThanOrEqual(3);
+    fireEvent.click(dispoBtns[0]);
+    expect(handleUpdate).toHaveBeenCalledWith('2026-10-24', expect.objectContaining({ morning: 'available' }));
+
+    // Bouton Toute la journée
+    const allDayBtn = screen.getByRole('button', { name: /Toute la journée/i });
+    fireEvent.click(allDayBtn);
+    expect(handleUpdate).toHaveBeenCalledWith('2026-10-24', {
+      morning: 'available',
+      afternoon: 'available',
+      evening: 'available',
+    });
 
     // Fermeture
     const closeBtn = screen.getByRole('button', { name: /Fermer/i });
     fireEvent.click(closeBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
+
   });
 });

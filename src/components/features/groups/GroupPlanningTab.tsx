@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { GroupPlanning, AvailabilityStatus, MemberProfile } from '../../../models/Group';
+import type { GroupPlanning, AvailabilityStatus, MemberProfile, UserDayAvailability, DaySlot } from '../../../models/Group';
 import type { Event } from '../../../models/Event';
+
 import { GroupPlanningHeader } from './GroupPlanningHeader';
 import { GroupPlanningDayCell } from './GroupPlanningDayCell';
 import { GroupPlanningLegend } from './GroupPlanningLegend';
 import { DayEventsModal } from '../events/DayEventsModal';
 import { groupEventsByDate } from '../../../utils/calendarEventUtils';
 import { getTodayDateStr } from '../../../utils/dateUtils';
+import { normalizeSlotsAvailability, aggregateDayStatus } from '../../../utils/timeSlotUtils';
 
 interface GroupPlanningTabProps {
   groupId: string;
   currentUserId: string;
   plannings: GroupPlanning[];
-  onUpdatePlanning: (userId: string, dates: Record<string, AvailabilityStatus>) => Promise<boolean>;
+  onUpdatePlanning: (userId: string, dates: Record<string, UserDayAvailability>) => Promise<boolean>;
   events?: Event[];
   totalMembers?: number;
   memberProfiles?: Record<string, MemberProfile>;
@@ -28,13 +30,13 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
   events = [],
   totalMembers = 0,
 }) => {
-  const EMPTY_PLANNING: Record<string, AvailabilityStatus> = useMemo(() => ({}), []);
+  const EMPTY_PLANNING: Record<string, UserDayAvailability> = useMemo(() => ({}), []);
   const myPlanning = useMemo(
     () => plannings.find((p) => p.userId === currentUserId)?.dates || EMPTY_PLANNING,
     [plannings, currentUserId, EMPTY_PLANNING]
   );
 
-  const [pendingDates, setPendingDates] = useState<Record<string, AvailabilityStatus> | null>(null);
+  const [pendingDates, setPendingDates] = useState<Record<string, UserDayAvailability> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showEvents, setShowEvents] = useState(true);
   const [hidePastEvents, setHidePastEvents] = useState(false);
@@ -42,6 +44,7 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
 
   const displayDates = useMemo(() => pendingDates ?? myPlanning, [myPlanning, pendingDates]);
   const todayDateStr = useMemo(() => getTodayDateStr(), []);
+
 
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();
@@ -51,9 +54,9 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
   });
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingSaveRef = useRef<Record<string, AvailabilityStatus> | null>(null);
+  const pendingSaveRef = useRef<Record<string, UserDayAvailability> | null>(null);
 
-  const saveDates = (newDates: Record<string, AvailabilityStatus>) => {
+  const saveDates = (newDates: Record<string, UserDayAvailability>) => {
     setPendingDates(newDates);
     pendingSaveRef.current = newDates;
 
@@ -85,6 +88,7 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
       }
     }, 500);
   };
+
 
   useEffect(() => {
     return () => {
@@ -129,10 +133,32 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
     return 'unavailable';
   };
 
-  const handleToggleDate = (dateStr: string) => {
-    const currentStatus = displayDates[dateStr] || 'unavailable';
-    const nextStatus = toggleStatus(currentStatus);
-    saveDates({ ...displayDates, [dateStr]: nextStatus });
+  const handleToggleSlot = (dateStr: string, slot: DaySlot) => {
+    const dayAvail = displayDates[dateStr];
+    const slots = normalizeSlotsAvailability(dayAvail);
+    const nextStatus = toggleStatus(slots[slot]);
+    saveDates({
+      ...displayDates,
+      [dateStr]: {
+        ...slots,
+        [slot]: nextStatus,
+      },
+    });
+  };
+
+  const handleToggleAllDay = (dateStr: string) => {
+    const dayAvail = displayDates[dateStr];
+    const slots = normalizeSlotsAvailability(dayAvail);
+    const currentDayStatus = aggregateDayStatus(slots);
+    const nextStatus = toggleStatus(currentDayStatus);
+    saveDates({
+      ...displayDates,
+      [dateStr]: {
+        morning: nextStatus,
+        afternoon: nextStatus,
+        evening: nextStatus,
+      },
+    });
   };
 
   const handleHeaderClick = (dayIndex: number) => {
@@ -140,11 +166,15 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
     const monthDays = daysInMonth.filter((d) => d !== null && d.dayOfWeek === jsDay) as { dateStr: string }[];
     if (monthDays.length === 0) return;
 
-    const firstStatus = displayDates[monthDays[0].dateStr] || 'unavailable';
+    const firstStatus = aggregateDayStatus(normalizeSlotsAvailability(displayDates[monthDays[0].dateStr]));
     const nextStatus = toggleStatus(firstStatus);
     const newDates = { ...displayDates };
     monthDays.forEach((d) => {
-      newDates[d.dateStr] = nextStatus;
+      newDates[d.dateStr] = {
+        morning: nextStatus,
+        afternoon: nextStatus,
+        evening: nextStatus,
+      };
     });
     saveDates(newDates);
   };
@@ -202,7 +232,6 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
               return <div key={`empty-${idx}`} className="p-1 sm:p-2 rounded-xl" />;
             }
             const dateStr = dayObj.dateStr;
-            const status = displayDates[dateStr];
             const isPast = dateStr < todayDateStr;
             const isToday = dateStr === todayDateStr;
             const dayEvents = eventsByDate.get(dateStr) || [];
@@ -212,7 +241,7 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
                 key={dateStr}
                 date={dayObj.date}
                 dateStr={dateStr}
-                status={status}
+                userAvailability={displayDates[dateStr]}
                 isPast={isPast}
                 isToday={isToday}
                 events={dayEvents}
@@ -220,7 +249,8 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
                 groupId={groupId}
                 plannings={plannings}
                 totalMembers={totalMembers}
-                onToggleDate={handleToggleDate}
+                onToggleSlot={handleToggleSlot}
+                onToggleAllDay={handleToggleAllDay}
                 onOpenDayModal={(d) => setModalDateStr(d)}
               />
             );
@@ -238,8 +268,8 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
             events={eventsByDate.get(modalDateStr) || []}
             groupId={groupId}
             userAvailability={displayDates[modalDateStr]}
-            onUpdateAvailability={(d, st) => {
-              saveDates({ ...displayDates, [d]: st });
+            onUpdateAvailability={(d, newSlots) => {
+              saveDates({ ...displayDates, [d]: newSlots });
             }}
             plannings={plannings}
             totalMembers={totalMembers}
@@ -250,3 +280,4 @@ export const GroupPlanningTab: React.FC<GroupPlanningTabProps> = ({
     </div>
   );
 };
+

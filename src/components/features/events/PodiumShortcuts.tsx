@@ -1,12 +1,14 @@
 import React from 'react';
 import { Trophy } from 'lucide-react';
 import type { DateAvailabilityScore } from '../../../models/Availability';
+import type { DaySlot } from '../../../models/Group';
 import { formatDateShortFr } from '../../../utils/dateUtils';
+import { formatSlotLabel } from '../../../utils/timeSlotUtils';
 
 interface PodiumShortcutsProps {
   topDates: DateAvailabilityScore[];
   selectedDateStr: string | null;
-  onSelectDate: (dateStr: string) => void;
+  onSelectDate: (dateStr: string, slot?: DaySlot) => void;
 }
 
 export const PodiumShortcuts: React.FC<PodiumShortcutsProps> = ({
@@ -30,13 +32,14 @@ export const PodiumShortcuts: React.FC<PodiumShortcutsProps> = ({
           const availableCount = td.available.length;
           const total = td.totalMembers || availableCount;
           const percent = Math.round(td.availableRatio * 100);
+          const slotLabel = td.slot ? formatSlotLabel(td.slot, false) : td.timeSlot !== 'Toute la journée' ? td.timeSlot : null;
 
           return (
             <button
-              key={td.date}
+              key={`${td.date}-${td.slot || td.timeSlot}`}
               type="button"
-              onClick={() => onSelectDate(td.date)}
-              className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between gap-2 cursor-pointer ${
+              onClick={() => onSelectDate(td.date, td.slot)}
+              className={`p-2.5 sm:p-2 min-h-[48px] rounded-xl border text-left transition-all flex items-center justify-between gap-2 cursor-pointer active:scale-98 ${
                 isSelected
                   ? 'bg-amber-500/15 border-amber-500/60 ring-2 ring-primary-400 shadow-md shadow-amber-500/10'
                   : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
@@ -48,13 +51,14 @@ export const PodiumShortcuts: React.FC<PodiumShortcutsProps> = ({
                 </span>
                 <div className="min-w-0">
                   <div className="text-xs font-bold text-white capitalize truncate">
-                    {formatDateShortFr(td.date)}
+                    {formatDateShortFr(td.date)} {slotLabel && <span className="text-amber-300 font-semibold">• {slotLabel}</span>}
                   </div>
                   <div className="text-[11px] text-slate-400">
-                    Rang #{td.rank}
+                    Rang #{td.rank} {td.slot && <span className="text-[10px] text-slate-500">({td.timeSlot})</span>}
                   </div>
                 </div>
               </div>
+
 
               <div className="text-right shrink-0">
                 <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
