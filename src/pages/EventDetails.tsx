@@ -337,6 +337,10 @@ export const EventDetails = () => {
                 onSave={handleSaveParticipation}
                 hasCompletedPlanning={isUserPlanningCompleted(plannings, user?.uid)}
                 groupId={groupId || ''}
+                participations={participations}
+                memberProfiles={memberProfiles}
+                currentUserId={user?.uid}
+                showMemberStatuses={event.dateMode !== 'fixed'}
               />
 
               {/* Colonne droite : Synthèse des réponses et dates OU Participants si date fixe */}

@@ -44,10 +44,9 @@ describe('EventSynthesis', () => {
       />
     );
 
-    // Titre et statuts
+    // Titre présent, sans doublon de la liste « Statut des membres » déplacée dans Ta participation
     expect(screen.getByText('Disponibilités & Calendrier')).toBeInTheDocument();
-    expect(screen.getByText('Alice (Moi)')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.queryByText(/Statut des membres/i)).not.toBeInTheDocument();
 
     // Vérifier l'absence formelle de l'option manuelle supprimée
     expect(screen.queryByText(/manuellement hors sondage/i)).not.toBeInTheDocument();

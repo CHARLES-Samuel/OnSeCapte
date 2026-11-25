@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { TimeSlot, EventParticipation, EventState, Event } from '../../../models/Event';
 import type { GroupPlanning, MemberProfile } from '../../../models/Group';
-import { CheckCircle, XCircle, Users, Lock, Unlock } from 'lucide-react';
+import { Unlock } from 'lucide-react';
 import { AvailabilityHeatmapCalendar } from './AvailabilityHeatmapCalendar';
 import { EventVotingProgressBar } from './EventVotingProgressBar';
 import { ForceLockWarning } from './ForceLockWarning';
@@ -78,7 +78,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
 
 
   return (
-    <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-6">
+    <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-6 min-w-0 h-fit">
       {/* En-tête : Titre & Progression */}
       <div>
         <h2 className="text-lg sm:text-xl font-bold text-white mb-3">
@@ -117,40 +117,6 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
           onLockDate={handleRequestLock}
         />
       )}
-
-      {/* Réponses individuelles des membres */}
-      <div className="pt-2 border-t border-slate-800">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5 text-blue-400" />
-          <span>Statut des membres ({memberList.length})</span>
-        </h3>
-        <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 scrollbar-none">
-          {memberList.map((m) => (
-            <div
-              key={m.userId}
-              className="flex justify-between items-center bg-slate-900/70 px-3 py-2 rounded-lg border border-slate-800/80 text-xs"
-            >
-              <span className="font-medium text-slate-300">
-                {memberProfiles[m.userId]?.displayName || 'Un membre'}{' '}
-                {m.userId === currentUserId && '(Moi)'}
-              </span>
-              {m.status === 'participating' ? (
-                <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Participe
-                </span>
-              ) : m.status === 'not_participating' ? (
-                <span className="text-red-400 font-semibold flex items-center gap-1">
-                  <XCircle className="w-3 h-3" /> Absent(e)
-                </span>
-              ) : (
-                <span className="text-slate-400 flex items-center gap-1">
-                  <Lock className="w-3 h-3" /> En attente
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Déverrouillage si le sondage est clos */}
       {isLocked && canLock && onUnlock && (

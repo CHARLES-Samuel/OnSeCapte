@@ -128,13 +128,13 @@ export const EventParticipationButtons: React.FC<EventParticipationButtonsProps>
 
   // variant === 'full' (page détail / UserAvailabilityForm)
   return (
-    <div className={`flex gap-3 sm:gap-4 ${className}`}>
+    <div className={`flex gap-2.5 sm:gap-4 min-w-0 ${className}`}>
       <button
         type="button"
         disabled={disabled || isLoading}
         onClick={(e) => handleClick(e, 'participating')}
         aria-pressed={isParticipating}
-        className={`flex-1 py-3 px-3 rounded-xl font-medium border flex items-center justify-center gap-2 transition text-xs sm:text-sm min-h-[44px] ${
+        className={`flex-1 min-w-0 py-3 px-2.5 sm:px-3 rounded-xl font-medium border flex items-center justify-center gap-1.5 sm:gap-2 transition text-xs sm:text-sm min-h-[44px] ${
           isParticipating
             ? 'bg-primary-600 border-primary-500 text-white shadow-lg shadow-primary-600/20'
             : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
@@ -145,7 +145,7 @@ export const EventParticipationButtons: React.FC<EventParticipationButtonsProps>
         ) : (
           <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" aria-hidden="true" />
         )}
-        <span>Je participe</span>
+        <span className="truncate">Je participe</span>
       </button>
 
       <button
@@ -153,7 +153,7 @@ export const EventParticipationButtons: React.FC<EventParticipationButtonsProps>
         disabled={disabled || isLoading}
         onClick={(e) => handleClick(e, 'not_participating')}
         aria-pressed={isNotParticipating}
-        className={`flex-1 py-3 px-3 rounded-xl font-medium border flex items-center justify-center gap-2 transition text-xs sm:text-sm min-h-[44px] ${
+        className={`flex-1 min-w-0 py-3 px-2.5 sm:px-3 rounded-xl font-medium border flex items-center justify-center gap-1.5 sm:gap-2 transition text-xs sm:text-sm min-h-[44px] ${
           isNotParticipating
             ? 'bg-red-500/20 border-red-500 text-red-400'
             : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
@@ -164,7 +164,7 @@ export const EventParticipationButtons: React.FC<EventParticipationButtonsProps>
         ) : (
           <XCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" aria-hidden="true" />
         )}
-        <span>Pas dispo</span>
+        <span className="truncate">Pas dispo</span>
       </button>
     </div>
   );

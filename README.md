@@ -180,9 +180,11 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
 - **Gestion de l'indisponibilité globale & Imprévus après date fixée :**
   - Possibilité de déclarer son indisponibilité totale en un clic.
   - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu tant que l'événement n'est pas passé.
-- **Retour Visuel Immédiat & Feedback Utilisateur :**
-  - État de chargement explicite (*"Enregistrement en cours..."*) et désactivation des champs pendant la sauvegarde.
-  - Notification Toast flottante auto-temporisée (3,5 secondes) confirmant la prise en compte.
+- **Retour Visuel Immédiat & Statut des Membres en Direct sous les Boutons (`UserAvailabilityForm` & `EventMemberStatusList`) :**
+  - **Proximité Immédiate Action / Résultat :** Le bloc **« Statut des membres (N) »** est positionné directement sous les boutons **Je participe** / **Pas dispo** au sein de la carte *« Ta participation »* (sans doublon dans la colonne de droite `EventSynthesis`), évitant tout aller-retour ou défilement inutile sur desktop comme sur mobile.
+  - **Mise à Jour Optimiste & Temps Réel :** Dès qu'un membre clique sur ses boutons, sa propre ligne (affichée en tête avec le badge distinctif **Moi** et le statut *Participe* / *Pas dispo*) ainsi que le compteur se mettent à jour instantanément, tout en reflétant en direct les réponses des autres membres via Firestore (`onSnapshot`).
+  - **Gestion Sans Scroll Imbriqué des Grands Groupes :** Affichage épuré des 5 premières réponses avec bouton dépliable **« Voir tout (+X) » / « Voir moins »** évitant tout piège de double défilement tactile sur mobile, et troncature fluide garantie sans débordement dès `320px` de largeur.
+  - État de chargement explicite et désactivation des boutons pendant la sauvegarde, accompagnés d'une notification Toast flottante auto-temporisée (3,5 secondes).
   - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Indisponible* ou *Réponse en attente*).
 - **Affichage Épuré pour les Événements à Date Fixe (`EventFixedParticipantsList`) :**
   - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), la vue calendrier de sondage est masquée au profit d'une liste claire et ciblée des participants inscrits et indisponibles.

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { EventParticipation } from '../../../models/Event';
+import type { MemberProfile } from '../../../models/Group';
 import { CheckCircle, XCircle, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { Toast } from '../../ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import { EventParticipationButtons } from './EventParticipationButtons';
+import { EventMemberStatusList } from './EventMemberStatusList';
 
 interface UserAvailabilityFormProps {
   isLocked: boolean;
@@ -11,6 +13,10 @@ interface UserAvailabilityFormProps {
   onSave: (participation: EventParticipation) => Promise<void>;
   hasCompletedPlanning: boolean;
   groupId: string;
+  participations?: Record<string, EventParticipation>;
+  memberProfiles?: Record<string, MemberProfile>;
+  currentUserId?: string;
+  showMemberStatuses?: boolean;
 }
 
 export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
@@ -19,10 +25,15 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
   onSave,
   hasCompletedPlanning,
   groupId,
+  participations = {},
+  memberProfiles = {},
+  currentUserId,
+  showMemberStatuses = true,
 }) => {
   const navigate = useNavigate();
   const [participation, setParticipation] = useState<EventParticipation>(currentUserResponse);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<EventParticipation | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('Votre réponse a été enregistrée ✓');
@@ -31,10 +42,22 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
     setParticipation(currentUserResponse);
   }, [currentUserResponse]);
 
+  const effectiveParticipations = useMemo(() => {
+    if (!currentUserId) return participations;
+    if (participation === 'participating' || participation === 'not_participating') {
+      return {
+        ...participations,
+        [currentUserId]: participation,
+      };
+    }
+    return participations;
+  }, [participations, currentUserId, participation]);
+
   const handleSubmit = async (newParticipation: EventParticipation) => {
     if (isSaving) return;
 
     setParticipation(newParticipation);
+    setPendingStatus(newParticipation);
     setSaveError(null);
     setIsSaving(true);
 
@@ -47,15 +70,17 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
       );
       setShowToast(true);
     } catch (err) {
+      setParticipation(currentUserResponse);
       const msg = err instanceof Error ? err.message : 'Impossible d’enregistrer votre réponse.';
       setSaveError(msg);
     } finally {
       setIsSaving(false);
+      setPendingStatus(null);
     }
   };
 
   return (
-    <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-6">
+    <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-5 h-fit min-w-0">
       <div>
         <h2 className="text-lg sm:text-xl font-bold mb-1 text-white">Ta participation</h2>
         <p className="text-xs sm:text-sm text-slate-400">
@@ -113,23 +138,33 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-5 min-w-0">
         <EventParticipationButtons
           currentParticipation={participation}
           onSelect={handleSubmit}
           isLoading={isSaving}
+          pendingStatus={pendingStatus}
           variant="full"
         />
 
+        {showMemberStatuses && (
+          <EventMemberStatusList
+            participations={effectiveParticipations}
+            memberProfiles={memberProfiles}
+            currentUserId={currentUserId}
+          />
+        )}
+
         {!isLocked && participation === 'participating' && !hasCompletedPlanning && (
-          <div className="bg-primary-500/10 border border-primary-500/30 p-4 rounded-xl text-primary-300 text-sm font-medium flex flex-col items-center text-center gap-3">
-            <CalendarDays className="w-8 h-8 text-primary-400" />
+          <div className="bg-primary-500/10 border border-primary-500/30 p-4 rounded-xl text-primary-300 text-xs sm:text-sm font-medium flex flex-col items-center text-center gap-3">
+            <CalendarDays className="w-7 h-7 sm:w-8 sm:h-8 text-primary-400 shrink-0" aria-hidden="true" />
             <p>Indique tes disponibilités dans le planning du groupe en 10 secondes pour calculer les meilleures dates !</p>
             <button
+              type="button"
               onClick={() => {
                 navigate(`/groups/${groupId}?tab=planning`); 
               }}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg shadow-sm hover:bg-primary-500 transition w-full"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg shadow-sm hover:bg-primary-500 transition w-full min-h-[40px]"
             >
               Aller au planning du groupe
             </button>
