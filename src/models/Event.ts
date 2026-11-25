@@ -1,3 +1,5 @@
+import type { DaySlot } from './Group';
+
 export type EventCategory = 'Restaurant' | 'Jeux de rôle' | 'Soirée' | 'Repas' | 'Sport' | 'Gaming' | 'Autres';
 export type EventState = 'sondage' | 'planifie' | 'passe';
 export type TimeSlot = 'Matin' | 'Après-midi' | 'Soirée' | 'Toute la journée';
@@ -21,6 +23,7 @@ export interface Event {
   startDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
   endDate?: string; // 'YYYY-MM-DD' si dateMode === 'range'
   dates?: string[]; // Tableau de dates 'YYYY-MM-DD' pour plusieurs dates ponctuelles ou candidates
+  timePreference?: DaySlot[]; // Créneaux souhaités ([] ou undefined = Peu importe)
   participations?: Record<string, EventParticipation>;
   finalDate?: string; // 'YYYY-MM-DD'
   finalTimeSlot?: TimeSlot;
@@ -38,6 +41,7 @@ export interface CreateEventDTO {
   startDate?: string;
   endDate?: string;
   dates?: string[];
+  timePreference?: DaySlot[];
   finalDate?: string;
   finalTimeSlot?: TimeSlot;
   location?: string;

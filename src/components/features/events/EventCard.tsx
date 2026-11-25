@@ -6,6 +6,7 @@ import { MarkdownView } from '../../ui/MarkdownView';
 import { UserAvatar } from '../../ui/UserAvatar';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
+import { EventTimePreferenceBadge } from './EventTimePreferenceBadge';
 import { EventParticipationButtons } from './EventParticipationButtons';
 import { formatPrice, formatDateShort } from '../../../utils/format';
 
@@ -67,7 +68,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, groupId, canEditOrD
               <span>Sondage de dates</span>
             </div>
           )}
-          
+
+          <EventTimePreferenceBadge event={event} variant="card" />
           <EventParticipationBadge event={event} />
         </div>
         

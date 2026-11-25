@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { Event, EventCategory, CreateEventDTO, EventDateMode, TimeSlot } from "../../../models/Event";
+import type { DaySlot } from "../../../models/Group";
 import { EventDateModeSelector } from "./EventDateModeSelector";
 import { isDatePast } from "../../../utils/dateUtils";
+import { normalizeTimePreference } from "../../../utils/timeSlotUtils";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -38,6 +40,7 @@ export const EditEventModal = ({
   const [endDate, setEndDate] = useState("");
   const [finalDate, setFinalDate] = useState("");
   const [finalTimeSlot, setFinalTimeSlot] = useState<TimeSlot>("Soirée");
+  const [timePreference, setTimePreference] = useState<DaySlot[]>([]);
   const [location, setLocation] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,6 +57,7 @@ export const EditEventModal = ({
       setEndDate(event.endDate || "");
       setFinalDate(event.finalDate || "");
       setFinalTimeSlot(event.finalTimeSlot || "Soirée");
+      setTimePreference(normalizeTimePreference(event.timePreference));
       setLocation(event.location || "");
       setLink(event.link || "");
     }
@@ -107,6 +111,7 @@ export const EditEventModal = ({
     try {
       setLoading(true);
       setError(null);
+      const normalizedPref = normalizeTimePreference(timePreference);
       const success = await onSubmit({
         title: title.trim(),
         description: description.trim(),
@@ -115,6 +120,8 @@ export const EditEventModal = ({
         dateMode,
         startDate: dateMode === 'range' ? startDate : undefined,
         endDate: dateMode === 'range' ? endDate : undefined,
+        timePreference:
+          dateMode !== 'fixed' && normalizedPref.length > 0 ? normalizedPref : undefined,
         finalDate: dateMode === 'fixed' ? finalDate : undefined,
         finalTimeSlot: dateMode === 'fixed' ? finalTimeSlot : undefined,
         location: location.trim() || undefined,
@@ -200,6 +207,8 @@ export const EditEventModal = ({
             onFinalDateChange={setFinalDate}
             finalTimeSlot={finalTimeSlot}
             onFinalTimeSlotChange={setFinalTimeSlot}
+            timePreference={timePreference}
+            onTimePreferenceChange={setTimePreference}
             disabled={loading}
           />
 

@@ -37,6 +37,7 @@ export class FirestoreEventService implements IEventService {
       startDate: data.startDate,
       endDate: data.endDate,
       dates: Array.isArray(data.dates) ? data.dates : undefined,
+      timePreference: Array.isArray(data.timePreference) ? data.timePreference : undefined,
       participations: data.participations || {},
       finalDate: data.finalDate,
       finalTimeSlot: data.finalTimeSlot,

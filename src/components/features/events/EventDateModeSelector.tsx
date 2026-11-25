@@ -1,7 +1,9 @@
 import React from 'react';
 import { CalendarRange, CalendarCheck, Sparkles } from 'lucide-react';
 import type { EventDateMode, TimeSlot } from '../../../models/Event';
+import type { DaySlot } from '../../../models/Group';
 import { getTodayDateStr } from '../../../utils/dateUtils';
+import { EventTimePreferencePicker } from './EventTimePreferencePicker';
 
 interface EventDateModeSelectorProps {
   dateMode: EventDateMode;
@@ -14,6 +16,8 @@ interface EventDateModeSelectorProps {
   onFinalDateChange: (val: string) => void;
   finalTimeSlot: TimeSlot;
   onFinalTimeSlotChange: (slot: TimeSlot) => void;
+  timePreference?: DaySlot[];
+  onTimePreferenceChange?: (pref: DaySlot[]) => void;
   disabled?: boolean;
 }
 
@@ -30,6 +34,8 @@ export const EventDateModeSelector: React.FC<EventDateModeSelectorProps> = ({
   onFinalDateChange,
   finalTimeSlot,
   onFinalTimeSlotChange,
+  timePreference,
+  onTimePreferenceChange,
   disabled = false,
 }) => {
   // Normaliser 'poll' vers 'any' pour affichage uniforme
@@ -144,6 +150,15 @@ export const EventDateModeSelector: React.FC<EventDateModeSelectorProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Moment de la journée souhaité pour les modes Sans restriction et Plage */}
+      {(activeMode === 'any' || activeMode === 'range') && onTimePreferenceChange && (
+        <EventTimePreferencePicker
+          value={timePreference}
+          onChange={onTimePreferenceChange}
+          disabled={disabled}
+        />
       )}
 
       {/* Champs pour Date fixe */}

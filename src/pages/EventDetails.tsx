@@ -15,6 +15,7 @@ import { PastEventView } from '../components/features/events/PastEventView';
 import { MarkdownView } from '../components/ui/MarkdownView';
 import { ConfirmModal, type ConfirmVariant } from '../components/ui/ConfirmModal';
 import { CategoryBadge } from '../components/ui/CategoryBadge';
+import { EventTimePreferenceBadge } from '../components/features/events/EventTimePreferenceBadge';
 import { useEventParticipation } from '../hooks/useEventParticipation';
 import { isUserPlanningCompleted } from '../services/eventParticipationService';
 import { formatSlotLabel } from '../utils/timeSlotUtils';
@@ -195,6 +196,7 @@ export const EventDetails = () => {
                     <span>Plage : {formatDateShort(event.startDate)} - {formatDateShort(event.endDate)}</span>
                   </span>
                 )}
+                <EventTimePreferenceBadge event={event} variant="header" hideWhenLocked={false} />
               </div>
               
               {!isPast && (event.location || event.link) && (

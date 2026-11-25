@@ -23,6 +23,7 @@ export interface AvailabilityCalculationParams {
   dateMode?: EventDateMode;
   startDate?: string;
   endDate?: string;
+  timePreference?: DaySlot[];
   plannings: GroupPlanning[];
   participations?: Record<string, EventParticipation>;
   allMemberIds: string[];

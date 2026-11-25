@@ -10,10 +10,10 @@ import {
   getTodayDateStr,
 } from '../../utils/dateUtils';
 import {
-  DAY_SLOTS,
   normalizeSlotsAvailability,
   aggregateDayStatus,
   daySlotToTimeSlot,
+  getEffectiveDaySlots,
 } from '../../utils/timeSlotUtils';
 
 export function getDatesToEvaluate(
@@ -99,11 +99,13 @@ export function calculateDayAggregatedScore(
   plannings: AvailabilityCalculationParams['plannings'],
   participations: Record<string, string>,
   totalTarget: number,
-  slots: Record<DaySlot, DateAvailabilityScore>
+  slots: Record<DaySlot, DateAvailabilityScore>,
+  timePreference?: DaySlot[]
 ): DateAvailabilityScore {
   const available: string[] = [];
   const maybe: string[] = [];
   const unavailable: string[] = [];
+  const targetSlots = getEffectiveDaySlots(timePreference);
 
   allMemberIds.forEach((uid) => {
     if (participations[uid] === 'not_participating') {
@@ -113,7 +115,7 @@ export function calculateDayAggregatedScore(
 
     const userPlanning = plannings.find((p) => p.userId === uid);
     const normalizedSlots = normalizeSlotsAvailability(userPlanning?.dates?.[dateStr]);
-    const dayStatus = aggregateDayStatus(normalizedSlots);
+    const dayStatus = aggregateDayStatus(normalizedSlots, targetSlots);
 
     if (dayStatus === 'available') {
       available.push(uid);
@@ -141,13 +143,17 @@ export function calculateDayAggregatedScore(
   };
 }
 
-export function assignPodiumRanks(scoresList: DateAvailabilityScore[]): void {
+export function assignPodiumRanks(
+  scoresList: DateAvailabilityScore[],
+  timePreference?: DaySlot[]
+): void {
   const todayStr = getTodayDateStr();
   const candidateSlots: DateAvailabilityScore[] = [];
+  const targetSlots = getEffectiveDaySlots(timePreference);
 
   scoresList.forEach((dayScore) => {
     if (dayScore.date >= todayStr && dayScore.slots) {
-      DAY_SLOTS.forEach((slotKey) => {
+      targetSlots.forEach((slotKey) => {
         const slotScore = dayScore.slots![slotKey];
         if (slotScore.available.length > 0 || slotScore.maybe.length > 0) {
           candidateSlots.push(slotScore);
@@ -196,7 +202,7 @@ export function assignPodiumRanks(scoresList: DateAvailabilityScore[]): void {
 
   scoresList.forEach((dayScore) => {
     if (dayScore.slots) {
-      const ranks = DAY_SLOTS
+      const ranks = targetSlots
         .map((s) => dayScore.slots![s].rank)
         .filter((r): r is PodiumRank => r !== undefined);
       if (ranks.length > 0) {

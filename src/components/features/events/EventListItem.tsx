@@ -5,6 +5,7 @@ import type { Event, EventParticipation } from '../../../models/Event';
 import { CategoryBadge } from '../../ui/CategoryBadge';
 import { EventParticipationBadge } from './EventParticipationBadge';
 import { EventListDateBadge } from './EventListDateBadge';
+import { EventTimePreferenceBadge } from './EventTimePreferenceBadge';
 import { EventListDescription } from './EventListDescription';
 import { EventParticipationButtons } from './EventParticipationButtons';
 import { EventActionsMenu } from './EventActionsMenu';
@@ -92,6 +93,7 @@ export const EventListItem: React.FC<EventListItemProps> = ({
         {/* Statut / Date et Lieu */}
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <EventListDateBadge event={event} />
+          <EventTimePreferenceBadge event={event} variant="list" />
           {event.location && (
             <span
               className="inline-flex items-center gap-1 text-xs text-slate-400 shrink-0 max-w-[130px] sm:max-w-[200px]"

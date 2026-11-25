@@ -19,6 +19,7 @@ export class AvailabilityService implements IAvailabilityService {
       dateMode = 'any',
       startDate,
       endDate,
+      timePreference,
       plannings,
       participations = {},
       allMemberIds,
@@ -43,21 +44,22 @@ export class AvailabilityService implements IAvailabilityService {
       const afternoonScore = calculateSlotScore(dateStr, 'afternoon', allMemberIds, plannings, participations, totalTarget);
       const eveningScore = calculateSlotScore(dateStr, 'evening', allMemberIds, plannings, participations, totalTarget);
 
-      // Calcul pour la journée agrégée (disponible si disponible sur au moins 1 créneau)
+      // Calcul pour la journée agrégée (filtré sur timePreference si défini, sinon tous les créneaux)
       const dayScore = calculateDayAggregatedScore(
         dateStr,
         allMemberIds,
         plannings,
         participations,
         totalTarget,
-        { morning: morningScore, afternoon: afternoonScore, evening: eveningScore }
+        { morning: morningScore, afternoon: afternoonScore, evening: eveningScore },
+        timePreference
       );
 
       scoresList.push(dayScore);
     });
 
-    // Attribution du Podium Top 3 par (date, créneau)
-    assignPodiumRanks(scoresList);
+    // Attribution du Podium Top 3 par (date, créneau) en respectant timePreference
+    assignPodiumRanks(scoresList, timePreference);
 
     const resultMap = new Map<string, DateAvailabilityScore>();
     scoresList.forEach((item) => {

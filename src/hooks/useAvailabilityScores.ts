@@ -48,6 +48,7 @@ export const useAvailabilityScores = ({
       dateMode: event.dateMode,
       startDate: event.startDate,
       endDate: event.endDate,
+      timePreference: event.timePreference,
       plannings,
       participations: event.participations,
       allMemberIds: memberIds,

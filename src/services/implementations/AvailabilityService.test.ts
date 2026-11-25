@@ -1,9 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AvailabilityService } from './AvailabilityService';
 import type { GroupPlanning } from '../../models/Group';
 
 describe('AvailabilityService', () => {
   const service = new AvailabilityService();
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   describe('getIntensityLevel', () => {
     it('returns "none" if availableCount is 0 or availableRatio is 0', () => {
@@ -244,6 +253,72 @@ describe('AvailabilityService', () => {
       expect(topSlots[2].date).toBe('2026-10-28');
       expect(topSlots[2].slot).toBe('morning');
       expect(topSlots[2].rank).toBe(3);
+    });
+
+    it('filters podium and day heatmap score according to event timePreference', () => {
+      const plannings: GroupPlanning[] = [
+        {
+          userId: 'user1',
+          dates: {
+            // Le 20 oct : tout le monde dispo le MATIN uniquement, personne le soir
+            '2026-10-20': { morning: 'available', afternoon: 'unavailable', evening: 'unavailable' },
+            // Le 21 oct : dispo en SOIRÉE
+            '2026-10-21': { morning: 'unavailable', afternoon: 'unavailable', evening: 'available' },
+          },
+          updatedAt: Date.now(),
+        },
+        {
+          userId: 'user2',
+          dates: {
+            '2026-10-20': { morning: 'available', afternoon: 'unavailable', evening: 'unavailable' },
+            '2026-10-21': { morning: 'unavailable', afternoon: 'maybe', evening: 'available' },
+          },
+          updatedAt: Date.now(),
+        },
+        {
+          userId: 'user3',
+          dates: {
+            '2026-10-20': { morning: 'available', afternoon: 'unavailable', evening: 'unavailable' },
+            '2026-10-21': { morning: 'unavailable', afternoon: 'available', evening: 'unavailable' },
+          },
+          updatedAt: Date.now(),
+        },
+      ];
+
+      // Préférence : uniquement en Soirée
+      const eveningScores = service.calculateAvailability({
+        plannings,
+        allMemberIds: ['user1', 'user2', 'user3'],
+        dateMode: 'any',
+        timePreference: ['evening'],
+      });
+
+      // Le 20 oct (matin seulement) a 0 disponible pour une sortie en soirée et aucun rang au podium
+      expect(eveningScores.get('2026-10-20')?.available.length).toBe(0);
+      expect(eveningScores.get('2026-10-20')?.rank).toBeUndefined();
+
+      // Le 21 oct soir (2 dispos) décroche la 1ère place du podium
+      expect(eveningScores.get('2026-10-21')?.available.length).toBe(2);
+      expect(eveningScores.get('2026-10-21')?.rank).toBe(1);
+
+      const topEvening = service.getTopSlots(eveningScores, 3);
+      expect(topEvening).toHaveLength(1);
+      expect(topEvening[0].date).toBe('2026-10-21');
+      expect(topEvening[0].slot).toBe('evening');
+      expect(topEvening[0].rank).toBe(1);
+
+      // Préférence multi-sélection : Après-midi + Soirée
+      const afternoonEveningScores = service.calculateAvailability({
+        plannings,
+        allMemberIds: ['user1', 'user2', 'user3'],
+        dateMode: 'any',
+        timePreference: ['afternoon', 'evening'],
+      });
+
+      // Le 21 oct cumule user1, user2 (soir) et user3 (après-midi) => 3 disponibles sur les créneaux souhaités
+      expect(afternoonEveningScores.get('2026-10-21')?.available.length).toBe(3);
+      const topMulti = service.getTopSlots(afternoonEveningScores, 3);
+      expect(topMulti.every((s) => s.slot === 'afternoon' || s.slot === 'evening')).toBe(true);
     });
   });
 });

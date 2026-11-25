@@ -76,15 +76,74 @@ export function normalizeSlotsAvailability(
 }
 
 /**
- * Agrège les créneaux pour déterminer le statut d'un membre à l'échelle de la journée.
- * Règle retenue : Un membre est considéré comme 'available' s'il l'est sur au moins un créneau,
+ * Normalise la préférence de moment de la journée sur un événement.
+ * Un tableau vide, absent ou contenant les 3 créneaux équivaut à « Peu importe » ([]).
+ */
+export function normalizeTimePreference(raw?: readonly DaySlot[] | null): DaySlot[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [];
+  }
+  const canonical = DAY_SLOTS.filter((slot) => raw.includes(slot));
+  if (canonical.length === 0 || canonical.length === DAY_SLOTS.length) {
+    return [];
+  }
+  return canonical;
+}
+
+/**
+ * Bascule un créneau dans la multi-sélection « Moment de la journée souhaité ».
+ * Cliquer sur 'any' ou sélectionner les 3 créneaux ou tout décocher revient à « Peu importe » ([]).
+ */
+export function toggleTimePreferenceSlot(
+  current: readonly DaySlot[] | undefined,
+  target: DaySlot | 'any'
+): DaySlot[] {
+  if (target === 'any') {
+    return [];
+  }
+  const normalized = normalizeTimePreference(current);
+  const next = normalized.includes(target)
+    ? normalized.filter((s) => s !== target)
+    : [...normalized, target];
+
+  return normalizeTimePreference(next);
+}
+
+/**
+ * Retourne les créneaux effectifs à évaluer (tous les créneaux si « Peu importe »).
+ */
+export function getEffectiveDaySlots(timePreference?: readonly DaySlot[] | null): DaySlot[] {
+  const normalized = normalizeTimePreference(timePreference);
+  return normalized.length > 0 ? normalized : DAY_SLOTS;
+}
+
+/**
+ * Formate l'étiquette du badge de préférence horaire, ou null si « Peu importe ».
+ */
+export function formatTimePreferenceLabel(
+  timePreference?: readonly DaySlot[] | null
+): string | null {
+  const normalized = normalizeTimePreference(timePreference);
+  if (normalized.length === 0) {
+    return null;
+  }
+  return normalized.map((slot) => SLOT_DEFINITIONS[slot].shortLabel).join(' • ');
+}
+
+/**
+ * Agrège les créneaux pour déterminer le statut d'un membre à l'échelle de la journée (ou des créneaux souhaités).
+ * Règle retenue : Un membre est considéré comme 'available' s'il l'est sur au moins un créneau ciblé,
  * sinon 'maybe' s'il a au moins un 'maybe', sinon 'unavailable'.
  */
-export function aggregateDayStatus(slots: DaySlotsAvailability): AvailabilityStatus {
-  if (slots.morning === 'available' || slots.afternoon === 'available' || slots.evening === 'available') {
+export function aggregateDayStatus(
+  slots: DaySlotsAvailability,
+  targetSlots: readonly DaySlot[] = DAY_SLOTS
+): AvailabilityStatus {
+  const effectiveSlots = targetSlots.length > 0 ? targetSlots : DAY_SLOTS;
+  if (effectiveSlots.some((slot) => slots[slot] === 'available')) {
     return 'available';
   }
-  if (slots.morning === 'maybe' || slots.afternoon === 'maybe' || slots.evening === 'maybe') {
+  if (effectiveSlots.some((slot) => slots[slot] === 'maybe')) {
     return 'maybe';
   }
   return 'unavailable';

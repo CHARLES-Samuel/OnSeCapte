@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { EventCategory, CreateEventDTO, EventDateMode, TimeSlot } from "../../../models/Event";
+import type { DaySlot } from "../../../models/Group";
 import { EventDateModeSelector } from "./EventDateModeSelector";
 import { isDatePast } from "../../../utils/dateUtils";
+import { normalizeTimePreference } from "../../../utils/timeSlotUtils";
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -32,6 +34,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   const [endDate, setEndDate] = useState("");
   const [finalDate, setFinalDate] = useState("");
   const [finalTimeSlot, setFinalTimeSlot] = useState<TimeSlot>("Soirée");
+  const [timePreference, setTimePreference] = useState<DaySlot[]>([]);
   const [location, setLocation] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -93,6 +96,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
     try {
       setLoading(true);
       setError(null);
+      const normalizedPref = normalizeTimePreference(timePreference);
       const success = await onSubmit({
         title: title.trim(),
         description: description.trim(),
@@ -101,6 +105,8 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         dateMode,
         startDate: dateMode === 'range' ? startDate : undefined,
         endDate: dateMode === 'range' ? endDate : undefined,
+        timePreference:
+          dateMode !== 'fixed' && normalizedPref.length > 0 ? normalizedPref : undefined,
         finalDate: dateMode === 'fixed' ? finalDate : undefined,
         finalTimeSlot: dateMode === 'fixed' ? finalTimeSlot : undefined,
         location: location.trim() || undefined,
@@ -117,6 +123,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
         setEndDate("");
         setFinalDate("");
         setFinalTimeSlot("Soirée");
+        setTimePreference([]);
         setLocation("");
         setLink("");
         onClose();
@@ -197,6 +204,8 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
             onFinalDateChange={setFinalDate}
             finalTimeSlot={finalTimeSlot}
             onFinalTimeSlotChange={setFinalTimeSlot}
+            timePreference={timePreference}
+            onTimePreferenceChange={setTimePreference}
             disabled={loading}
           />
 

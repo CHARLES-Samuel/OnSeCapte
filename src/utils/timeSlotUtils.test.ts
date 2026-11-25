@@ -5,6 +5,10 @@ import {
   daySlotToTimeSlot,
   timeSlotToDaySlot,
   formatSlotLabel,
+  normalizeTimePreference,
+  toggleTimePreferenceSlot,
+  getEffectiveDaySlots,
+  formatTimePreferenceLabel,
   DAY_SLOTS,
 } from './timeSlotUtils';
 
@@ -121,6 +125,53 @@ describe('timeSlotUtils', () => {
       expect(formatSlotLabel('evening', true)).toBe('Soirée (18h - 00h)');
       expect(formatSlotLabel('Matin', true)).toBe('Matin (8h - 12h)');
       expect(formatSlotLabel('Toute la journée', true)).toBe('Toute la journée');
+    });
+  });
+
+  describe('timePreference helpers', () => {
+    it('normalizes undefined, empty, or all 3 slots to [] ("Peu importe")', () => {
+      expect(normalizeTimePreference(undefined)).toEqual([]);
+      expect(normalizeTimePreference([])).toEqual([]);
+      expect(normalizeTimePreference(['morning', 'afternoon', 'evening'])).toEqual([]);
+      expect(normalizeTimePreference(['evening', 'morning'])).toEqual(['morning', 'evening']);
+    });
+
+    it('toggles multi-selection slots and resets to [] on "any" or 3rd slot or unchecking last', () => {
+      let pref = toggleTimePreferenceSlot(undefined, 'evening');
+      expect(pref).toEqual(['evening']);
+
+      pref = toggleTimePreferenceSlot(pref, 'afternoon');
+      expect(pref).toEqual(['afternoon', 'evening']);
+
+      // Sélectionner le 3e créneau revient à Peu importe ([])
+      expect(toggleTimePreferenceSlot(pref, 'morning')).toEqual([]);
+
+      // Cliquer sur Peu importe ('any') réinitialise à []
+      expect(toggleTimePreferenceSlot(pref, 'any')).toEqual([]);
+
+      // Décocher le dernier créneau revient à Peu importe ([])
+      expect(toggleTimePreferenceSlot(['evening'], 'evening')).toEqual([]);
+    });
+
+    it('returns effective slots and formats badge labels accurately', () => {
+      expect(getEffectiveDaySlots(undefined)).toEqual(['morning', 'afternoon', 'evening']);
+      expect(getEffectiveDaySlots(['evening'])).toEqual(['evening']);
+
+      expect(formatTimePreferenceLabel(undefined)).toBeNull();
+      expect(formatTimePreferenceLabel([])).toBeNull();
+      expect(formatTimePreferenceLabel(['evening'])).toBe('Soirée');
+      expect(formatTimePreferenceLabel(['afternoon', 'evening'])).toBe('Après-midi • Soirée');
+    });
+
+    it('aggregates day status only across targeted timePreference slots when provided', () => {
+      const morningOnly = {
+        morning: 'available' as const,
+        afternoon: 'unavailable' as const,
+        evening: 'unavailable' as const,
+      };
+      expect(aggregateDayStatus(morningOnly)).toBe('available');
+      expect(aggregateDayStatus(morningOnly, ['evening'])).toBe('unavailable');
+      expect(aggregateDayStatus(morningOnly, ['morning', 'afternoon'])).toBe('available');
     });
   });
 });

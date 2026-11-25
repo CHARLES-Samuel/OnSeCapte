@@ -105,11 +105,15 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
       1. La **date exacte où l'événement s'est produit** (avec le créneau horaire).
       2. La **liste des personnes présentes** (avatars, pseudos et nombre de participants confirmés).
       3. La **description complète de l'événement** (au format Markdown).
-- **Fenêtre de Recherche & Plage de Dates à la Création (`EventDateModeSelector`) :**
+- **Fenêtre de Recherche, Plage de Dates & Moment Souhaité à la Création (`EventDateModeSelector`, `EventTimePreferencePicker`, `EventTimePreferenceBadge`) :**
   - **3 choix de date à la création et modification :**
     1. **Sans restriction :** L'algorithme analyse l'ensemble des plannings partagés glissants pour identifier les meilleures dates futures.
     2. **Plage de dates (Période restreinte) :** L'organisateur définit une fenêtre précise avec sélecteurs de *Date de début* et *Date de fin* (ex: *"Entre le 10 et le 25 du mois"*). Le calcul des scores, le podium et l'affichage interactif se restreignent automatiquement à cet intervalle (les dates extérieures sont atténuées et désactivées).
     3. **Date fixe :** Événement arrêté à un jour et un créneau horaire précis (contraint aux dates futures).
+  - **Moment de la journée souhaité (`timePreference`) :**
+    - Pour les modes *Sans restriction* et *Plage de dates*, l'organisateur peut préciser à la création comme à la modification le ou les moments souhaités en **multi-sélection** (*Matin*, *Après-midi*, *Soirée* ou *Peu importe* par défaut). Les événements existants sans champ sont automatiquement traités comme *Peu importe*.
+    - **Badge contextuel unifié (`EventTimePreferenceBadge`) :** Lorsqu'un ou plusieurs créneaux spécifiques sont souhaités (ex: *« Soirée »*, *« Après-midi • Soirée »*), un badge dédié s'affiche sur les cartes (`EventCard`), les lignes de liste (`EventListItem`) et dans l'en-tête de la page de détails (`EventDetails`), tout en restant masqué si *Peu importe* pour préserver la sobriété visuelle.
+    - **Prise en compte intelligente dans le Podium & la Heatmap :** Le calcul du Podium Top 3 (`assignPodiumRanks`) ainsi que l'intensité de la *Vue Jour* (`calculateDayAggregatedScore`) ne retiennent que les créneaux souhaités par l'organisateur (évitant par exemple de recommander un mardi matin pour un dîner souhaité en soirée).
   - **Indicateur visuel de plage :** Badge bleu informatif présent dans les listes d'événements et dans l'en-tête de la page de détails (*"Plage : 10 oct. - 25 oct."*).
 - **Disponibilité Granulaire par Créneau Horaire (Matin, Après-midi, Soirée) :**
   - **3 créneaux horaires par jour :**
