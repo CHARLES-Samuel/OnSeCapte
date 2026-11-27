@@ -119,7 +119,10 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
               <div className="space-y-2.5">
                 {events.map((event) => {
                   const theme = getCategoryTheme(event.category);
-                  const consensus = getEventConsensus(dateStr, plannings, totalMembers);
+                  const consensus = getEventConsensus(dateStr, plannings, totalMembers, {
+                    currentEvent: event,
+                    allEvents: events,
+                  });
 
                   return (
                     <div

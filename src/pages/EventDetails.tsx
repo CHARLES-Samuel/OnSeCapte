@@ -356,6 +356,7 @@ export const EventDetails = () => {
               ) : (
                 <EventSynthesis
                   event={event}
+                  allEvents={events}
                   respondedMembers={respondedMembers}
                   totalMembers={totalMembers}
                   participations={participations}

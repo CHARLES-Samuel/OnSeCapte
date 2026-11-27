@@ -226,6 +226,7 @@ export const DayAvailabilityDetails: React.FC<DayAvailabilityDetailsProps> = ({
         unavailable={unavailable}
         memberProfiles={memberProfiles}
         currentUserId={currentUserId}
+        busyReasons={displayedScore?.busyReasons}
       />
 
       {/* Zone d'action de verrouillage intégrée */}

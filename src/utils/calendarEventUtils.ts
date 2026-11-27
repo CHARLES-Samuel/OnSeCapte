@@ -1,6 +1,8 @@
 import type { Event } from '../models/Event';
 import type { GroupPlanning } from '../models/Group';
 import { getDateRangeDays, isDatePast, formatDateLongFr } from './dateUtils';
+import { normalizeSlotsAvailability, aggregateDayStatus, getEffectiveDaySlots } from './timeSlotUtils';
+import { buildBusyMembersByDate } from './eventConflictUtils';
 
 /**
  * Retourne la liste dédoublée et ordonnée de toutes les dates (YYYY-MM-DD) associées à un événement.
@@ -73,17 +75,34 @@ export interface EventConsensusInfo {
   shortText: string;
 }
 
+export interface EventConsensusOptions {
+  currentEvent?: Event;
+  allEvents?: readonly Event[];
+}
+
 /**
- * Calcule le consensus de disponibilité des membres sur une date donnée.
+ * Calcule le consensus de disponibilité des membres sur une date donnée,
+ * en décomptant les membres qui participent déjà à un autre événement fixe ou confirmé ce jour-là.
  */
 export const getEventConsensus = (
   dateStr: string,
   plannings: GroupPlanning[],
-  totalMembers: number
+  totalMembers: number,
+  options?: EventConsensusOptions
 ): EventConsensusInfo => {
-  const availableCount = plannings.filter(
-    (p) => p.dates && p.dates[dateStr] === 'available'
-  ).length;
+  const currentEvent = options?.currentEvent;
+  const busyByDate = buildBusyMembersByDate(options?.allEvents, currentEvent?.id);
+  const busyOnDate = busyByDate.get(dateStr);
+  const targetSlots = getEffectiveDaySlots(currentEvent?.timePreference);
+
+  const availableCount = plannings.filter((p) => {
+    if (!p.dates || !p.dates[dateStr]) return false;
+    if (currentEvent?.participations?.[p.userId] === 'not_participating') return false;
+    if (busyOnDate?.has(p.userId)) return false;
+
+    const normalized = normalizeSlotsAvailability(p.dates[dateStr]);
+    return aggregateDayStatus(normalized, targetSlots) === 'available';
+  }).length;
 
   const validTotal = totalMembers > 0 ? totalMembers : plannings.length;
   const ratio = validTotal > 0 ? availableCount / validTotal : 0;

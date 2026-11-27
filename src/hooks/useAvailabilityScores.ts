@@ -9,12 +9,14 @@ interface UseAvailabilityScoresParams {
   event?: Event | null;
   plannings: GroupPlanning[];
   memberIds: string[];
+  allEvents?: Event[];
 }
 
 export const useAvailabilityScores = ({
   event,
   plannings,
   memberIds,
+  allEvents,
 }: UseAvailabilityScoresParams) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
     if (event?.startDate) {
@@ -53,8 +55,10 @@ export const useAvailabilityScores = ({
       participations: event.participations,
       allMemberIds: memberIds,
       calendarMonth: currentMonth,
+      currentEventId: event.id,
+      existingEvents: allEvents,
     });
-  }, [event, plannings, memberIds, currentMonth]);
+  }, [event, plannings, memberIds, currentMonth, allEvents]);
 
   const topDates = useMemo(() => {
     return availabilityService.getTopDates(dateScoresMap, 3);

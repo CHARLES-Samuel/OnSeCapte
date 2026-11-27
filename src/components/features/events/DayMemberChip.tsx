@@ -8,15 +8,21 @@ export interface DayMemberChipProps {
   profile?: MemberProfile;
   isMe: boolean;
   status: 'available' | 'maybe' | 'unavailable';
+  busyEventTitles?: string[];
 }
 
 export const DayMemberChip: React.FC<DayMemberChipProps> = ({
   profile,
   isMe,
   status,
+  busyEventTitles,
 }) => {
   const displayName = profile?.displayName || 'Membre';
-  const fullTooltip = isMe ? `${displayName} (Vous)` : displayName;
+  const baseTooltip = isMe ? `${displayName} (Vous)` : displayName;
+  const isBusyElsewhere = Boolean(busyEventTitles && busyEventTitles.length > 0);
+  const fullTooltip = isBusyElsewhere
+    ? `${baseTooltip} — Participe déjà à : ${busyEventTitles!.join(', ')}`
+    : baseTooltip;
 
   const statusConfig = {
     available: {
@@ -58,6 +64,15 @@ export const DayMemberChip: React.FC<DayMemberChipProps> = ({
       {isMe && (
         <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-500/25 text-primary-300 border border-primary-500/40">
           Moi
+        </span>
+      )}
+
+      {isBusyElsewhere && (
+        <span
+          className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30"
+          title={`Participe déjà à : ${busyEventTitles!.join(', ')}`}
+        >
+          Déjà pris
         </span>
       )}
     </div>

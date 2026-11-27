@@ -1,6 +1,7 @@
 import { 
   collection, doc, addDoc, getDoc, getDocs, query, where, 
-  onSnapshot, updateDoc, deleteDoc, serverTimestamp, Timestamp, deleteField
+  onSnapshot, updateDoc, deleteDoc, serverTimestamp, Timestamp, deleteField,
+  type DocumentData, type UpdateData
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import type { IEventService } from "../interfaces/IEventService";
@@ -88,7 +89,7 @@ export class FirestoreEventService implements IEventService {
       throw new Error("La plage de dates sélectionnée est entièrement dans le passé.");
     }
 
-    const eventData: Record<string, any> = {
+    const eventData: Record<string, unknown> = {
       ...data,
       createdBy: userId,
       createdByName: userName,
@@ -134,10 +135,16 @@ export class FirestoreEventService implements IEventService {
       throw new Error("Impossible de fixer une date à un jour déjà passé.");
     }
     
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: UpdateData<DocumentData> = {};
     Object.entries(data).forEach(([key, value]) => {
       updatePayload[key] = value === undefined ? deleteField() : value;
     });
+
+    if (data.dateMode === 'fixed' && eventData.state === 'sondage') {
+      updatePayload.state = 'planifie';
+    } else if (data.dateMode && data.dateMode !== 'fixed' && eventData.dateMode === 'fixed') {
+      updatePayload.state = 'sondage';
+    }
 
     await updateDoc(eventRef, updatePayload);
   }

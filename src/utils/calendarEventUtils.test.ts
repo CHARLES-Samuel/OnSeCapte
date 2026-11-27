@@ -138,6 +138,39 @@ describe('calendarEventUtils', () => {
       expect(consensus.shortText).toBe('4/5');
       expect(consensus.text).toBe('4 sur 5 disponibles');
     });
+
+    it('decrements availableCount when members participate in another confirmed or fixed event on the same date', () => {
+      const plannings: GroupPlanning[] = [
+        { userId: 'u1', dates: { '2026-12-31': { morning: 'available', afternoon: 'available', evening: 'available' } }, updatedAt: 0 },
+        { userId: 'u2', dates: { '2026-12-31': 'available' }, updatedAt: 0 },
+        { userId: 'u3', dates: { '2026-12-31': 'available' }, updatedAt: 0 },
+      ];
+
+      const fixedEvent = createBaseEvent({
+        id: 'evt-nye',
+        title: 'Nouvel An',
+        state: 'planifie',
+        dateMode: 'fixed',
+        finalDate: '2026-12-31',
+        participations: { u1: 'participating', u2: 'not_participating' },
+      });
+
+      const pollEvent = createBaseEvent({
+        id: 'evt-other',
+        title: 'Autre sortie',
+        state: 'sondage',
+        dates: ['2026-12-31'],
+      });
+
+      const consensus = getEventConsensus('2026-12-31', plannings, 3, {
+        currentEvent: pollEvent,
+        allEvents: [fixedEvent, pollEvent],
+      });
+
+      expect(consensus.availableCount).toBe(2);
+      expect(consensus.shortText).toBe('2/3');
+      expect(consensus.text).toBe('2 sur 3 disponibles');
+    });
   });
 
   describe('getEventChipAriaLabel', () => {

@@ -1,10 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DayAvailabilityDetails } from './DayAvailabilityDetails';
 import type { DateAvailabilityScore } from '../../../models/Availability';
 import type { MemberProfile } from '../../../models/Group';
 
 describe('DayAvailabilityDetails', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-12T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   const mockProfiles: Record<string, MemberProfile> = {
     'u-1': { uid: 'u-1', displayName: 'Lucas Martinati' },
     'u-2': { uid: 'u-2', displayName: 'Alice Dupont Très Long Nom De Famille' },
@@ -196,5 +204,34 @@ describe('DayAvailabilityDetails', () => {
     expect(screen.getByText('Membre 9')).toBeInTheDocument();
     expect(screen.getByText('Membre 12')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Voir moins/i })).toBeInTheDocument();
+  });
+
+  it('displays Déjà pris badge for unavailable members who participate in another confirmed/fixed event on that date', () => {
+    const scoreWithConflict: DateAvailabilityScore = {
+      ...mockScore,
+      unavailable: ['u-6', 'u-7'],
+      busyReasons: {
+        'u-6': ['Nouvel An'],
+      },
+    };
+
+    render(
+      <DayAvailabilityDetails
+        dateStr="2026-12-31"
+        score={scoreWithConflict}
+        memberProfiles={mockProfiles}
+        canLock={false}
+        isLocked={false}
+      />
+    );
+
+    // Ouvrir l'accordéon des Indisponibles
+    const unavailableHeader = screen.getByRole('button', { name: /Indisponibles/i });
+    fireEvent.click(unavailableHeader);
+
+    expect(screen.getByText('Emma')).toBeInTheDocument();
+    const busyBadge = screen.getByText('Déjà pris');
+    expect(busyBadge).toBeInTheDocument();
+    expect(busyBadge).toHaveAttribute('title', 'Participe déjà à : Nouvel An');
   });
 });

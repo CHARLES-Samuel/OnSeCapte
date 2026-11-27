@@ -9,6 +9,7 @@ import { validateEventDateSelection } from '../../../utils/dateUtils';
 
 interface EventSynthesisProps {
   event: Event;
+  allEvents?: Event[];
   respondedMembers: number;
   totalMembers: number;
   participations?: Record<string, EventParticipation>;
@@ -24,6 +25,7 @@ interface EventSynthesisProps {
 
 export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   event,
+  allEvents,
   respondedMembers,
   totalMembers,
   participations = {},
@@ -108,6 +110,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
       {!isLocked && (
         <AvailabilityHeatmapCalendar
           event={event}
+          allEvents={allEvents}
           plannings={plannings}
           memberProfiles={memberProfiles}
           memberIds={memberIds.length > 0 ? memberIds : Object.keys(memberProfiles)}

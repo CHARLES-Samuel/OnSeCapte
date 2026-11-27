@@ -9,6 +9,7 @@ interface DayStatusAccordionProps {
   unavailable: string[];
   memberProfiles: Record<string, MemberProfile>;
   currentUserId?: string;
+  busyReasons?: Record<string, string[]>;
 }
 
 const MAX_DISPLAY_COUNT = 8;
@@ -30,6 +31,7 @@ export const DayStatusAccordion: React.FC<DayStatusAccordionProps> = ({
   unavailable,
   memberProfiles,
   currentUserId,
+  busyReasons,
 }) => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     available: true,
@@ -145,6 +147,7 @@ export const DayStatusAccordion: React.FC<DayStatusAccordionProps> = ({
                           profile={memberProfiles[uid]}
                           isMe={uid === currentUserId}
                           status={section.id}
+                          busyEventTitles={section.id === 'unavailable' ? busyReasons?.[uid] : undefined}
                         />
                       ))}
                     </div>

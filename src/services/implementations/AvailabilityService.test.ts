@@ -320,6 +320,121 @@ describe('AvailabilityService', () => {
       const topMulti = service.getTopSlots(afternoonEveningScores, 3);
       expect(topMulti.every((s) => s.slot === 'afternoon' || s.slot === 'evening')).toBe(true);
     });
+
+    it('decrements availability across the whole date when a member participates in a fixed or confirmed event (e.g. Nouvel An on the 31st)', () => {
+      const plannings: GroupPlanning[] = [
+        {
+          userId: 'user1',
+          dates: {
+            '2026-12-30': { morning: 'available', afternoon: 'available', evening: 'available' },
+            '2026-12-31': { morning: 'available', afternoon: 'available', evening: 'available' },
+          },
+          updatedAt: Date.now(),
+        },
+        {
+          userId: 'user2',
+          dates: {
+            '2026-12-30': { morning: 'available', afternoon: 'available', evening: 'available' },
+            '2026-12-31': { morning: 'available', afternoon: 'available', evening: 'available' },
+          },
+          updatedAt: Date.now(),
+        },
+        {
+          userId: 'user3',
+          dates: {
+            '2026-12-30': 'unavailable',
+            '2026-12-31': 'available',
+          },
+          updatedAt: Date.now(),
+        },
+      ];
+
+      const nouvelAnFixedEvent = {
+        id: 'evt-nouvel-an',
+        groupId: 'grp-1',
+        title: 'Nouvel An',
+        description: 'Réveillon du 31',
+        category: 'Soirée' as const,
+        price: 0,
+        createdBy: 'user1',
+        createdAt: Date.now(),
+        state: 'planifie' as const,
+        dateMode: 'fixed' as const,
+        finalDate: '2026-12-31',
+        finalTimeSlot: 'Soirée' as const,
+        participations: {
+          user1: 'participating' as const,
+          user2: 'participating' as const,
+          user3: 'not_participating' as const, // user3 ne va pas au Nouvel An => reste dispo le 31 !
+        },
+      };
+
+      const scoresForOtherEvent = service.calculateAvailability({
+        currentEventId: 'evt-other',
+        existingEvents: [nouvelAnFixedEvent],
+        plannings,
+        allMemberIds: ['user1', 'user2', 'user3'],
+        dateMode: 'any',
+      });
+
+      const dec31 = scoresForOtherEvent.get('2026-12-31');
+      expect(dec31).toBeDefined();
+      // user1 et user2 participent au Nouvel An le 31 => décomptés sur toute la journée du 31 !
+      // Seul user3 reste disponible (1/3 au lieu de 3/3)
+      expect(dec31?.available).toEqual(['user3']);
+      expect(dec31?.unavailable).toEqual(['user1', 'user2']);
+      expect(dec31?.slots?.morning.available).toEqual(['user3']);
+      expect(dec31?.slots?.afternoon.available).toEqual(['user3']);
+      expect(dec31?.slots?.evening.available).toEqual(['user3']);
+      expect(dec31?.busyReasons).toEqual({
+        user1: ['Nouvel An'],
+        user2: ['Nouvel An'],
+      });
+
+      // Le 30 décembre (2 dispos : user1 et user2) passe devant le 31 décembre (1 dispo) au Podium !
+      expect(scoresForOtherEvent.get('2026-12-30')?.rank).toBe(1);
+      expect(dec31?.rank).toBe(2);
+    });
+
+    it('decrements availability when another poll event has been confirmed (state: planifie), but NOT when still in sondage', () => {
+      const plannings: GroupPlanning[] = [
+        { userId: 'u1', dates: { '2026-10-25': 'available' }, updatedAt: 0 },
+        { userId: 'u2', dates: { '2026-10-25': 'maybe' }, updatedAt: 0 },
+      ];
+
+      const confirmedEvent = {
+        id: 'evt-confirmed',
+        groupId: 'grp-1',
+        title: 'Resto Confirmé',
+        description: '',
+        category: 'Restaurant' as const,
+        price: 25,
+        createdBy: 'u1',
+        createdAt: 0,
+        state: 'planifie' as const,
+        dateMode: 'any' as const,
+        finalDate: '2026-10-25',
+        finalTimeSlot: 'Soirée' as const,
+        participations: {
+          u1: 'participating' as const,
+          u2: 'participating' as const,
+        },
+      };
+
+      const scoresWithConfirmed = service.calculateAvailability({
+        currentEventId: 'evt-second',
+        existingEvents: [confirmedEvent],
+        plannings,
+        allMemberIds: ['u1', 'u2'],
+        dateMode: 'any',
+      });
+
+      const oct25 = scoresWithConfirmed.get('2026-10-25');
+      expect(oct25?.available).toEqual([]);
+      expect(oct25?.maybe).toEqual([]);
+      expect(oct25?.unavailable).toEqual(['u1', 'u2']);
+      expect(oct25?.count).toBe(0);
+    });
   });
 });
 

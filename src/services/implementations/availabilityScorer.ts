@@ -25,8 +25,7 @@ export function getDatesToEvaluate(
 ): Set<string> {
   const dates = new Set<string>();
   if (dateMode === 'range' && startDate && endDate) {
-    const rangeDays = getDateRangeDays(startDate, endDate);
-    rangeDays.forEach((d) => dates.add(d));
+    getDateRangeDays(startDate, endDate).forEach((d) => dates.add(d));
   } else {
     plannings.forEach((p) => {
       if (p.dates) {
@@ -51,21 +50,22 @@ export function calculateSlotScore(
   allMemberIds: string[],
   plannings: AvailabilityCalculationParams['plannings'],
   participations: Record<string, string>,
-  totalTarget: number
+  totalTarget: number,
+  busyOnDate?: ReadonlyMap<string, string[]>,
+  busyReasons?: Record<string, string[]>
 ): DateAvailabilityScore {
   const available: string[] = [];
   const maybe: string[] = [];
   const unavailable: string[] = [];
 
   allMemberIds.forEach((uid) => {
-    if (participations[uid] === 'not_participating') {
+    if (participations[uid] === 'not_participating' || busyOnDate?.has(uid)) {
       unavailable.push(uid);
       return;
     }
 
     const userPlanning = plannings.find((p) => p.userId === uid);
-    const normalizedSlots = normalizeSlotsAvailability(userPlanning?.dates?.[dateStr]);
-    const status = normalizedSlots[slot];
+    const status = normalizeSlotsAvailability(userPlanning?.dates?.[dateStr])[slot];
 
     if (status === 'available') {
       available.push(uid);
@@ -76,9 +76,6 @@ export function calculateSlotScore(
     }
   });
 
-  const score = available.length * 2 + maybe.length;
-  const availableRatio = totalTarget > 0 ? available.length / totalTarget : 0;
-
   return {
     date: dateStr,
     slot,
@@ -86,10 +83,11 @@ export function calculateSlotScore(
     available,
     maybe,
     unavailable,
-    score,
-    availableRatio,
+    score: available.length * 2 + maybe.length,
+    availableRatio: totalTarget > 0 ? available.length / totalTarget : 0,
     count: available.length + maybe.length,
     totalMembers: totalTarget,
+    ...(busyReasons ? { busyReasons } : {}),
   };
 }
 
@@ -100,7 +98,9 @@ export function calculateDayAggregatedScore(
   participations: Record<string, string>,
   totalTarget: number,
   slots: Record<DaySlot, DateAvailabilityScore>,
-  timePreference?: DaySlot[]
+  timePreference?: DaySlot[],
+  busyOnDate?: ReadonlyMap<string, string[]>,
+  busyReasons?: Record<string, string[]>
 ): DateAvailabilityScore {
   const available: string[] = [];
   const maybe: string[] = [];
@@ -108,7 +108,7 @@ export function calculateDayAggregatedScore(
   const targetSlots = getEffectiveDaySlots(timePreference);
 
   allMemberIds.forEach((uid) => {
-    if (participations[uid] === 'not_participating') {
+    if (participations[uid] === 'not_participating' || busyOnDate?.has(uid)) {
       unavailable.push(uid);
       return;
     }
@@ -126,20 +126,18 @@ export function calculateDayAggregatedScore(
     }
   });
 
-  const score = available.length * 2 + maybe.length;
-  const availableRatio = totalTarget > 0 ? available.length / totalTarget : 0;
-
   return {
     date: dateStr,
     timeSlot: 'Toute la journée',
     available,
     maybe,
     unavailable,
-    score,
-    availableRatio,
+    score: available.length * 2 + maybe.length,
+    availableRatio: totalTarget > 0 ? available.length / totalTarget : 0,
     count: available.length + maybe.length,
     totalMembers: totalTarget,
     slots,
+    ...(busyReasons ? { busyReasons } : {}),
   };
 }
 
@@ -163,15 +161,9 @@ export function assignPodiumRanks(
   });
 
   candidateSlots.sort((a, b) => {
-    if (b.available.length !== a.available.length) {
-      return b.available.length - a.available.length;
-    }
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
-    if (a.date !== b.date) {
-      return a.date.localeCompare(b.date);
-    }
+    if (b.available.length !== a.available.length) return b.available.length - a.available.length;
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
     const order: Record<DaySlot, number> = { morning: 1, afternoon: 2, evening: 3 };
     return (order[a.slot || 'morning'] || 0) - (order[b.slot || 'morning'] || 0);
   });

@@ -150,7 +150,10 @@ export const GroupPlanningDayCell: React.FC<GroupPlanningDayCellProps> = ({
       {showEvents && (
         <div className="hidden sm:flex flex-col gap-1 mt-1 w-full flex-1 justify-start overflow-hidden">
           {visibleEvents.map((evt) => {
-            const consensus = getEventConsensus(dateStr, plannings, totalMembers);
+            const consensus = getEventConsensus(dateStr, plannings, totalMembers, {
+              currentEvent: evt,
+              allEvents: events,
+            });
             return (
               <CalendarEventChip
                 key={`${evt.id}-${dateStr}`}

@@ -175,6 +175,10 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
     - Restriction aux personnes habilitées (organisateur / chef de groupe) avec note informative sinon.
     - **Modale de confirmation obligatoire :** Récapitule la date et le créneau choisis, rappelle le décompte de présence, prévient en cas de membres absents ou non confirmés, et rappelle la possibilité de réouverture du sondage en cas d'imprévu.
 
+- **Décompte Automatique des Conflits d'Événements Confirmés ou à Date Fixe (`eventConflictUtils`, `AvailabilityService` & `DayMemberChip`) :**
+  - **Priorité aux sorties arrêtées :** Dès qu'un membre indique **« Je participe »** sur un événement à date fixe (ex. *Nouvel An le 31*) ou sur un événement dont la date a été confirmée (`state: 'planifie'`), sa disponibilité est **automatiquement décomptée sur toute cette journée** pour l'ensemble des autres événements du groupe (sans écraser ses saisies dans son planning personnel).
+  - **Répercussion intégrale en temps réel :** La décrémentation s'applique simultanément sur l'intensité de la Heatmap (Vue Jour et Vue Créneaux), le classement du Podium Top 3, les listes nominatives du jour et les pastilles de consensus de l'onglet Planning (`X/Y`).
+  - **Réversibilité transparente & Badge explicatif « Déjà pris » :** Si l'événement fixe/confirmé est supprimé, rouvert au sondage ou si le membre passe à *« Pas dispo »*, sa disponibilité redevient immédiatement comptabilisée ailleurs. Dans la ventilation nominative du jour (`DayAvailabilityDetails`), un badge **« Déjà pris »** (avec infobulle précisant le nom de la sortie retenue) explique clairement l'indisponibilité du membre.
 - **Architecture Ports & Adapters (`IAvailabilityService` & `AvailabilityService`) :**
   - Calcul algorithmique pur isolé dans un service TypeScript strict (zéro `any`, sans effet de bord, indépendant de React et de Firebase), garantissant une testabilité unitaire totale.
 - **Gestion Unifiée des Disponibilités & Initialisation à la Volée :**
@@ -271,7 +275,7 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - Découpage strict des composants respectant la limite de 150-200 lignes (`GroupHeader`, `GroupEventsTab`, `EventListItem`, `EventCard`, `EventSortDropdown`, `EventViewToggle`, `EventFixedParticipantsList`, `MemberRow`, `MemberManagementPanel`, `GroupStatsPanel`).
   - **Inversion des Dépendances (DIP)** : Ni les composants React ni les Custom Hooks ne dépendent directement de Firebase Firestore. Tout transite par les interfaces de services (`IGroupService`, `IEventService`, etc.).
 - **Typage Strict** : TypeScript strict, zéro `any`, gestion sécurisée des erreurs.
-- **Logique métier isolée** : `eventSortUtils.ts` (tri chronologique intelligent), `eventParticipationUtils.ts` (calcul des participations) et `eventStatsUtils.ts` sont des fonctions **pures** (zéro effet de bord, zéro dépendance externe), hautement modulaires et testables.
+- **Logique métier isolée** : `eventSortUtils.ts` (tri chronologique intelligent), `eventConflictUtils.ts` (détection pure des conflits de dates confirmées/fixes), `eventParticipationUtils.ts` (calcul des participations) et `eventStatsUtils.ts` sont des fonctions **pures** (zéro effet de bord, zéro dépendance externe), hautement modulaires et testables.
 - **Architecture de Sécurité & Règles Firestore Durcies** :
   - **Cloisonnement Strict des Groupes Privés** : Seuls les membres actifs et le propriétaire peuvent lire ou lister un groupe (`allow list` et `allow get` restreints). Aucun non-membre ne peut sonder ou inspecter les groupes privés.
   - **Registre Anti-Énumération (`inviteCodes`)** : Les codes d'invitation sont isolés dans une collection dédiée indexée par code (`O(1)`). L'énumération globale est formellement interdite (`allow list: if false`), bloquant tout moissonage ou scraping automatisé.

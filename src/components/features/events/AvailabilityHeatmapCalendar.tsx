@@ -15,6 +15,7 @@ import {
 
 interface AvailabilityHeatmapCalendarProps {
   event: Event;
+  allEvents?: Event[];
   plannings: GroupPlanning[];
   memberProfiles: Record<string, MemberProfile>;
   memberIds: string[];
@@ -28,6 +29,7 @@ const WEEK_DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarProps> = ({
   event,
+  allEvents,
   plannings,
   memberProfiles,
   memberIds,
@@ -44,7 +46,7 @@ export const AvailabilityHeatmapCalendar: React.FC<AvailabilityHeatmapCalendarPr
     goToPreviousMonth,
     goToNextMonth,
     goToDateMonth,
-  } = useAvailabilityScores({ event, plannings, memberIds });
+  } = useAvailabilityScores({ event, plannings, memberIds, allEvents });
 
   const [viewMode, setViewMode] = useState<'day' | 'slots'>('day');
   const [selectedSlot, setSelectedSlot] = useState<DaySlot | null>(null);

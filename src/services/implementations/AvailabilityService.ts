@@ -7,6 +7,10 @@ import type { IAvailabilityService } from '../interfaces/IAvailabilityService';
 import { isDateInRange } from '../../utils/dateUtils';
 import { DAY_SLOTS } from '../../utils/timeSlotUtils';
 import {
+  buildBusyMembersByDate,
+  extractBusyReasonsForMembers,
+} from '../../utils/eventConflictUtils';
+import {
   getDatesToEvaluate,
   calculateSlotScore,
   calculateDayAggregatedScore,
@@ -24,12 +28,15 @@ export class AvailabilityService implements IAvailabilityService {
       participations = {},
       allMemberIds,
       calendarMonth,
+      currentEventId,
+      existingEvents = [],
     } = params;
 
     const candidateUserIds = allMemberIds.filter(
       (uid) => participations[uid] !== 'not_participating'
     );
     const totalTarget = candidateUserIds.length > 0 ? candidateUserIds.length : allMemberIds.length;
+    const busyByDate = buildBusyMembersByDate(existingEvents, currentEventId);
 
     const datesToEvaluate = getDatesToEvaluate(dateMode, startDate, endDate, plannings, calendarMonth);
     const scoresList: DateAvailabilityScore[] = [];
@@ -39,10 +46,13 @@ export class AvailabilityService implements IAvailabilityService {
         return;
       }
 
+      const busyOnDate = busyByDate.get(dateStr);
+      const busyReasons = extractBusyReasonsForMembers(busyOnDate, allMemberIds);
+
       // Calcul pour chaque créneau individuel (morning, afternoon, evening)
-      const morningScore = calculateSlotScore(dateStr, 'morning', allMemberIds, plannings, participations, totalTarget);
-      const afternoonScore = calculateSlotScore(dateStr, 'afternoon', allMemberIds, plannings, participations, totalTarget);
-      const eveningScore = calculateSlotScore(dateStr, 'evening', allMemberIds, plannings, participations, totalTarget);
+      const morningScore = calculateSlotScore(dateStr, 'morning', allMemberIds, plannings, participations, totalTarget, busyOnDate, busyReasons);
+      const afternoonScore = calculateSlotScore(dateStr, 'afternoon', allMemberIds, plannings, participations, totalTarget, busyOnDate, busyReasons);
+      const eveningScore = calculateSlotScore(dateStr, 'evening', allMemberIds, plannings, participations, totalTarget, busyOnDate, busyReasons);
 
       // Calcul pour la journée agrégée (filtré sur timePreference si défini, sinon tous les créneaux)
       const dayScore = calculateDayAggregatedScore(
@@ -52,7 +62,9 @@ export class AvailabilityService implements IAvailabilityService {
         participations,
         totalTarget,
         { morning: morningScore, afternoon: afternoonScore, evening: eveningScore },
-        timePreference
+        timePreference,
+        busyOnDate,
+        busyReasons
       );
 
       scoresList.push(dayScore);
