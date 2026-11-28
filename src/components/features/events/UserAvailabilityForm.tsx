@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { EventParticipation } from '../../../models/Event';
 import type { MemberProfile } from '../../../models/Group';
-import { CheckCircle, XCircle, AlertTriangle, CalendarDays, Info } from 'lucide-react';
+import { CheckCircle, HelpCircle, XCircle, AlertTriangle, CalendarDays, Info } from 'lucide-react';
 import { Toast } from '../../ui/Toast';
 import { useNavigate } from 'react-router-dom';
 import { EventParticipationButtons } from './EventParticipationButtons';
@@ -44,7 +44,11 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
 
   const effectiveParticipations = useMemo(() => {
     if (!currentUserId) return participations;
-    if (participation === 'participating' || participation === 'not_participating') {
+    if (
+      participation === 'participating' ||
+      participation === 'maybe' ||
+      participation === 'not_participating'
+    ) {
       return {
         ...participations,
         [currentUserId]: participation,
@@ -66,6 +70,8 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
       setToastMessage(
         newParticipation === 'not_participating'
           ? 'Votre indisponibilité a été prise en compte.'
+          : newParticipation === 'maybe'
+          ? 'Votre réponse « Je ne sais pas » a été enregistrée.'
           : 'Votre participation a bien été enregistrée ✓'
       );
       setShowToast(true);
@@ -109,6 +115,11 @@ export const UserAvailabilityForm: React.FC<UserAvailabilityFormProps> = ({
             <>
               <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />
               <span>Tu es inscrit(e) à cet événement. Un imprévu ? Clique sur "Pas dispo".</span>
+            </>
+          ) : participation === 'maybe' ? (
+            <>
+              <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+              <span>Tu as indiqué ne pas encore savoir si tu seras présent(e).</span>
             </>
           ) : (
             <>

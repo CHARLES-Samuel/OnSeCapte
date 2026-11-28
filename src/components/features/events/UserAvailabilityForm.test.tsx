@@ -96,5 +96,36 @@ describe('UserAvailabilityForm', () => {
 
     expect(screen.queryByText(/Statut des membres/i)).not.toBeInTheDocument();
   });
+
+  it('allows selecting "Je ne sais pas" and updates member status immediately', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter>
+        <UserAvailabilityForm
+          isLocked={false}
+          currentUserResponse="pending"
+          onSave={onSave}
+          hasCompletedPlanning={true}
+          groupId="group-1"
+          participations={{}}
+          memberProfiles={memberProfiles}
+          currentUserId="me-uid"
+          showMemberStatuses={true}
+        />
+      </MemoryRouter>
+    );
+
+    const maybeBtn = screen.getByRole('button', { name: /je ne sais pas/i });
+    fireEvent.click(maybeBtn);
+
+    expect(screen.getByText('Statut des membres (1)')).toBeInTheDocument();
+    expect(screen.getByText('Samuel')).toBeInTheDocument();
+    expect(screen.getAllByText('Je ne sais pas').length).toBeGreaterThanOrEqual(2);
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith('maybe');
+    });
+  });
 });
 

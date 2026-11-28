@@ -60,6 +60,12 @@ export function useEventParticipation({
             message: 'Votre indisponibilité a été prise en compte.',
             variant: 'success',
           });
+        } else if (participation === 'maybe') {
+          setToastConfig({
+            isOpen: true,
+            message: 'Votre réponse « Je ne sais pas » a été enregistrée.',
+            variant: 'info',
+          });
         } else if (!result.hasFilledPlanning) {
           setToastConfig({
             isOpen: true,

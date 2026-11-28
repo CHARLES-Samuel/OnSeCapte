@@ -92,4 +92,27 @@ describe('useEventParticipation hook', () => {
     expect(result.current.toastConfig.isOpen).toBe(true);
     expect(result.current.toastConfig.message).toBe('Votre indisponibilité a été prise en compte.');
   });
+
+  it('enregistre la réponse "Je ne sais pas" (maybe) et affiche le message adapté', async () => {
+    vi.spyOn(eventParticipationService, 'processEventParticipation').mockResolvedValue({
+      success: true,
+      initializedPlanning: false,
+      hasFilledPlanning: true,
+    });
+
+    const { result } = renderHook(() =>
+      useEventParticipation({
+        groupId: 'group-1',
+        plannings: [],
+      })
+    );
+
+    await act(async () => {
+      await result.current.submitParticipation('event-1', 'maybe');
+    });
+
+    expect(result.current.toastConfig.isOpen).toBe(true);
+    expect(result.current.toastConfig.message).toBe('Votre réponse « Je ne sais pas » a été enregistrée.');
+    expect(result.current.toastConfig.variant).toBe('info');
+  });
 });

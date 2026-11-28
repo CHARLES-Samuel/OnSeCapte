@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, XCircle, Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, HelpCircle, XCircle, Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import type { EventParticipation } from '../../../models/Event';
 import type { MemberProfile } from '../../../models/Group';
 
@@ -21,7 +21,7 @@ export const EventMemberStatusList: React.FC<EventMemberStatusListProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const memberList = Object.entries(participations)
-    .filter(([, status]) => status === 'participating' || status === 'not_participating' || status === 'pending')
+    .filter(([, status]) => status === 'participating' || status === 'maybe' || status === 'not_participating' || status === 'pending')
     .map(([userId, status]) => ({ userId, status }))
     .sort((a, b) => {
       if (a.userId === currentUserId) return -1;
@@ -74,6 +74,11 @@ export const EventMemberStatusList: React.FC<EventMemberStatusListProps> = ({
                   <span className="text-emerald-400 font-semibold inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
                     <CheckCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                     <span>Participe</span>
+                  </span>
+                ) : member.status === 'maybe' ? (
+                  <span className="text-amber-400 font-semibold inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+                    <HelpCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    <span>Je ne sais pas</span>
                   </span>
                 ) : member.status === 'not_participating' ? (
                   <span className="text-red-400 font-semibold inline-flex items-center gap-1 shrink-0 whitespace-nowrap">

@@ -5,7 +5,7 @@ export type EventState = 'sondage' | 'planifie' | 'passe';
 export type TimeSlot = 'Matin' | 'Après-midi' | 'Soirée' | 'Toute la journée';
 export type EventDateMode = 'poll' | 'fixed' | 'range' | 'any';
 
-export type EventParticipation = 'participating' | 'not_participating' | 'pending';
+export type EventParticipation = 'participating' | 'maybe' | 'not_participating' | 'pending';
 
 export interface Event {
   id: string;
