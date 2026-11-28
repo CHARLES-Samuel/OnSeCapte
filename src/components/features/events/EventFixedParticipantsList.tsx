@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Users, CheckCircle, HelpCircle, XCircle, Clock } from 'lucide-react';
 import type { EventParticipation } from '../../../models/Event';
 import type { MemberProfile } from '../../../models/Group';
 import { UserAvatar } from '../../ui/UserAvatar';
@@ -23,8 +23,12 @@ export const EventFixedParticipantsList: React.FC<EventFixedParticipantsListProp
   }));
 
   const participatingList = memberList.filter((m) => m.status === 'participating');
+  const maybeList = memberList.filter((m) => m.status === 'maybe');
   const notParticipatingList = memberList.filter((m) => m.status === 'not_participating');
-  const pendingCount = Math.max(0, totalMembers - memberList.length);
+  const pendingCount = Math.max(
+    0,
+    totalMembers - participatingList.length - maybeList.length - notParticipatingList.length
+  );
 
   return (
     <div className="bg-slate-800/40 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-6">
@@ -85,6 +89,40 @@ export const EventFixedParticipantsList: React.FC<EventFixedParticipantsListProp
           </div>
         )}
       </div>
+
+      {/* Liste des incertains ("Je ne sais pas") */}
+      {maybeList.length > 0 && (
+        <div className="space-y-3 pt-3 border-t border-slate-800/60">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+            <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Je ne sais pas ({maybeList.length})</span>
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {maybeList.map(({ userId }) => {
+              const profile = memberProfiles[userId];
+              const isCurrentUser = userId === currentUserId;
+              return (
+                <div
+                  key={userId}
+                  className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/50 border border-amber-500/20"
+                >
+                  <UserAvatar
+                    photoUrl={profile?.photoURL}
+                    name={profile?.displayName || 'Membre'}
+                    size="sm"
+                    className="!w-6 !h-6 !text-[10px] shrink-0"
+                  />
+                  <span className="text-xs text-slate-300 truncate flex-1">
+                    {profile?.displayName || 'Membre'}{' '}
+                    {isCurrentUser && <span className="text-amber-400 font-semibold">(Moi)</span>}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Liste des indisponibles */}
       {notParticipatingList.length > 0 && (

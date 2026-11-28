@@ -5,6 +5,7 @@ interface EventVotingProgressBarProps {
   respondedMembers: number;
   totalMembers: number;
   participatingCount: number;
+  maybeCount?: number;
   unavailableCount: number;
   missingResponses: number;
 }
@@ -14,6 +15,7 @@ export const EventVotingProgressBar: React.FC<EventVotingProgressBarProps> = ({
   respondedMembers,
   totalMembers,
   participatingCount,
+  maybeCount = 0,
   unavailableCount,
   missingResponses,
 }) => {
@@ -31,7 +33,7 @@ export const EventVotingProgressBar: React.FC<EventVotingProgressBarProps> = ({
           }`}
         >
           {isLocked
-            ? `${participatingCount} présent(s) • ${unavailableCount} indispo.`
+            ? `${participatingCount} présent(s)${maybeCount > 0 ? ` • ${maybeCount} incertain(s)` : ''} • ${unavailableCount} indispo.`
             : `${respondedMembers} / ${totalMembers} membres`}
         </span>
       </div>

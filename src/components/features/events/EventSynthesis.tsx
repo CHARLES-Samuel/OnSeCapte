@@ -41,6 +41,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
   const isLocked = eventState === 'planifie';
   const memberList = Object.entries(participations).map(([userId, status]) => ({ userId, status }));
   const participatingCount = memberList.filter((m) => m.status === 'participating').length;
+  const maybeCount = memberList.filter((m) => m.status === 'maybe').length;
   const unavailableCount = memberList.filter((m) => m.status === 'not_participating').length;
   const missingResponses = totalMembers - respondedMembers;
 
@@ -92,6 +93,7 @@ export const EventSynthesis: React.FC<EventSynthesisProps> = ({
           respondedMembers={respondedMembers}
           totalMembers={totalMembers}
           participatingCount={participatingCount}
+          maybeCount={maybeCount}
           unavailableCount={unavailableCount}
           missingResponses={missingResponses}
         />

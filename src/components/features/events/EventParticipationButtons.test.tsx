@@ -16,13 +16,18 @@ describe('EventParticipationButtons', () => {
     );
 
     const participateBtn = screen.getByTitle('Je participe');
+    const maybeBtn = screen.getByTitle('Je ne sais pas');
     const declineBtn = screen.getByTitle('Pas disponible');
 
     expect(participateBtn).toBeInTheDocument();
+    expect(maybeBtn).toBeInTheDocument();
     expect(declineBtn).toBeInTheDocument();
 
     fireEvent.click(participateBtn);
     expect(handleSelect).toHaveBeenCalledWith('participating');
+
+    fireEvent.click(maybeBtn);
+    expect(handleSelect).toHaveBeenCalledWith('maybe');
 
     fireEvent.click(declineBtn);
     expect(handleSelect).toHaveBeenCalledWith('not_participating');
@@ -62,8 +67,14 @@ describe('EventParticipationButtons', () => {
     const participateBtn = screen.getByRole('button', { name: /je participe/i });
     expect(participateBtn).toHaveAttribute('aria-pressed', 'true');
 
+    const maybeBtn = screen.getByRole('button', { name: /je ne sais pas/i });
+    expect(maybeBtn).toHaveAttribute('aria-pressed', 'false');
+
     const declineBtn = screen.getByRole('button', { name: /pas dispo/i });
     expect(declineBtn).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(maybeBtn);
+    expect(handleSelect).toHaveBeenCalledWith('maybe');
 
     fireEvent.click(declineBtn);
     expect(handleSelect).toHaveBeenCalledWith('not_participating');

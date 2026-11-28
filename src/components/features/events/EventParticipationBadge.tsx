@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Clock } from 'lucide-react';
+import { Users, HelpCircle, Clock } from 'lucide-react';
 import type { Event } from '../../../models/Event';
 import { getEventParticipationStats } from '../../../utils/eventParticipationUtils';
 
@@ -16,13 +16,19 @@ export const EventParticipationBadge: React.FC<EventParticipationBadgeProps> = (
   className = '',
   showPending = true,
 }) => {
-  const { participatingCount, pendingCount } = getEventParticipationStats(event);
+  const { participatingCount, maybeCount, pendingCount } = getEventParticipationStats(event);
 
   const participantLabel = compact
     ? `${participatingCount} part.`
     : participatingCount <= 1
     ? `${participatingCount} participant`
     : `${participatingCount} participants`;
+
+  const maybeLabel = compact
+    ? `${maybeCount} ?`
+    : maybeCount <= 1
+    ? `${maybeCount} incertain`
+    : `${maybeCount} incertains`;
 
   const pendingLabel = compact
     ? `${pendingCount} att.`
@@ -44,6 +50,17 @@ export const EventParticipationBadge: React.FC<EventParticipationBadgeProps> = (
         <Users className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
         <span>{participantLabel}</span>
       </span>
+
+      {/* Badge incertains ("Je ne sais pas") */}
+      {maybeCount > 0 && (
+        <span
+          title={`${maybeCount} membre(s) ont répondu « Je ne sais pas »`}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border bg-amber-500/10 border-amber-500/25 text-amber-300"
+        >
+          <HelpCircle className="w-3 h-3 shrink-0 text-amber-400" aria-hidden="true" />
+          <span>{maybeLabel}</span>
+        </span>
+      )}
 
       {/* Badge réponses en attente (optionnel si > 0) */}
       {showPending && pendingCount > 0 && (

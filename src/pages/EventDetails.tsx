@@ -5,7 +5,7 @@ import { useGroupDetails } from '../hooks/useGroupDetails';
 import { useAuth } from '../hooks/useAuth';
 import type { TimeSlot, EventParticipation, CreateEventDTO } from '../models/Event';
 import { useGroupPlannings } from '../hooks/useGroupPlannings';
-import { ArrowLeft, CheckCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle, MapPin, ExternalLink, Calendar } from 'lucide-react';
+import { ArrowLeft, CheckCircle, HelpCircle, Trash2, Unlock, Edit, Loader2, UserX, AlertTriangle, MapPin, ExternalLink, Calendar } from 'lucide-react';
 import { formatDateShort } from '../utils/format';
 import { UserAvailabilityForm } from '../components/features/events/UserAvailabilityForm';
 import { EventSynthesis } from '../components/features/events/EventSynthesis';
@@ -303,6 +303,10 @@ export const EventDetails = () => {
                   {currentUserResponse === 'participating' ? (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Tu es inscrit(e)
+                    </span>
+                  ) : currentUserResponse === 'maybe' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full text-xs font-semibold">
+                      <HelpCircle className="w-3.5 h-3.5 text-amber-400" /> Je ne sais pas
                     </span>
                   ) : currentUserResponse === 'not_participating' ? (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/20 text-red-300 border border-red-500/30 rounded-full text-xs font-semibold">

@@ -435,6 +435,38 @@ describe('AvailabilityService', () => {
       expect(oct25?.unavailable).toEqual(['u1', 'u2']);
       expect(oct25?.count).toBe(0);
     });
+
+    it('downgrades available planning slots to maybe (+1 pt) when member participation is "maybe" ("Je ne sais pas")', () => {
+      const plannings: GroupPlanning[] = [
+        { userId: 'u1', dates: { '2026-11-10': 'available', '2026-11-11': 'unavailable' }, updatedAt: 0 },
+        { userId: 'u2', dates: { '2026-11-10': 'available', '2026-11-11': 'available' }, updatedAt: 0 },
+      ];
+
+      const scores = service.calculateAvailability({
+        plannings,
+        participations: {
+          u1: 'maybe',
+          u2: 'participating',
+        },
+        allMemberIds: ['u1', 'u2'],
+        dateMode: 'any',
+      });
+
+      const nov10 = scores.get('2026-11-10');
+      expect(nov10?.available).toEqual(['u2']);
+      expect(nov10?.maybe).toEqual(['u1']);
+      expect(nov10?.unavailable).toEqual([]);
+      expect(nov10?.score).toBe(3); // u2 (+2) + u1 (+1)
+      expect(nov10?.slots?.morning.available).toEqual(['u2']);
+      expect(nov10?.slots?.morning.maybe).toEqual(['u1']);
+
+      // Un membre en "maybe" mais indispo dans son planning reste indispo (0 pt)
+      const nov11 = scores.get('2026-11-11');
+      expect(nov11?.available).toEqual(['u2']);
+      expect(nov11?.maybe).toEqual([]);
+      expect(nov11?.unavailable).toEqual(['u1']);
+      expect(nov11?.score).toBe(2);
+    });
   });
 });
 

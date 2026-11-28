@@ -2,6 +2,7 @@ import type { Event, EventParticipation } from '../models/Event';
 
 export interface EventParticipationStats {
   participatingCount: number;
+  maybeCount: number;
   notParticipatingCount: number;
   pendingCount: number;
   totalResponses: number;
@@ -13,20 +14,23 @@ export interface EventParticipationStats {
 export const getEventParticipationStats = (event: Event): EventParticipationStats => {
   const participations = event.participations || {};
   let participatingCount = 0;
+  let maybeCount = 0;
   let notParticipatingCount = 0;
   let pendingCount = 0;
 
   Object.values(participations).forEach((status) => {
     if (status === 'participating') participatingCount++;
+    else if (status === 'maybe') maybeCount++;
     else if (status === 'not_participating') notParticipatingCount++;
     else if (status === 'pending') pendingCount++;
   });
 
   return {
     participatingCount,
+    maybeCount,
     notParticipatingCount,
     pendingCount,
-    totalResponses: participatingCount + notParticipatingCount + pendingCount,
+    totalResponses: participatingCount + maybeCount + notParticipatingCount + pendingCount,
   };
 };
 

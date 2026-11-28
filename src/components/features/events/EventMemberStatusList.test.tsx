@@ -16,10 +16,11 @@ describe('EventMemberStatusList', () => {
     'u-7': { uid: 'u-7', displayName: 'Gabriel' },
   };
 
-  it('displays counter, member pseudos, Moi badge first, and Participe / Pas dispo statuses', () => {
+  it('displays counter, member pseudos, Moi badge first, and Participe / Je ne sais pas / Pas dispo statuses', () => {
     const participations: Record<string, EventParticipation> = {
       'u-1': 'not_participating',
       'u-2': 'participating',
+      'u-3': 'maybe',
     };
 
     render(
@@ -30,10 +31,12 @@ describe('EventMemberStatusList', () => {
       />
     );
 
-    expect(screen.getByText('Statut des membres (2)')).toBeInTheDocument();
+    expect(screen.getByText('Statut des membres (3)')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
     expect(screen.getByText('Moi')).toBeInTheDocument();
     expect(screen.getByText('Participe')).toBeInTheDocument();
+    expect(screen.getByText('Charlie')).toBeInTheDocument();
+    expect(screen.getByText('Je ne sais pas')).toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Pas dispo')).toBeInTheDocument();
 

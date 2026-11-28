@@ -54,12 +54,12 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
         - **Menu « ⋯ » discret (`EventActionsMenu`) :** Regroupement des actions secondaires (Modifier, Supprimer) dans un menu contextuel déroulant, libérant un espace précieux à l'écran.
       - **Ligne 2 (Consensus, Date, Statut, Lieu & Participants) :**
         - Statut & date sous forme de badge horizontal compact (`EventListDateBadge`), lieu tronqué avec icône.
-        - Résumé des participants (`EventParticipationBadge` en mode compact) et boutons de participation rapide (*Présent* / *Pas dispo*).
+        - Résumé des participants (`EventParticipationBadge` en mode compact) et boutons de participation rapide (*Présent* / *Je ne sais pas* / *Pas dispo*).
       - **Ligne 3 (Description repliable) :** Si renseignée, aperçu textuel fluide avec possibilité de dépliage instantané en Markdown riche (`MarkdownView`) sans quitter la liste.
       - **Optimisation Mobile-First (360 px) :** Aucun débordement, aucun chevauchement, même sur les écrans les plus étroits.
   - **Tri Intelligent des Événements (`EventSortDropdown` & `eventSortUtils`) :** Menu déroulant moderne avec tri chronologique par date (*Prochains événements d'abord*, *Plus lointains d'abord*), par date de création récente, par prix (croissant / décroissant), ainsi que le **tri alphabétique par Catégorie** (*Catégorie : Ordre alphabétique* avec tri secondaire par date).
-  - **Nombre de Participants & Réponses en Direct (`EventParticipationBadge`) :** Chaque carte et chaque ligne affiche un badge récapitulatif clair indiquant le nombre de participants confirmés (*ex: "4 participants"*) ainsi que les réponses en attente (*ex: "2 en attente"*), offrant une visibilité immédiate sans ouvrir l'événement.
-  - **Actions rapides :** Possibilité de répondre directement (*Je participe* / *Pas dispo*) et d'accéder aux actions de modification/suppression depuis les cartes et lignes.
+  - **Nombre de Participants & Réponses en Direct (`EventParticipationBadge`) :** Chaque carte et chaque ligne affiche un badge récapitulatif clair indiquant le nombre de participants confirmés (*ex: "4 participants"*), les réponses incertaines (*ex: "1 incertain"* / *"1 ?"*) ainsi que les réponses en attente (*ex: "2 en attente"*), offrant une visibilité immédiate sans ouvrir l'événement.
+  - **Actions rapides :** Possibilité de répondre directement (*Je participe* / *Je ne sais pas* / *Pas dispo*) et d'accéder aux actions de modification/suppression depuis les cartes et lignes.
   - **Création & Détails complets :** Gestion avec modales, filtres par catégorie (`CategoryDropdown`) et par statut (*Tous*, *En recherche*, *À venir*, *Passés*). Lieu (avec lien Google Maps) et lien externe (réservation, menu...) intégrés.
 
 #### Onglet Planning & Visualisation des Événements (`GroupPlanningTab`)
@@ -187,15 +187,16 @@ L'interface est organisée en quatre **onglets** : **Événements**, **Planning*
   - **Feedback non bloquant :** Notification Toast instantanée confirmant la participation tout en rappelant avec bienveillance d'indiquer ses dates dans l'onglet Planning.
 - **Gestion de l'indisponibilité globale & Imprévus après date fixée :**
   - Possibilité de déclarer son indisponibilité totale en un clic.
-  - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu tant que l'événement n'est pas passé.
+  - **Maintien de la modification post-verrouillage :** Même lorsqu'une date définitive a été sélectionnée et l'événement verrouillé (`planifie`), chaque membre conserve la possibilité de se déclarer indisponible ("Pas dispo"), incertain ("Je ne sais pas") ou de reconfirmer sa présence ("Je participe") à tout moment en cas d'imprévu tant que l'événement n'est pas passé.
+  - **Corrélation « Je ne sais pas » ➔ Heatmap (« À confirmer ») :** Lorsqu'un membre répond *« Je ne sais pas »* sur un événement, ses créneaux *Dispo* dans son planning de groupe sont automatiquement plafonnés à *Peut-être / À confirmer* (+1 pt au lieu de +2 pts) dans le calcul des dates et le consensus de cet événement uniquement, sans jamais altérer son planning global ni ses disponibilités pour les autres sorties.
 - **Retour Visuel Immédiat & Statut des Membres en Direct sous les Boutons (`UserAvailabilityForm` & `EventMemberStatusList`) :**
-  - **Proximité Immédiate Action / Résultat :** Le bloc **« Statut des membres (N) »** est positionné directement sous les boutons **Je participe** / **Pas dispo** au sein de la carte *« Ta participation »* (sans doublon dans la colonne de droite `EventSynthesis`), évitant tout aller-retour ou défilement inutile sur desktop comme sur mobile.
-  - **Mise à Jour Optimiste & Temps Réel :** Dès qu'un membre clique sur ses boutons, sa propre ligne (affichée en tête avec le badge distinctif **Moi** et le statut *Participe* / *Pas dispo*) ainsi que le compteur se mettent à jour instantanément, tout en reflétant en direct les réponses des autres membres via Firestore (`onSnapshot`).
+  - **Proximité Immédiate Action / Résultat :** Le bloc **« Statut des membres (N) »** est positionné directement sous les boutons **Je participe** / **Je ne sais pas** / **Pas dispo** au sein de la carte *« Ta participation »* (sans doublon dans la colonne de droite `EventSynthesis`), évitant tout aller-retour ou défilement inutile sur desktop comme sur mobile.
+  - **Mise à Jour Optimiste & Temps Réel :** Dès qu'un membre clique sur ses boutons, sa propre ligne (affichée en tête avec le badge distinctif **Moi** et le statut *Participe* / *Je ne sais pas* / *Pas dispo*) ainsi que le compteur se mettent à jour instantanément, tout en reflétant en direct les réponses des autres membres via Firestore (`onSnapshot`).
   - **Gestion Sans Scroll Imbriqué des Grands Groupes :** Affichage épuré des 5 premières réponses avec bouton dépliable **« Voir tout (+X) » / « Voir moins »** évitant tout piège de double défilement tactile sur mobile, et troncature fluide garantie sans débordement dès `320px` de largeur.
   - État de chargement explicite et désactivation des boutons pendant la sauvegarde, accompagnés d'une notification Toast flottante auto-temporisée (3,5 secondes).
-  - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Indisponible* ou *Réponse en attente*).
+  - Badge dynamique dans la bannière d'événement confirmé indiquant clairement le statut individuel du membre (*Inscrit*, *Je ne sais pas*, *Indisponible* ou *Réponse en attente*).
 - **Affichage Épuré pour les Événements à Date Fixe (`EventFixedParticipantsList`) :**
-  - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), la vue calendrier de sondage est masquée au profit d'une liste claire et ciblée des participants inscrits et indisponibles.
+  - Pour les événements créés avec une date fixe (`dateMode: 'fixed'`), la vue calendrier de sondage est masquée au profit d'une liste claire et ciblée des participants inscrits, incertains (*Je ne sais pas*) et indisponibles.
 - **Verrouillage & Annulation (`unlockEventDate`) :** Le créateur ou le gérant peut fixer puis annuler la date finale avec confirmation modale (réservé aux événements issus d'un sondage de dates non encore passés).
 
 ### 5. Ergonomie, UI/UX & Responsive Design (Mobile 320px+ & Desktop)

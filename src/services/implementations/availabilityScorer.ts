@@ -68,7 +68,11 @@ export function calculateSlotScore(
     const status = normalizeSlotsAvailability(userPlanning?.dates?.[dateStr])[slot];
 
     if (status === 'available') {
-      available.push(uid);
+      if (participations[uid] === 'maybe') {
+        maybe.push(uid);
+      } else {
+        available.push(uid);
+      }
     } else if (status === 'maybe') {
       maybe.push(uid);
     } else {
@@ -118,7 +122,11 @@ export function calculateDayAggregatedScore(
     const dayStatus = aggregateDayStatus(normalizedSlots, targetSlots);
 
     if (dayStatus === 'available') {
-      available.push(uid);
+      if (participations[uid] === 'maybe') {
+        maybe.push(uid);
+      } else {
+        available.push(uid);
+      }
     } else if (dayStatus === 'maybe') {
       maybe.push(uid);
     } else {

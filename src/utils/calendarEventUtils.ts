@@ -97,7 +97,8 @@ export const getEventConsensus = (
 
   const availableCount = plannings.filter((p) => {
     if (!p.dates || !p.dates[dateStr]) return false;
-    if (currentEvent?.participations?.[p.userId] === 'not_participating') return false;
+    const userParticipation = currentEvent?.participations?.[p.userId];
+    if (userParticipation === 'not_participating' || userParticipation === 'maybe') return false;
     if (busyOnDate?.has(p.userId)) return false;
 
     const normalized = normalizeSlotsAvailability(p.dates[dateStr]);
